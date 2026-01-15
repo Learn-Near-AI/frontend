@@ -13,13 +13,13 @@ function ExampleHeader({ example, activeLanguage }) {
             <img 
               src={categoryIcon} 
               alt={example.category} 
-              className="w-8 h-8 md:w-12 md:h-12 object-contain flex-shrink-0"
+              className="w-8 h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
             />
           ) : (
             <div className="text-4xl flex-shrink-0">{categoryIcon}</div>
           )}
           <div>
-            <h1 className="text-xl md:text-3xl font-bold text-white mb-1">
+            <h1 className="text-xl md:text-2xl font-bold text-white mb-1">
               {example.name}
             </h1> 
             <p className="text-sm text-gray-400">
