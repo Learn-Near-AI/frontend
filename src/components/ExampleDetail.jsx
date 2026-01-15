@@ -3,6 +3,14 @@ import { ArrowLeft } from "lucide-react";
 import { exampleCode } from "../data/examples";
 import { testFunctions, hasTestFunctions } from "../data/testFunctions";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import {
   initWalletSelector,
   getActiveAccountId,
   getNearConfig,
@@ -727,11 +735,16 @@ function ExampleDetail({ example, onBack }) {
     navigator.clipboard.writeText(code);
   };
 
+  const [showResetDialog, setShowResetDialog] = useState(false);
+
   const handleResetCode = () => {
-    if (confirm("Reset code to original example?")) {
-      setCode(initialCode);
-      clearConsole();
-    }
+    setShowResetDialog(true);
+  };
+
+  const handleResetConfirm = () => {
+    setCode(initialCode);
+    clearConsole();
+    setShowResetDialog(false);
   };
 
   const generateTxHash = () => {
@@ -1003,6 +1016,32 @@ function ExampleDetail({ example, onBack }) {
         deployedContractId={deployedContractId}
         deploymentTxHash={deploymentTxHash}
       />
+
+      {/* Reset Confirmation Dialog */}
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reset Code</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to reset the code to the original example? All your changes will be lost.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setShowResetDialog(false)}
+              className="px-4 py-2 text-sm border border-[#3e3e42] rounded-lg text-gray-300 hover:bg-[#1a1b1f] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleResetConfirm}
+              className="px-4 py-2 text-sm bg-near-primary text-near-darker font-semibold rounded-lg hover:bg-[#00D689] transition-colors"
+            >
+              Reset
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -53,7 +53,7 @@ function CodeInAnyLanguage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left - Text */}
-          <div className="order-2 lg:order-1" data-aos="fade-up" data-aos-delay="100">
+          <div className="order-1" data-aos="fade-up" data-aos-delay="100">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
               Code in any language
             </h2>
@@ -63,7 +63,7 @@ function CodeInAnyLanguage() {
           </div>
 
           {/* Right - Languages List */}
-          <div className="order-1 lg:order-2 relative" data-aos="fade-up" data-aos-delay="200">
+          <div className="order-2 relative" data-aos="fade-up" data-aos-delay="200">
             <div className="flex items-center gap-6">
               {languages.map((lang, idx) => (
                 <div

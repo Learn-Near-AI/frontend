@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
+import { Toaster } from 'sonner'
 import { 
   ChevronDown,
   LogOut
@@ -156,6 +157,18 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#111216]">
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#111216',
+            border: '1px solid #3e3e42',
+            color: '#fff',
+          },
+          className: 'sonner-toast',
+        }}
+        theme="dark"
+      />
       {/* Navbar */}
       <Nav
         isDark={isDark}

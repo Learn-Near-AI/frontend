@@ -9,7 +9,7 @@ function NextEditSuggestions({ launchExamplesBrowser }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left - Text */}
-          <div className="order-2 lg:order-1" data-aos="fade-up" data-aos-delay="100">
+          <div className="order-1" data-aos="fade-up" data-aos-delay="100">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
               Learn by doing
             </h2>
@@ -26,7 +26,7 @@ function NextEditSuggestions({ launchExamplesBrowser }) {
           </div>
 
           {/* Right - Image  */}
-          <div className="relative" data-aos="fade-up" data-aos-delay="200">
+          <div className="relative order-2" data-aos="fade-up" data-aos-delay="200">
             <div className="relative rounded-xl overflow-hidden border-2 border-near-primary h-[400px] w-full">
               <img src="/assets/images/3.png" alt="AI Assistant" className="w-full h-full object-cover object-left" />
             </div>

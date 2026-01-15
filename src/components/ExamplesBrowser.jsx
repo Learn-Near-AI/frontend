@@ -7,6 +7,12 @@ import FiltersPanel from './FiltersPanel'
 import WelcomeContent from './WelcomeContent'
 import ExampleDetail from './ExampleDetail'
 import SuccessPage from './SuccessPage'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from './ui/sheet'
 
 function ExamplesBrowser({ isDark, toggleTheme }) {
   const [selectedExample, setSelectedExample] = useState(null)
@@ -15,7 +21,11 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('All')
   const [selectedCategories, setSelectedCategories] = useState(['All'])
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname)
-  const [sidebarVisible, setSidebarVisible] = useState(true)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024)
+  const [sidebarVisible, setSidebarVisible] = useState(() => {
+    // Hide sidebar by default on mobile, show on desktop
+    return window.innerWidth >= 1024
+  })
   const [expandedCategories, setExpandedCategories] = useState(() => {
     // Initialize all categories as collapsed by default
     return Object.keys(examplesData).reduce((acc, cat) => {
@@ -54,6 +64,22 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
       window.history.replaceState({}, '', `/examples/success?transactionHashes=${transactionHashes}`)
       window.location.href = `/examples/success?transactionHashes=${transactionHashes}`
     }
+  }, [])
+
+  // Handle window resize to update sidebar visibility
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024
+      setIsMobile(mobile)
+      if (window.innerWidth >= 1024) {
+        setSidebarVisible(true)
+      } else {
+        setSidebarVisible(false)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   // Flatten all examples for search
@@ -173,7 +199,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
         {/* Sidebar Toggle Button */}
         <button
           onClick={() => setSidebarVisible(!sidebarVisible)}
-          className={`absolute ${sidebarVisible ? 'left-[calc(20%-0.5rem)]' : 'left-0'} top-0 z-30 p-2 bg-[#111216] border border-[#3e3e42] rounded hover:bg-[#1a1b1f] transition-all duration-300 shadow-lg`}
+          className={`absolute ${sidebarVisible ? 'lg:left-[calc(20%-0.5rem)] left-0' : 'left-0'} top-0 z-30 p-2 bg-[#111216] border border-[#3e3e42] rounded hover:bg-[#1a1b1f] transition-all duration-300 shadow-lg`}
           aria-label={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
         >
           {sidebarVisible ? (
@@ -183,8 +209,29 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
           )}
         </button>
 
-        {/* Left Sidebar - 20% width */}
-        <div className={`w-1/5 border-r border-[#3e3e42] bg-[#111216] rounded-t-xl transition-all duration-300 ${sidebarVisible ? 'block' : 'hidden'} h-[calc(100vh)]`}>
+        {/* Mobile Sheet Sidebar */}
+        {isMobile && (
+          <Sheet open={sidebarVisible} onOpenChange={setSidebarVisible}>
+            <SheetContent side="left" className="w-full p-0">
+              <div className="h-full">
+                <CategorySidebar
+                  groupedExamples={groupedExamples}
+                  expandedCategories={expandedCategories}
+                  toggleCategory={toggleCategory}
+                  selectedExample={selectedExample}
+                  handleExampleSelect={(example) => {
+                    handleExampleSelect(example)
+                    setSidebarVisible(false)
+                  }}
+                  categoryIcons={categoryIcons}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        )}
+
+        {/* Desktop Sidebar - 20% width */}
+        <div className={`hidden lg:block lg:w-1/5 border-r border-[#3e3e42] bg-[#111216] rounded-t-xl h-[calc(100vh)] ${sidebarVisible ? '' : 'lg:hidden'}`}>
           <CategorySidebar
             groupedExamples={groupedExamples}
             expandedCategories={expandedCategories}

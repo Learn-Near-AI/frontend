@@ -6,7 +6,7 @@ function WelcomeContent({ filteredExamples, onExampleSelect }) {
   const featuredExamples = filteredExamples.slice(0, 6)
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="md:p-8 p-2 max-w-6xl mx-auto">
       {/* Welcome Message */}
       <div className="text-center mb-12" data-aos="fade-up">
         <div className="inline-flex items-center justify-center w-14 h-14 bg-near-primary/10 rounded-full mb-6">
@@ -49,10 +49,10 @@ function WelcomeContent({ filteredExamples, onExampleSelect }) {
       {featuredExamples.length > 0 && (
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="md:text-2xl text-xl font-bold text-white">
               Featured Examples
             </h2>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
+            <div className="md:flex items-center gap-2 text-sm text-gray-400 hidden">
               <Star className="h-4 w-4" />
               <span>Start with these popular examples</span>
             </div>

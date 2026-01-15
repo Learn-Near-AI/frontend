@@ -18,7 +18,7 @@ function Hero({ launchExamplesBrowser }) {
               onClick={launchExamplesBrowser}
               className="water-fill-button relative inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-[#111216] border border-[#3e3e42] rounded-lg overflow-hidden transition-all duration-200 z-10"
             >
-              <span className="relative z-10">Launch</span>
+              <span className="relative z-10 water-fill-text">Launch</span>
             </button>
           </div>
           
@@ -50,6 +50,14 @@ function Hero({ launchExamplesBrowser }) {
             
             .water-fill-button:hover {
               border-color: #00EC97;
+            }
+            
+            .water-fill-button .water-fill-text {
+              transition: color 0.3s ease;
+            }
+            
+            .water-fill-button:hover .water-fill-text {
+              color: #000;
             }
           `}</style>
 

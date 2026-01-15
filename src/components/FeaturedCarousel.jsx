@@ -52,7 +52,7 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
               <p className="text-sm text-gray-400 mb-4">
                 {example.category}
               </p>
-              <div className="flex items-center justify-end text-near-primary text-xs font-medium group-hover:gap-2 transition-all">
+              <div className="flex items-center justify-end text-gray-500 text-xs font-medium group-hover:gap-2 transition-all">
                 View example
                 <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
