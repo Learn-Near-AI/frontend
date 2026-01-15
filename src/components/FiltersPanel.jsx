@@ -70,7 +70,10 @@ function FiltersPanel({
           className="flex items-center gap-2 px-4 py-2 border border-[#3e3e42] rounded-lg bg-[#111216] text-white hover:bg-[#1a1b1f] transition-colors"
         >
           <span className="text-sm font-medium">
-            Difficulty: {selectedDifficulty}
+            <span className="sm:hidden">Difficulty</span>
+            <span className="hidden sm:inline">
+              Difficulty: {selectedDifficulty}
+            </span>
           </span>
           <ChevronDown
             className={`h-4 w-4 transition-transform ${

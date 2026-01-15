@@ -16,7 +16,7 @@ function SearchBar({ searchQuery, setSearchQuery }) {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder="Search examples by name, category, difficulty, or language..."
-        className="text-sm block w-full pl-10 pr-10 py-2 border border-[#3e3e42] rounded-lg bg-[#111216] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-near-primary focus:border-transparent"
+        className="text-sm block w-full pl-10 pr-10 py-2 border border-[#3e3e42] rounded-lg bg-[#111216] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-near-primary focus:border-transparent"
       />
       {searchQuery && (
         <button
