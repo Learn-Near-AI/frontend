@@ -34,12 +34,12 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
             <button
               key={example.id}
               onClick={() => onExampleSelect(example)}
-              className="bg-white dark:bg-near-dark rounded-xl p-6 border border-gray-200 dark:border-gray-800 hover:border-near-primary transition-all duration-300 transform hover:-translate-y-2 text-left group"
+              className="bg-[#111216] rounded-xl p-6 border border-[#3e3e42] hover:border-gray-500 transition-all duration-300 transform hover:-translate-y-2 text-left group"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">{languageIcon}</span>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-near-primary transition-colors">
+                  {/* <span className="text-2xl">{languageIcon}</span> */}
+                  <h3 className="text-lg font-bold text-white transition-colors">
                     {example.name}
                   </h3>
                 </div>
@@ -49,11 +49,11 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
                   {example.difficulty}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-gray-400 mb-4">
                 {example.category}
               </p>
-              <div className="flex items-center text-near-primary text-sm font-medium group-hover:gap-2 transition-all">
-                View Example
+              <div className="flex items-center justify-end text-near-primary text-xs font-medium group-hover:gap-2 transition-all">
+                View example
                 <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
@@ -66,17 +66,17 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
         <>
           <button
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white dark:bg-near-dark border border-gray-200 dark:border-gray-800 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-lg"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-[#111216] border border-[#3e3e42] rounded-full flex items-center justify-center hover:bg-[#1a1b1f] transition-colors shadow-lg"
             aria-label="Previous examples"
           >
-            <ChevronLeft className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <ChevronLeft className="h-5 w-5 text-gray-300" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-white dark:bg-near-dark border border-gray-200 dark:border-gray-800 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-lg"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-[#111216] border border-[#3e3e42] rounded-full flex items-center justify-center hover:bg-[#1a1b1f] transition-colors shadow-lg"
             aria-label="Next examples"
           >
-            <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <ChevronRight className="h-5 w-5 text-gray-300" />
           </button>
         </>
       )}
@@ -91,7 +91,7 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
               className={`w-2 h-2 rounded-full transition-all ${
                 index === currentIndex
                   ? 'bg-near-primary w-8'
-                  : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
+                  : 'bg-[#3e3e42] hover:bg-[#4a4a4f]'
               }`}
               aria-label={`Go to page ${index + 1}`}
             />

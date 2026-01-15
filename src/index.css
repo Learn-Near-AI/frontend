@@ -5,12 +5,39 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    background-color: #111216;
   }
   
   body {
-    @apply bg-white dark:bg-near-darker text-gray-900 dark:text-gray-100 transition-colors duration-300;
+    @apply bg-[#111216] text-gray-100 transition-colors duration-300;
     font-family: 'Finlandica', sans-serif;
+    background-color: #111216;
   }
+}
+
+/* Hide scrollbars across the app */
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+/* Global scrollbar hiding */
+* {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 @keyframes rotate-360 {
@@ -28,5 +55,11 @@
 
 .rotate-slower {
   animation: rotate-360 30s linear infinite;
+}
+
+/* Binary pattern background - Hero section (more visible) */
+.binary-pattern {
+  position: relative;
+  overflow: hidden;
 }
 

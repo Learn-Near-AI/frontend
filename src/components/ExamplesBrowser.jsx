@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { examplesData, categoryIcons, categoryOrder, WORKING_EXAMPLES } from '../data/examples'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CategorySidebar from './CategorySidebar'
 import SearchBar from './SearchBar'
 import FiltersPanel from './FiltersPanel'
@@ -12,8 +13,9 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   const [comingSoonExample, setComingSoonExample] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDifficulty, setSelectedDifficulty] = useState('All')
-  const [selectedCategories, setSelectedCategories] = useState([])
+  const [selectedCategories, setSelectedCategories] = useState(['All'])
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname)
+  const [sidebarVisible, setSidebarVisible] = useState(true)
   const [expandedCategories, setExpandedCategories] = useState(() => {
     // Initialize all categories as collapsed by default
     return Object.keys(examplesData).reduce((acc, cat) => {
@@ -83,7 +85,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     }
 
     // Category filter
-    if (selectedCategories.length > 0) {
+    if (selectedCategories.length > 0 && !selectedCategories.includes('All')) {
       filtered = filtered.filter(example => selectedCategories.includes(example.category))
     }
 
@@ -144,9 +146,9 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   const availableDifficulties = ['All', 'Beginner', 'Intermediate', 'Advanced']
 
   return (
-    <div className="min-h-screen pt-16 bg-gray-50 dark:bg-near-darker">
+    <div className="min-h-screen pt-16 bg-[#111216]">
       {/* Top Bar with Search and Filters */}
-      <div className="sticky top-16 z-40 bg-white dark:bg-near-dark border-b border-gray-200 dark:border-gray-800">
+      <div className="sticky top-16 z-40 bg-[#111216] border-b border-[#3e3e42]">
         <div className="flex items-center gap-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex-1">
             <SearchBar 
@@ -167,9 +169,22 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
       </div>
 
       {/* Main Layout */}
-      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 pt-6">
+      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 pt-6 relative">
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={() => setSidebarVisible(!sidebarVisible)}
+          className={`absolute ${sidebarVisible ? 'left-[calc(20%-0.5rem)]' : 'left-0'} top-0 z-30 p-2 bg-[#111216] border border-[#3e3e42] rounded hover:bg-[#1a1b1f] transition-all duration-300 shadow-lg`}
+          aria-label={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
+        >
+          {sidebarVisible ? (
+            <ChevronLeft className="h-5 w-5 text-gray-300" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-gray-300" />
+          )}
+        </button>
+
         {/* Left Sidebar - 20% width */}
-        <div className="w-1/5 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-near-dark rounded-t-xl">
+        <div className={`w-1/5 border-r border-[#3e3e42] bg-[#111216] rounded-t-xl transition-all duration-300 ${sidebarVisible ? 'block' : 'hidden'} h-[calc(100vh)]`}>
           <CategorySidebar
             groupedExamples={groupedExamples}
             expandedCategories={expandedCategories}
@@ -180,8 +195,8 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
           />
         </div>
 
-        {/* Main Content Area - 80% width */}
-        <div className="flex-1 bg-gray-50 dark:bg-near-darker">
+        {/* Main Content Area - expands when sidebar is hidden */}
+        <div className="flex-1 bg-[#111216] transition-all duration-300">
           {currentPath.includes('/success') ? (
             <SuccessPage onBack={handleBackToBrowse} />
           ) : selectedExample ? (
@@ -190,18 +205,18 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
             <div className="p-8 max-w-3xl mx-auto">
               <button
                 onClick={handleBackToBrowse}
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-near-primary mb-4"
+                className="text-sm text-gray-400 hover:text-near-primary mb-4"
               >
                 ← Back to examples
               </button>
-              <div className="bg-white dark:bg-near-dark rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-6 text-center space-y-4">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <div className="bg-[#111216] rounded-xl border border-dashed border-[#3e3e42] p-6 text-center space-y-4">
+                <h2 className="text-xl font-semibold text-white">
                   {comingSoonExample.name}
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-400">
                   The full interactive learning interface for this example is coming soon.
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-400">
                   This example is currently under development. Check back soon!
                 </p>
               </div>

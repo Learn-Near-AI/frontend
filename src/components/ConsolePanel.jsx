@@ -3,13 +3,13 @@ import { ExternalLink } from 'lucide-react'
 
 function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
   return (
-    <div className="bg-white dark:bg-near-dark rounded-xl border border-gray-200 dark:border-gray-800 flex flex-col gap-4">
+    <div className="bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col gap-4">
       {/* Console Output */}
-      <div className="border-b border-gray-200 dark:border-gray-800 pb-3 px-4 pt-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+      <div className="border-b border-[#3e3e42] pb-3 px-4 pt-4">
+        <h3 className="text-sm font-semibold text-white mb-2">
           Console Output
         </h3>
-        <div className="bg-gray-50 dark:bg-near-darker rounded-lg p-3 text-[0.7rem] font-mono text-gray-800 dark:text-gray-100 max-h-60 overflow-auto whitespace-pre-wrap">
+        <div className="bg-[#0a0c10] rounded-lg p-3 text-[0.7rem] font-mono text-gray-100 max-h-60 overflow-auto whitespace-pre-wrap border border-[#3e3e42]">
           {consoleOutput || 'Console output will appear here when you run or deploy...'}
         </div>
       </div>
@@ -19,9 +19,9 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
           Deployment
         </h3>
-        <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
+        <div className="text-xs text-gray-300 space-y-1">
           {deployedContractId ? (
-            <>
+            <> 
               <p>
                 Status:{' '}
                 <span className="inline-flex items-center gap-1 text-green-500 font-semibold">
@@ -31,14 +31,14 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
               </p>
               <p>
                 Contract ID:{' '}
-                <span className="font-mono text-[0.7rem] text-gray-800 dark:text-gray-100">
+                <span className="font-mono text-[0.7rem] text-gray-100">
                   {deployedContractId}
                 </span>
               </p>
               {deploymentTxHash && (
                 <p>
                   Tx Hash:{' '}
-                  <span className="font-mono text-[0.7rem] text-gray-800 dark:text-gray-100">
+                  <span className="font-mono text-[0.7rem] text-gray-100">
                     {deploymentTxHash}
                   </span>
                 </p>
@@ -54,7 +54,7 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
               </a>
             </>
           ) : (
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-400">
               No contract deployed yet. Click "Deploy" to deploy your contract.
             </p>
           )}

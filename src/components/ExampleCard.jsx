@@ -8,21 +8,21 @@ function ExampleCard({ example, isSelected, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 ${
+      className={`w-full text-left px-3 py-3.5 rounded border-b border-[#3e3e42] transition-all duration-200 ${
         isSelected
-          ? 'bg-near-primary/20 border-l-2 border-near-primary text-near-primary'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+          ? ' border-l-2 border-near-primary '
+          : 'hover:bg-[#1a1b1f] text-gray-300'
       }`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="text-sm flex-shrink-0">{languageIcon}</span>
+          {/* <span className="text-sm flex-shrink-0">{languageIcon}</span> */}
           <span className={`text-sm truncate ${isSelected ? 'font-semibold' : 'font-medium'}`}>
             {example.name}
-          </span>
+          </span> 
         </div>
         <span
-          className={`text-xs px-2 py-0.5 rounded-full border flex-shrink-0 ${difficultyClass}`}
+          className={`text-[8px] px-1.5 py-0.5 rounded-full border flex-shrink-0 ${difficultyClass}`}
         >
           {example.difficulty.charAt(0)}
         </span>

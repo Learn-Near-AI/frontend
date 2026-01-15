@@ -23,9 +23,9 @@ function InfoPanel({
   }
 
   return (
-    <div className="lg:basis-2/5 bg-white dark:bg-near-dark rounded-xl border border-gray-200 dark:border-gray-800 flex flex-col overflow-hidden">
+    <div className="lg:basis-2/5 bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col overflow-hidden">
       {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-800 px-3 pt-3 flex text-xs md:text-sm">
+      <div className="border-b border-[#3e3e42] px-3 pt-3 flex text-xs md:text-sm">
         {tabs.map((label) => {
           const key = label.toLowerCase().split(' ')[0]
           const normalizedKey = key === 'ai' ? 'ai' : key === 'fn' ? 'test' : key
@@ -37,7 +37,7 @@ function InfoPanel({
               className={`flex-1 px-3 py-2 rounded-t-lg border-b-2 -mb-px flex items-center justify-center gap-1.5 ${
                 isActive
                   ? 'border-near-primary text-near-primary font-semibold'
-                  : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                  : 'border-transparent text-gray-400 hover:text-gray-200'
               }`}
             >
               {label === 'fn Test' && <TestTube className="h-3.5 w-3.5" />}
@@ -47,7 +47,7 @@ function InfoPanel({
         })}
       </div>
 
-      <div className="flex-1 p-4 text-sm flex flex-col">
+      <div className="flex-1 p-4 text-sm flex flex-col bg-[#0d0f14]">
         {activeInfoTab === 'explanation' && <ExplanationTab example={example} />}
         {activeInfoTab === 'ai' && <AITab code={code} example={example} activeLanguage={activeLanguage} />}
         {activeInfoTab === 'test' && hasTestFunctions(example.id) && (
