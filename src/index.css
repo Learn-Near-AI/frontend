@@ -5,12 +5,39 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    background-color: #111216;
   }
   
   body {
-    @apply bg-white dark:bg-near-darker text-gray-900 dark:text-gray-100 transition-colors duration-300;
+    @apply bg-[#111216] text-gray-100 transition-colors duration-300;
     font-family: 'Finlandica', sans-serif;
+    background-color: #111216;
   }
+}
+
+/* Hide scrollbars across the app */
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+/* Global scrollbar hiding */
+* {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 @keyframes rotate-360 {
@@ -28,5 +55,235 @@
 
 .rotate-slower {
   animation: rotate-360 30s linear infinite;
+}
+
+/* Binary pattern background - Hero section (more visible) */
+.binary-pattern {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sheet animations */
+@keyframes slide-in-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-to-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-to-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slide-in-from-top {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-out-to-top {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-out-to-bottom {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-in {
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+}
+
+.animate-out {
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+}
+
+.slide-in-from-left {
+  animation-name: slide-in-from-left;
+}
+
+.slide-out-to-left {
+  animation-name: slide-out-to-left;
+}
+
+.slide-in-from-right {
+  animation-name: slide-in-from-right;
+}
+
+.slide-out-to-right {
+  animation-name: slide-out-to-right;
+}
+
+.slide-in-from-top {
+  animation-name: slide-in-from-top;
+}
+
+.slide-out-to-top {
+  animation-name: slide-out-to-top;
+}
+
+.slide-in-from-bottom {
+  animation-name: slide-in-from-bottom;
+}
+
+.slide-out-to-bottom {
+  animation-name: slide-out-to-bottom;
+}
+
+.fade-in-0 {
+  animation-name: fade-in;
+}
+
+.fade-out-0 {
+  animation-name: fade-out;
+}
+
+/* Dialog animations */
+@keyframes zoom-in {
+  from {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes zoom-out {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-from-left-1-2 {
+  from {
+    transform: translate(-50%, -50%) translateX(-10%);
+  }
+  to {
+    transform: translate(-50%, -50%) translateX(0);
+  }
+}
+
+@keyframes slide-out-to-left-1-2 {
+  from {
+    transform: translate(-50%, -50%) translateX(0);
+  }
+  to {
+    transform: translate(-50%, -50%) translateX(-10%);
+  }
+}
+
+@keyframes slide-in-from-top-48 {
+  from {
+    transform: translate(-50%, -50%) translateY(-10%);
+  }
+  to {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+}
+
+@keyframes slide-out-to-top-48 {
+  from {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  to {
+    transform: translate(-50%, -50%) translateY(-10%);
+  }
+}
+
+.zoom-in-95 {
+  animation-name: zoom-in;
+}
+
+.zoom-out-95 {
+  animation-name: zoom-out;
+}
+
+.slide-in-from-left-1\/2 {
+  animation-name: slide-in-from-left-1-2;
+}
+
+.slide-out-to-left-1\/2 {
+  animation-name: slide-out-to-left-1-2;
+}
+
+.slide-in-from-top-\[48\%\] {
+  animation-name: slide-in-from-top-48;
+}
+
+.slide-out-to-top-\[48\%\] {
+  animation-name: slide-out-to-top-48;
 }
 

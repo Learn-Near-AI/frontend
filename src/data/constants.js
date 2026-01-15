@@ -11,16 +11,16 @@ export const categoryOrder = [
 ]
 
 export const categoryIcons = {
-  'Basics': '📚',
-  'Access Control & Security': '🔒',
-  'Collections & Data': '📦',
-  'Advanced Patterns': '⚡',
-  'Fungible Tokens': '💰',
-  'NFTs': '🎨',
-  'Cross-Contract': '🔗',
-  'Chain Signatures': '🔐',
-  'Indexing': '📊',
-  'Real-World': '🎮',
+  'Basics': '/assets/images/basics.png',
+  'Access Control & Security': '/assets/images/access.png',
+  'Collections & Data': '/assets/images/collection.png',
+  'Advanced Patterns': '/assets/images/advanced.png',
+  'Fungible Tokens': '/assets/images/fungible.png',
+  'NFTs': '/assets/images/nft.png',
+  'Cross-Contract': '/assets/images/contract.png',
+  'Chain Signatures': '/assets/images/chain.png',
+  'Indexing': '/assets/images/indexing.png',
+  'Real-World': '/assets/images/realworld.png',
 }
 
 export const difficultyColors = {
@@ -30,7 +30,7 @@ export const difficultyColors = {
 }
 
 export const languageIcons = {
-  'Rust': '⚽',
+  'Rust': '📜',
   'JS': '📜',
   'JavaScript': '📜',
 }

@@ -86,10 +86,10 @@ function SuccessPage({ onBack }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-near-darker">
+      <div className="min-h-screen flex items-center justify-center bg-[#111216]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-near-primary mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Loading transaction details...</p>
+          <p className="text-gray-400">Loading transaction details...</p>
         </div>
       </div>
     )
@@ -97,7 +97,7 @@ function SuccessPage({ onBack }) {
 
   if (error && !txHash) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-near-darker">
+      <div className="min-h-screen flex items-center justify-center bg-[#111216]">
         <div className="text-center max-w-md mx-auto p-6">
           <p className="text-red-500 mb-4">{error}</p>
           {onBack && (
@@ -115,13 +115,13 @@ function SuccessPage({ onBack }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-near-darker py-12 px-4">
+    <div className="min-h-screen bg-[#111216] py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Back Button */}
         {onBack && (
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors mb-6"
+            className="flex items-center gap-2 text-gray-400 hover:text-near-primary transition-colors mb-6"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="font-medium">Back to Examples</span>
@@ -129,27 +129,27 @@ function SuccessPage({ onBack }) {
         )}
 
         {/* Success Card */}
-        <div className="bg-white dark:bg-near-dark rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xl p-8 space-y-6">
+        <div className="bg-[#111216] rounded-xl border border-[#3e3e42] shadow-2xl p-8 space-y-6">
           {/* Header */}
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2">
               Deployment Successful!
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-400">
               Your contract has been deployed to NEAR TestNet
             </p>
           </div>
 
           {/* Transaction Hash */}
-          <div className="bg-gray-50 dark:bg-near-darker rounded-lg p-4 space-y-2">
-            <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+          <div className="bg-[#111216] rounded-lg p-4 space-y-2 border border-[#3e3e42]">
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
               Transaction Hash
             </label>
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-sm font-mono text-gray-800 dark:text-gray-100 break-all">
+              <code className="flex-1 text-sm font-mono text-gray-100 break-all">
                 {txHash}
               </code>
               <button
@@ -164,12 +164,12 @@ function SuccessPage({ onBack }) {
 
           {/* Contract ID */}
           {contractId && (
-            <div className="bg-gray-50 dark:bg-near-darker rounded-lg p-4 space-y-2">
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+            <div className="bg-[#111216] rounded-lg p-4 space-y-2 border border-[#3e3e42]">
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                 Contract ID
               </label>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-sm font-mono text-gray-800 dark:text-gray-100 break-all">
+                <code className="flex-1 text-sm font-mono text-gray-100 break-all">
                   {contractId}
                 </code>
                 <button
@@ -200,8 +200,8 @@ function SuccessPage({ onBack }) {
           </div>
 
           {/* Info */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+            <div className="pt-4 border-t border-[#3e3e42]">
+            <p className="text-sm text-gray-400 text-center">
               Your contract is now live on NEAR TestNet. You can interact with it using the contract ID above.
             </p>
           </div>

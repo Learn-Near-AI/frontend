@@ -12,21 +12,21 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
         {/* View Methods */}
         {functions.viewMethods.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-sm font-semibold text-white mb-2">
               View Methods (Read-Only)
             </h3>
             <div className="space-y-3">
               {functions.viewMethods.map((method) => (
                 <div
                   key={method.name}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-near-darker"
+                  className="border border-[#3e3e42] rounded-lg p-3 bg-[#111216]"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
+                      <p className="font-mono text-xs font-semibold text-white">
                         {method.name}
                       </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-400 mt-0.5">
                         {method.description}
                       </p>
                     </div>
@@ -36,7 +36,7 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                     <div className="space-y-2 mb-2">
                       {method.params.map((param) => (
                         <div key={param.name}>
-                          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+                          <label className="text-xs text-gray-400 mb-1 block">
                             {param.name} ({param.type})
                           </label>
                           <input
@@ -49,7 +49,7 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                               }))
                             }
                             placeholder={param.placeholder}
-                            className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-near-dark text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-near-primary"
+                            className="w-full px-2 py-1.5 text-xs border border-[#3e3e42] rounded bg-[#111216] text-white outline-none focus:ring-2 focus:ring-near-primary"
                           />
                         </div>
                       ))}
@@ -78,8 +78,8 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                     <div
                       className={`mt-2 p-2 rounded text-xs ${
                         testResults[method.name].success
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
-                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                          ? 'bg-green-900/30 text-green-200'
+                          : 'bg-red-900/30 text-red-200'
                       }`}
                     >
                       {testResults[method.name].success ? (
@@ -106,21 +106,21 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
         {/* Change Methods */}
         {functions.changeMethods.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-sm font-semibold text-white mb-2">
               Change Methods
             </h3>
             <div className="space-y-3">
               {functions.changeMethods.map((method) => (
                 <div
                   key={method.name}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-near-darker"
+                  className="border border-[#3e3e42] rounded-lg p-3 bg-[#111216]"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
+                      <p className="font-mono text-xs font-semibold text-white">
                         {method.name}
                       </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-400 mt-0.5">
                         {method.description}
                       </p>
                     </div>
@@ -130,7 +130,7 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                     <div className="space-y-2 mb-2">
                       {method.params.map((param) => (
                         <div key={param.name}>
-                          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+                          <label className="text-xs text-gray-400 mb-1 block">
                             {param.name} ({param.type})
                           </label>
                           <input
@@ -143,7 +143,7 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                               }))
                             }
                             placeholder={param.placeholder}
-                            className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-near-dark text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-near-primary"
+                            className="w-full px-2 py-1.5 text-xs border border-[#3e3e42] rounded bg-[#111216] text-white outline-none focus:ring-2 focus:ring-near-primary"
                           />
                         </div>
                       ))}
@@ -172,8 +172,8 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                     <div
                       className={`mt-2 p-2 rounded text-xs ${
                         testResults[method.name].success
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
-                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                          ? 'bg-green-900/30 text-green-200'
+                          : 'bg-red-900/30 text-red-200'
                       }`}
                     >
                       {testResults[method.name].success ? (

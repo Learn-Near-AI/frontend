@@ -122,12 +122,12 @@ Please answer the user's question about this code in a clear and helpful way usi
   return (
     <div className="flex flex-col flex-1 gap-4 min-h-0">
       {/* Chat messages area */}
-      <div className="bg-gray-50 dark:bg-near-darker rounded-lg p-3 text-xs text-gray-600 dark:text-gray-300 space-y-3 flex-1 overflow-auto min-h-0">
+      <div className="bg-[#111216] rounded-lg p-3 text-xs text-gray-300 space-y-3 flex-1 overflow-auto min-h-0 border border-[#3e3e42]">
         {messages.length === 0 ? (
           <>
             <p className="font-semibold mb-2">Ask about this code...</p>
             <div className="space-y-1">
-              <p className="text-gray-500 dark:text-gray-400">Suggested questions:</p>
+              <p className="text-gray-400">Suggested questions:</p>
               <ul className="list-disc list-inside space-y-1">
                 {suggestedQuestions.map((q, idx) => (
                   <li key={idx} className="cursor-pointer hover:text-near-primary" onClick={() => setQuestion(q)}>
@@ -144,8 +144,8 @@ Please answer the user's question about this code in a clear and helpful way usi
                 key={idx}
                 className={`p-2 rounded-lg ${
                   msg.role === 'user'
-                    ? 'bg-near-primary/10 text-gray-800 dark:text-gray-100 ml-4'
-                    : 'bg-white dark:bg-near-dark text-gray-700 dark:text-gray-300 mr-4'
+                    ? 'bg-near-primary/10 text-gray-100 ml-4'
+                    : 'bg-[#111216] text-gray-300 mr-4 border border-[#3e3e42]'
                 }`}
               >
                 <div className="font-semibold mb-1 text-[0.7rem] opacity-70">
@@ -162,18 +162,18 @@ Please answer the user's question about this code in a clear and helpful way usi
                         code: ({ children, className }) => {
                           const isInline = !className
                           return isInline ? (
-                            <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-[0.7rem]">{children}</code>
+                            <code className="bg-[#1a1b1f] px-1 py-0.5 rounded text-[0.7rem]">{children}</code>
                           ) : (
-                            <code className="block bg-gray-200 dark:bg-gray-700 p-2 rounded text-[0.7rem] overflow-x-auto">{children}</code>
+                            <code className="block bg-[#1a1b1f] p-2 rounded text-[0.7rem] overflow-x-auto">{children}</code>
                           )
                         },
-                        pre: ({ children }) => <pre className="bg-gray-200 dark:bg-gray-700 p-2 rounded text-[0.7rem] overflow-x-auto mb-2">{children}</pre>,
+                        pre: ({ children }) => <pre className="bg-[#1a1b1f] p-2 rounded text-[0.7rem] overflow-x-auto mb-2">{children}</pre>,
                         h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-2">{children}</h1>,
                         h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-2">{children}</h2>,
                         h3: ({ children }) => <h3 className="text-xs font-bold mb-1 mt-2">{children}</h3>,
                         strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                         em: ({ children }) => <em className="italic">{children}</em>,
-                        blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-2 italic mb-2">{children}</blockquote>,
+                        blockquote: ({ children }) => <blockquote className="border-l-4 border-[#3e3e42] pl-2 italic mb-2">{children}</blockquote>,
                       }}
                     >
                       {msg.content}
@@ -185,7 +185,7 @@ Please answer the user's question about this code in a clear and helpful way usi
               </div>
             ))}
             {isLoading && (
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 p-2">
+              <div className="flex items-center gap-2 text-gray-400 p-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>AI is thinking...</span>
               </div>
@@ -196,13 +196,13 @@ Please answer the user's question about this code in a clear and helpful way usi
       </div>
 
       {/* Input area */}
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-2 flex flex-col gap-2 bg-white dark:bg-near-dark">
+      <div className="border border-[#3e3e42] rounded-lg p-2 flex flex-col gap-2 bg-[#111216]">
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyPress={handleKeyPress}
           rows={3}
-          className="w-full bg-transparent text-xs text-gray-800 dark:text-gray-100 outline-none resize-none"
+          className="w-full bg-transparent text-xs text-gray-100 outline-none resize-none"
           placeholder="💬 Ask a question about this example..."
           disabled={isLoading}
         />
