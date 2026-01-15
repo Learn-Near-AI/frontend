@@ -25,16 +25,10 @@ function AgentMode({ launchExamplesBrowser }) {
             </button>
           </div>
 
-          {/* Right - Image Placeholder */}
+          {/* Right - Image */}
           <div className="relative" data-aos="fade-up" data-aos-delay="200">
-            <div className="relative rounded-lg overflow-hidden border-2 border-near-primary shadow-2xl shadow-near-primary/20">
-              <div className="bg-[#1e1e1e] p-6 min-h-[400px] flex items-center justify-center">
-                <div className="text-center text-gray-400">
-                  <Code2 className="h-16 w-16 mx-auto mb-4 text-near-primary/50" />
-                  <p className="text-sm">AI Assistant Screenshot Placeholder</p>
-                  <p className="text-xs mt-2 text-gray-500">Image will be provided later</p>
-                </div>
-              </div>
+            <div className="relative rounded-xl overflow-hidden border-2 border-near-primary h-[400px] w-full">
+              <img src="/assets/images/1b.png" alt="AI Assistant" className="w-full h-full object-cover object-top" />
             </div>
           </div>
         </div>

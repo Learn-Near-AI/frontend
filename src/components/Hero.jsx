@@ -16,11 +16,42 @@ function Hero({ launchExamplesBrowser }) {
           <div className="mt-8 flex justify-center" data-aos="fade-up" data-aos-delay="200">
             <button
               onClick={launchExamplesBrowser}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-[#111216] border border-[#3e3e42] rounded-lg hover:bg-[#1a1b1f] transition-all duration-200"
+              className="water-fill-button relative inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-[#111216] border border-[#3e3e42] rounded-lg overflow-hidden transition-all duration-200 z-10"
             >
-              Launch
+              <span className="relative z-10">Launch</span>
             </button>
           </div>
+          
+          <style>{`
+            .water-fill-button {
+              isolation: isolate;
+            }
+            
+            .water-fill-button::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 0%;
+              height: 100%;
+              background: linear-gradient(to right, #00EC97, #00D689);
+              transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+              z-index: 0;
+              border-radius: 0.5rem;
+            }
+            
+            .water-fill-button:hover::before {
+              width: 100%;
+            }
+            
+            .water-fill-button:not(:hover)::before {
+              transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .water-fill-button:hover {
+              border-color: #00EC97;
+            }
+          `}</style>
 
           {/* Secondary Text */}
           <div className="mt-6 text-xs text-gray-400" data-aos="fade-up" data-aos-delay="300">
@@ -28,14 +59,10 @@ function Hero({ launchExamplesBrowser }) {
           </div>
 
           {/* Main Editor Screenshot Placeholder */}
-          <div className="mt-12 max-w-6xl mx-auto" data-aos="fade-up" data-aos-delay="400">
-            <div className="relative rounded-lg overflow-hidden border-2 border-near-primary shadow-2xl shadow-near-primary/20">
-              <div className="bg-[#1e1e1e] p-6 min-h-[500px] flex items-center justify-center">
-                <div className="text-center text-gray-400">
-                  <Code2 className="h-16 w-16 mx-auto mb-4 text-near-primary/50" />
-                  <p className="text-sm">Code Editor Screenshot Placeholder</p>
-                  <p className="text-xs mt-2 text-gray-500">Image will be provided later</p>
-                </div>
+          <div className="mt-10 max-w-4xl mx-auto" data-aos="fade-up" data-aos-delay="400">
+            <div className="relative rounded-xl p-[8px] bg-gradient-to-r from-near-primary via-[#00D689] to-near-primary">
+              <div className="relative rounded-lg overflow-hidden">
+                <img src="/assets/images/1.png" alt="Hero Screenshot" className="w-full h-full object-cover rounded-lg" />
               </div>
             </div>
           </div>

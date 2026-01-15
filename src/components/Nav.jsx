@@ -39,7 +39,7 @@ function Nav({
               alt="NEAR Logo" 
               className="w-8 h-8 object-contain rotate-slow"
             />
-            <span className="text-lg font-bold text-white group-hover:text-near-primary transition-colors">
+            <span className="text-lg font-bold text-white transition-colors">
               NEAR by Example
             </span>
           </div>

@@ -82,7 +82,7 @@ function CodeEditor({
           title={reset ? 'Reset!' : 'Reset code'}
         >
           <TimerResetIcon className="h-4 w-4" />
-          {reset && <span className="hidden md:inline">Reset!</span>}
+          {reset && <span className="hidden md:inline"></span>}
         </button>
         <button
           onClick={handleCopy}
@@ -96,7 +96,7 @@ function CodeEditor({
           {copied ? (
             <>
               <Check className="h-4 w-4" />
-              <span className="hidden md:inline">Copied!</span>
+            
             </>
           ) : (
             <CopyIcon className="h-4 w-4" />
@@ -140,7 +140,7 @@ function CodeEditor({
       </div>
 
       {/* Code editor area */}
-      <div className="flex-1 bg-[#0d0f14] text-gray-100 font-mono text-xs md:text-sm overflow-auto p-4 space-y-3">
+      <div className="flex-1 bg-[#0d0f14] text-gray-500 font-mono text-xs md:text-sm overflow-auto p-4 space-y-3">
         <div className="flex items-center justify-between text-[0.65rem] text-gray-400">
           <span>Code Editor • {activeLanguage}</span>
           <span>NEAR SDK</span>
@@ -148,7 +148,7 @@ function CodeEditor({
         <textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          className="w-full h-full bg-transparent text-gray-100 font-mono text-xs md:text-sm outline-none resize-none whitespace-pre overflow-x-auto"
+          className="w-full h-full bg-transparent text-white/90 font-mono text-xs md:text-sm outline-none resize-none whitespace-pre overflow-x-auto"
           spellCheck={false}
           style={{ minHeight: '300px' }}
         />
