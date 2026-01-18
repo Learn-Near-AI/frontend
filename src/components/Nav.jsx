@@ -6,7 +6,6 @@ import {
   Moon,
   ChevronDown,
   LogOut,
-  Search,
   ExternalLink
 } from 'lucide-react'
 
@@ -77,16 +76,8 @@ function Nav({
             </a>
           </div>
 
-          {/* Theme Toggle, Search, Download & Mobile Menu Toggle */}
+          {/* Theme Toggle, Download & Mobile Menu Toggle */}
           <div className="flex items-center gap-4">
-            {/* Search Icon */}
-            <button
-              className="hidden md:block p-2 text-gray-300 hover:text-near-primary transition-colors rounded-lg hover:bg-[#1a1b1f]"
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-
             {/* Theme Toggle */}
             {/* <button
               onClick={toggleTheme}
@@ -100,13 +91,15 @@ function Nav({
               )}
             </button> */}
 
-            {/* Download Button */}
-            <button
-              onClick={launchExamplesBrowser}
-              className="hidden md:block px-4 py-2 text-sm font-semibold text-black bg-near-primary hover:bg-[#00D689] rounded-lg transition-all duration-200"
-            >
-              Get started
-            </button>
+            {/* Download Button - only show on landing page */}
+            {currentPath === '/' && (
+              <button
+                onClick={launchExamplesBrowser}
+                className="hidden md:block px-4 py-2 text-sm font-semibold text-black bg-near-primary hover:bg-[#00D689] rounded-lg transition-all duration-200"
+              >
+                Get started
+              </button>
+            )}
 
             {/* NEAR Wallet connect – only show in examples view */}
             {currentPath.startsWith('/examples') && (
@@ -214,28 +207,50 @@ function Nav({
                 Learn
                 <ExternalLink className="h-4 w-4" />
               </a>
-              <button
-                onClick={toggleTheme}
-                className="text-left text-gray-300 hover:text-near-primary transition-colors font-medium py-2 flex items-center gap-2"
-              >
-                {isDark ? (
-                  <>
-                    <Sun className="h-5 w-5" />
-                    Light Mode
-                  </>
-                ) : (
-                  <>
-                    <Moon className="h-5 w-5" />
-                    Dark Mode
-                  </>
-                )}
-              </button>
-              <button
-                onClick={launchExamplesBrowser}
-                className="w-full px-4 py-2 text-sm font-semibold text-white bg-near-primary hover:bg-[#00D689] rounded-lg"
-              >
-                Get started
-              </button>
+              {/* Get started button - only show on landing page */}
+              {currentPath === '/' && (
+                <button
+                  onClick={launchExamplesBrowser}
+                  className="w-full px-4 py-2 text-sm font-semibold text-white bg-near-primary hover:bg-[#00D689] rounded-lg"
+                >
+                  Get started
+                </button>
+              )}
+              {/* NEAR Wallet connect – only show in examples view (mobile) */}
+              {currentPath.startsWith('/examples') && (
+                <div className="md:hidden border-t border-[#3e3e42] pt-4 mt-2">
+                  {walletAccountId ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="p-3 rounded-lg border border-[#3e3e42] bg-[#111216]">
+                        <div className="text-xs text-gray-400 mb-1">Account</div>
+                        <div className="font-mono text-sm text-white break-all">
+                          {walletAccountId}
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-lg border border-[#3e3e42] bg-[#111216]">
+                        <div className="text-xs text-gray-400 mb-1">Balance</div>
+                        <div className="text-lg font-semibold text-near-primary">
+                          {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleWalletDisconnect}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-900/20 rounded-lg transition-colors border border-red-400/20"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Disconnect Wallet
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleWalletConnect}
+                      className="w-full px-4 py-2 text-sm font-semibold rounded-lg border border-[#3e3e42] text-gray-100 hover:border-near-primary hover:text-near-primary transition-colors"
+                    >
+                      Connect NEAR Wallet
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
