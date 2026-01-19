@@ -14,6 +14,8 @@ import {
   initWalletSelector,
   getActiveAccountId,
   getNearConfig,
+  callViewMethod,
+  callChangeMethod,
 } from "../near/near";
 import { Buffer } from "buffer";
 import ExampleHeader from "./ExampleHeader";
@@ -42,6 +44,7 @@ function ExampleDetail({ example, onBack }) {
   const [testParams, setTestParams] = useState({});
   const [isTesting, setIsTesting] = useState(false);
   const [backendCLIConfigured, setBackendCLIConfigured] = useState(null);
+  const [walletAccountId, setWalletAccountId] = useState(null);
   const [contractState, setContractState] = useState({
     counter: 0,
     message: "Hello, NEAR storage!",
@@ -119,6 +122,25 @@ function ExampleDetail({ example, onBack }) {
     };
 
     checkBackendStatus();
+  }, []);
+
+  // Check wallet connection status
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      try {
+        const accountId = await getActiveAccountId();
+        setWalletAccountId(accountId);
+      } catch (error) {
+        console.warn("Could not check wallet connection:", error);
+        setWalletAccountId(null);
+      }
+    };
+
+    checkWalletConnection();
+
+    // Recheck wallet connection every 5 seconds
+    const interval = setInterval(checkWalletConnection, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Handle transactionHashes URL parameter - redirect to success page
@@ -826,108 +848,246 @@ function ExampleDetail({ example, onBack }) {
     setIsTesting(true);
     addConsoleOutput(`\n▶ Calling ${method.name}...`);
 
-    const delay = isViewMethod
-      ? 200 + Math.random() * 300
-      : 800 + Math.random() * 1200;
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    // Prepare method parameters
+    const paramValues = {};
+    method.params.forEach((param) => {
+      const value =
+        testParams[`${method.name}_${param.name}`] ||
+        param.defaultValue ||
+        "";
+      paramValues[param.name] =
+        param.type === "number" ? Number(value) || 0 : value;
+    });
 
     try {
-      if (isViewMethod) {
-        const result = getTestResult(method.name, method.params);
+      // Check if we have a deployed contract
+      if (deployedContractId) {
+        addConsoleOutput(`✓ Using deployed contract: ${deployedContractId}`);
+        addConsoleOutput(
+          `✓ Method type: ${isViewMethod ? "View (read-only)" : "Change (requires wallet signature)"}`
+        );
 
-        setTestResults((prev) => ({
-          ...prev,
-          [method.name]: {
-            success: true,
-            result,
-            timestamp: new Date().toISOString(),
-          },
-        }));
+        if (isViewMethod) {
+          // Real view method call
+          addConsoleOutput(`▶ Calling view method...`);
+          const viewResult = await callViewMethod(
+            deployedContractId,
+            method.name,
+            paramValues
+          );
 
-        addConsoleOutput(`✓ Result: ${JSON.stringify(result)}`);
-      } else {
-        const paramValues = {};
-        method.params.forEach((param) => {
-          const value =
-            testParams[`${method.name}_${param.name}`] ||
-            param.defaultValue ||
-            "";
-          paramValues[param.name] =
-            param.type === "number" ? Number(value) || 0 : value;
-        });
+          if (!viewResult.success) {
+            throw new Error(viewResult.error || "View method call failed");
+          }
 
-        if (method.name === "assert_positive") {
-          const value =
-            paramValues.value !== undefined ? paramValues.value : 10;
-          if (value <= 0) {
-            throw new Error("VALUE_MUST_BE_POSITIVE");
+          setTestResults((prev) => ({
+            ...prev,
+            [method.name]: {
+              success: true,
+              result: viewResult.result,
+              timestamp: new Date().toISOString(),
+              isRealCall: true,
+            },
+          }));
+
+          addConsoleOutput(
+            `✓ Result: ${JSON.stringify(viewResult.result)}`
+          );
+        } else {
+          // Real change method call (requires wallet)
+          const accountId = await getActiveAccountId();
+          if (!accountId) {
+            throw new Error(
+              "Please connect your wallet to call change methods"
+            );
+          }
+
+          addConsoleOutput(`▶ Wallet connected: ${accountId}`);
+          addConsoleOutput(`▶ Sending transaction...`);
+          addConsoleOutput(`⏳ Waiting for wallet approval...`);
+
+          const changeResult = await callChangeMethod(
+            deployedContractId,
+            method.name,
+            paramValues,
+            {
+              gasLimit: "30000000000000", // 30 TGas
+              attachedDeposit: "0",
+            }
+          );
+
+          if (!changeResult.success) {
+            throw new Error(changeResult.error || "Change method call failed");
+          }
+
+          setTestResults((prev) => ({
+            ...prev,
+            [method.name]: {
+              success: true,
+              result: { txHash: changeResult.transactionHash },
+              timestamp: new Date().toISOString(),
+              isRealCall: true,
+            },
+          }));
+
+          addConsoleOutput(`✓ Transaction executed successfully`);
+          addConsoleOutput(`✓ Transaction hash: ${changeResult.transactionHash}`);
+
+          // Try to refresh state by calling a related view method
+          const functions = testFunctions[example.id];
+          if (functions.viewMethods.length > 0) {
+            let viewMethod = null;
+
+            if (method.name === "set_message") {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_message"
+              );
+            } else if (method.name === "set_greeting") {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_greeting"
+              );
+            } else if (
+              method.name === "increment" ||
+              method.name === "bulk_increment"
+            ) {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_counter"
+              );
+            } else if (method.name === "append_suffix") {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_greeting"
+              );
+            }
+
+            if (viewMethod) {
+              addConsoleOutput(`▶ Fetching updated state...`);
+              setTimeout(async () => {
+                try {
+                  const updatedViewResult = await callViewMethod(
+                    deployedContractId,
+                    viewMethod.name,
+                    {}
+                  );
+                  if (updatedViewResult.success) {
+                    addConsoleOutput(
+                      `✓ Updated state: ${JSON.stringify(updatedViewResult.result)}`
+                    );
+                    setTestResults((prev) => ({
+                      ...prev,
+                      [viewMethod.name]: {
+                        success: true,
+                        result: updatedViewResult.result,
+                        timestamp: new Date().toISOString(),
+                        isRealCall: true,
+                      },
+                    }));
+                  }
+                } catch (e) {
+                  console.warn("Failed to fetch updated state:", e);
+                }
+              }, 2000); // Wait 2 seconds for transaction to be processed
+            }
           }
         }
+      } else {
+        // Simulation mode (no deployed contract)
+        addConsoleOutput(`ℹ️  Running in simulation mode (no deployed contract)`);
 
-        updateContractState(method.name, method.params);
+        const delay = isViewMethod
+          ? 200 + Math.random() * 300
+          : 800 + Math.random() * 1200;
+        await new Promise((resolve) => setTimeout(resolve, delay));
 
-        const txHash = generateTxHash();
-        const result = { success: true, txHash };
+        if (isViewMethod) {
+          const result = getTestResult(method.name, method.params);
 
-        setTestResults((prev) => ({
-          ...prev,
-          [method.name]: {
-            success: true,
-            result,
-            timestamp: new Date().toISOString(),
-          },
-        }));
+          setTestResults((prev) => ({
+            ...prev,
+            [method.name]: {
+              success: true,
+              result,
+              timestamp: new Date().toISOString(),
+              isRealCall: false,
+            },
+          }));
 
-        addConsoleOutput(`✓ Transaction executed successfully`);
-        addConsoleOutput(`✓ Transaction hash: ${txHash}`);
-
-        const functions = testFunctions[example.id];
-        if (functions.viewMethods.length > 0) {
-          let viewMethod = null;
-
-          if (method.name === "set_message") {
-            viewMethod = functions.viewMethods.find(
-              (m) => m.name === "get_message"
-            );
-          } else if (method.name === "set_greeting") {
-            viewMethod = functions.viewMethods.find(
-              (m) => m.name === "get_greeting"
-            );
-          } else if (
-            method.name === "increment" ||
-            method.name === "bulk_increment"
-          ) {
-            viewMethod = functions.viewMethods.find(
-              (m) => m.name === "get_counter"
-            );
-          } else if (method.name === "append_suffix") {
-            viewMethod = functions.viewMethods.find(
-              (m) => m.name === "get_greeting"
-            );
+          addConsoleOutput(`✓ Simulated result: ${JSON.stringify(result)}`);
+        } else {
+          if (method.name === "assert_positive") {
+            const value =
+              paramValues.value !== undefined ? paramValues.value : 10;
+            if (value <= 0) {
+              throw new Error("VALUE_MUST_BE_POSITIVE");
+            }
           }
 
-          if (viewMethod) {
-            setTimeout(() => {
-              try {
-                const updatedResult = getTestResult(
-                  viewMethod.name,
-                  viewMethod.params
-                );
-                addConsoleOutput(
-                  `✓ Updated state: ${JSON.stringify(updatedResult)}`
-                );
-                setTestResults((prev) => ({
-                  ...prev,
-                  [viewMethod.name]: {
-                    success: true,
-                    result: updatedResult,
-                    timestamp: new Date().toISOString(),
-                  },
-                }));
-              } catch (e) {
-                // Ignore errors
-              }
-            }, 500);
+          updateContractState(method.name, method.params);
+
+          const txHash = generateTxHash();
+          const result = { success: true, txHash };
+
+          setTestResults((prev) => ({
+            ...prev,
+            [method.name]: {
+              success: true,
+              result,
+              timestamp: new Date().toISOString(),
+              isRealCall: false,
+            },
+          }));
+
+          addConsoleOutput(`✓ Simulated transaction executed`);
+          addConsoleOutput(`✓ Simulated transaction hash: ${txHash}`);
+
+          const functions = testFunctions[example.id];
+          if (functions.viewMethods.length > 0) {
+            let viewMethod = null;
+
+            if (method.name === "set_message") {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_message"
+              );
+            } else if (method.name === "set_greeting") {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_greeting"
+              );
+            } else if (
+              method.name === "increment" ||
+              method.name === "bulk_increment"
+            ) {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_counter"
+              );
+            } else if (method.name === "append_suffix") {
+              viewMethod = functions.viewMethods.find(
+                (m) => m.name === "get_greeting"
+              );
+            }
+
+            if (viewMethod) {
+              setTimeout(() => {
+                try {
+                  const updatedResult = getTestResult(
+                    viewMethod.name,
+                    viewMethod.params
+                  );
+                  addConsoleOutput(
+                    `✓ Simulated state: ${JSON.stringify(updatedResult)}`
+                  );
+                  setTestResults((prev) => ({
+                    ...prev,
+                    [viewMethod.name]: {
+                      success: true,
+                      result: updatedResult,
+                      timestamp: new Date().toISOString(),
+                      isRealCall: false,
+                    },
+                  }));
+                } catch (e) {
+                  // Ignore errors
+                }
+              }, 500);
+            }
           }
         }
       }
@@ -1008,6 +1168,8 @@ function ExampleDetail({ example, onBack }) {
           onTestCall={handleTestCall}
           code={code}
           activeLanguage={activeLanguage}
+          deployedContractId={deployedContractId}
+          walletAccountId={walletAccountId}
         />
       </div>
 

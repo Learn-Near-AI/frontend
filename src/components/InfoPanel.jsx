@@ -16,6 +16,8 @@ function InfoPanel({
   onTestCall,
   code,
   activeLanguage,
+  deployedContractId,
+  walletAccountId,
 }) {
   const tabs = ['Explanation', 'AI']
   if (hasTestFunctions(example.id)) {
@@ -58,6 +60,8 @@ function InfoPanel({
             testResults={testResults}
             isTesting={isTesting}
             onTestCall={onTestCall}
+            deployedContractId={deployedContractId}
+            walletAccountId={walletAccountId}
           />
         )}
       </div>

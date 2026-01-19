@@ -1,13 +1,50 @@
 import React from 'react'
-import { Play, Rocket, Loader2 } from 'lucide-react'
+import { Play, Rocket, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { testFunctions } from '../data/testFunctions'
 
-function TestPanel({ exampleId, testParams, setTestParams, testResults, isTesting, onTestCall }) {
+function TestPanel({ exampleId, testParams, setTestParams, testResults, isTesting, onTestCall, deployedContractId, walletAccountId }) {
   const functions = testFunctions[exampleId]
   if (!functions) return null
 
   return (
     <div className="flex flex-col flex-1 gap-4 overflow-auto">
+      {/* Deployment Status Banner */}
+      {deployedContractId ? (
+        <div className="p-3 rounded-lg bg-green-900/20 border border-green-500/30">
+          <div className="flex items-start gap-2">
+            <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-green-400 mb-1">
+                Contract Deployed - Live Testing Mode
+              </p>
+              <p className="text-xs text-green-200/80 break-all font-mono">
+                {deployedContractId}
+              </p>
+              {!walletAccountId && functions.changeMethods.length > 0 && (
+                <p className="text-xs text-yellow-300 mt-2 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                  Connect wallet to call change methods
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="p-3 rounded-lg bg-blue-900/20 border border-blue-500/30">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-blue-400 mb-1">
+                Simulation Mode
+              </p>
+              <p className="text-xs text-blue-200/80">
+                Deploy the contract to test with real blockchain calls
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4 flex-1 overflow-auto">
         {/* View Methods */}
         {functions.viewMethods.length > 0 && (
@@ -84,7 +121,18 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                     >
                       {testResults[method.name].success ? (
                         <div>
-                          <p className="font-semibold">✓ Success</p>
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-semibold">✓ Success</p>
+                            {testResults[method.name].isRealCall !== undefined && (
+                              <span className={`text-[0.65rem] px-1.5 py-0.5 rounded ${
+                                testResults[method.name].isRealCall 
+                                  ? 'bg-green-800/50 text-green-300' 
+                                  : 'bg-blue-800/50 text-blue-300'
+                              }`}>
+                                {testResults[method.name].isRealCall ? 'Real' : 'Simulated'}
+                              </span>
+                            )}
+                          </div>
                           <p className="font-mono mt-1 break-all">
                             {JSON.stringify(testResults[method.name].result)}
                           </p>
@@ -152,8 +200,9 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
 
                   <button
                     onClick={() => onTestCall(method, false)}
-                    disabled={isTesting}
+                    disabled={isTesting || (deployedContractId && !walletAccountId)}
                     className="w-full px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    title={deployedContractId && !walletAccountId ? "Connect wallet to call change methods" : ""}
                   >
                     {isTesting ? (
                       <>
@@ -167,6 +216,12 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                       </>
                     )}
                   </button>
+                  {deployedContractId && !walletAccountId && (
+                    <p className="text-xs text-yellow-400 mt-1 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      Connect wallet to call this method
+                    </p>
+                  )}
 
                   {testResults[method.name] && (
                     <div
@@ -178,7 +233,18 @@ function TestPanel({ exampleId, testParams, setTestParams, testResults, isTestin
                     >
                       {testResults[method.name].success ? (
                         <div>
-                          <p className="font-semibold">✓ Success</p>
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-semibold">✓ Success</p>
+                            {testResults[method.name].isRealCall !== undefined && (
+                              <span className={`text-[0.65rem] px-1.5 py-0.5 rounded ${
+                                testResults[method.name].isRealCall 
+                                  ? 'bg-green-800/50 text-green-300' 
+                                  : 'bg-blue-800/50 text-blue-300'
+                              }`}>
+                                {testResults[method.name].isRealCall ? 'Real' : 'Simulated'}
+                              </span>
+                            )}
+                          </div>
                           {testResults[method.name].result?.txHash && (
                             <p className="font-mono mt-1 text-[0.65rem] break-all">
                               Tx: {testResults[method.name].result.txHash}
