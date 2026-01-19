@@ -67,6 +67,16 @@ function CodeEditor({
         {/* Language tabs */}
         <div className="inline-flex rounded-lg border border-[#3e3e42] bg-[#111216] overflow-hidden text-[0.65rem] md:text-xs">
           <button
+            className={`px-3 py-1.5 ${
+              activeLanguage === 'Rust'
+                ? 'bg-near-primary text-near-darker font-semibold'
+                : 'text-gray-300 hover:bg-[#1a1b1f]'
+            }`}
+            onClick={() => setActiveLanguage('Rust')}
+          >
+            Rust
+          </button>
+          <button
             className={`px-3 py-1.5 font-semibold ${
               activeLanguage === 'JavaScript'
                 ? 'bg-near-primary text-near-darker'
@@ -76,16 +86,6 @@ function CodeEditor({
           >
             <span className="md:hidden">JS</span>
             <span className="hidden md:inline">JavaScript</span>
-          </button>
-          <button
-            className={`px-3 py-1.5 ${
-              activeLanguage === 'Rust'
-                ? 'bg-near-primary text-near-darker font-semibold'
-                : 'text-gray-300 hover:bg-[#1a1b1f]'
-            }`}
-            onClick={() => setActiveLanguage('Rust')}
-          >
-            Rust
           </button>
         </div>
 

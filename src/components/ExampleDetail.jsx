@@ -30,7 +30,7 @@ const shouldUseCLIDeployment = (language) => {
 };
 
 function ExampleDetail({ example, onBack }) {
-  const [activeLanguage, setActiveLanguage] = useState("JavaScript");
+  const [activeLanguage, setActiveLanguage] = useState("Rust");
   const [activeInfoTab, setActiveInfoTab] = useState("ai");
   const [code, setCode] = useState("");
   const [consoleOutput, setConsoleOutput] = useState("");
@@ -58,9 +58,9 @@ function ExampleDetail({ example, onBack }) {
     setConsoleOutput((prev) => prev + message + "\n");
   };
 
-  // Reset active language to JavaScript when example changes
+  // Reset active language to Rust when example changes
   useEffect(() => {
-    setActiveLanguage("JavaScript");
+    setActiveLanguage("Rust");
   }, [example.id]);
 
   useEffect(() => {
