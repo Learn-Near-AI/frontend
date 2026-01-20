@@ -2,6 +2,7 @@ import { Buffer } from 'buffer'
 import { setupWalletSelector } from '@near-wallet-selector/core'
 import { setupModal } from '@near-wallet-selector/modal-ui'
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
+import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
 
 // Polyfill Buffer for any deps that still expect it (near-api-js, etc.)
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -14,9 +15,13 @@ const CONTRACT_ID = 'example-contract.testnet' // you can change this later
 let selectorPromise = null
 let modal = null
 
+// Use Vite proxy in development to avoid CORS issues
+const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+const RPC_URL = isDev ? '/api/near-rpc' : 'https://rpc.testnet.near.org'
+
 export const getNearConfig = () => ({
   networkId: TESTNET_NETWORK,
-  nodeUrl: 'https://rpc.testnet.near.org',
+  nodeUrl: RPC_URL,
   walletUrl: 'https://testnet.mynearwallet.com',
   helperUrl: 'https://helper.testnet.near.org',
   explorerUrl: 'https://explorer.testnet.near.org',
@@ -27,7 +32,10 @@ export async function initWalletSelector() {
     selectorPromise = setupWalletSelector({
       network: TESTNET_NETWORK,
       debug: false,
-      modules: [setupMyNearWallet()],
+      modules: [
+        setupMyNearWallet(),
+        setupMeteorWallet(),
+      ],
     }).then((selector) => {
       if (!modal) {
         modal = setupModal(selector, {
@@ -230,29 +238,12 @@ export async function deployContract(wasmCode, options = {}) {
     // Get wallet instance
     const wallet = await selector.wallet()
     
-    // Import near-api-js for proper transaction building
-    const nearApi = await import('near-api-js')
-    
-    // Build DeployContract action
-    // The wallet selector expects actions in a format compatible with near-api-js
-    // We need to construct the action properly for the wallet selector to serialize it
-    let deployAction
-    
-    // Try different methods to create the deploy action
-    if (nearApi.transactions && typeof nearApi.transactions.deployContract === 'function') {
-      // Method 1: Use transactions.deployContract if available
-      deployAction = nearApi.transactions.deployContract(wasmUint8Array)
-    } else if (nearApi.Action) {
-      // Method 2: Use Action enum directly
-      deployAction = nearApi.Action.deployContract(wasmUint8Array)
-    } else {
-      // Method 3: Construct action manually in NEAR protocol format
-      // The wallet selector will serialize this properly
-      deployAction = {
-        enum: 'deployContract',
-        deployContract: {
-          code: wasmUint8Array,
-        },
+    // Use wallet-selector action format (not near-api-js action objects)
+    // The wallet selector expects actions with type and params properties
+    const deployAction = {
+      type: "DeployContract",
+      params: {
+        code: wasmUint8Array,
       }
     }
     
@@ -308,45 +299,76 @@ export async function deployContract(wasmCode, options = {}) {
 }
 
 /**
- * Calls a view method on a deployed contract
- * @param {string} contractId - The contract account ID
- * @param {string} methodName - The method name to call
- * @param {Object} args - Method arguments (will be JSON stringified)
- * @returns {Promise<{success: boolean, result?: any, error?: string}>}
+ * Calls a view method on a deployed contract (direct RPC, no backend needed)
+ * Similar to viewFunction from near-connect-hooks
+ * @param {Object} options - View method options
+ * @param {string} options.contractId - The contract account ID
+ * @param {string} options.method - The method name to call
+ * @param {Object} options.args - Method arguments (optional)
+ * @returns {Promise<any>} - The result of the view method
+ */
+export async function viewFunction({ contractId, method, args = {} }) {
+  if (!isValidAccountId(contractId)) {
+    throw new Error('Invalid contract ID format')
+  }
+  
+  const config = getNearConfig()
+  const rpcUrl = config.nodeUrl
+  
+  console.log(`[NEAR] Calling view method: ${method} on ${contractId}`)
+  console.log(`[NEAR] Using RPC: ${rpcUrl}`)
+  
+  const response = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 'dontcare',
+      method: 'query',
+      params: {
+        request_type: 'call_function',
+        finality: 'final',
+        account_id: contractId,
+        method_name: method,
+        args_base64: Buffer.from(JSON.stringify(args)).toString('base64'),
+      },
+    }),
+  })
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  
+  const json = await response.json()
+  
+  if (json.error) {
+    const errorMsg = json.error.message || json.error.data || JSON.stringify(json.error)
+    throw new Error(errorMsg)
+  }
+  
+  // Decode result - handle both string and non-string results
+  const resultBytes = json.result?.result
+  if (!resultBytes || resultBytes.length === 0) {
+    return null
+  }
+  
+  const resultString = Buffer.from(resultBytes).toString()
+  try {
+    return JSON.parse(resultString)
+  } catch {
+    // If not valid JSON, return as string
+    return resultString
+  }
+}
+
+/**
+ * Legacy wrapper for backward compatibility
  */
 export async function callViewMethod(contractId, methodName, args = {}) {
   try {
-    if (!isValidAccountId(contractId)) {
-      return { success: false, error: 'Invalid contract ID format' }
-    }
-    
-    const config = getNearConfig()
-    const response = await fetch(config.nodeUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 'dontcare',
-        method: 'query',
-        params: {
-          request_type: 'call_function',
-          finality: 'final',
-          account_id: contractId,
-          method_name: methodName,
-          args_base64: Buffer.from(JSON.stringify(args)).toString('base64'),
-        },
-      }),
-    })
-    
-    const json = await response.json()
-    
-    if (json.error) {
-      return { success: false, error: json.error.message || 'View method call failed' }
-    }
-    
-    // Decode result
-    const result = JSON.parse(Buffer.from(json.result.result, 'base64').toString())
-    
+    const result = await viewFunction({ contractId, method: methodName, args })
     return { success: true, result }
   } catch (error) {
     console.error('View method call error:', error)
@@ -355,59 +377,81 @@ export async function callViewMethod(contractId, methodName, args = {}) {
 }
 
 /**
- * Calls a change method on a deployed contract (requires transaction)
- * @param {string} contractId - The contract account ID
- * @param {string} methodName - The method name to call
- * @param {Object} args - Method arguments
- * @param {Object} options - Transaction options
- * @param {string} options.gasLimit - Gas limit (default: 30 TGas)
- * @param {string} options.attachedDeposit - NEAR to attach (default: 0)
- * @returns {Promise<{success: boolean, transactionHash?: string, error?: string}>}
+ * Calls a change method on a deployed contract (requires wallet signature)
+ * Similar to callFunction from near-connect-hooks
+ * @param {Object} options - Call options
+ * @param {string} options.contractId - The contract account ID
+ * @param {string} options.method - The method name to call
+ * @param {Object} options.args - Method arguments (optional)
+ * @param {string} options.gas - Gas limit (default: 30 TGas)
+ * @param {string} options.deposit - NEAR to attach (default: 0)
+ * @returns {Promise<any>} - The transaction result
+ */
+export async function callFunction({ contractId, method, args = {}, gas = '30000000000000', deposit = '0' }) {
+  if (!isValidAccountId(contractId)) {
+    throw new Error('Invalid contract ID format')
+  }
+  
+  const accountId = await getActiveAccountId()
+  if (!accountId) {
+    throw new Error('Please connect your wallet first')
+  }
+  
+  const selector = await initWalletSelector()
+  const wallet = await selector.wallet()
+  
+  // Use signAndSendTransactions (plural) which has better wallet compatibility
+  // This format works consistently across MyNearWallet, Meteor, and other wallets
+  const result = await wallet.signAndSendTransactions({
+    transactions: [
+      {
+        receiverId: contractId,
+        actions: [
+          {
+            type: "FunctionCall",
+            params: {
+              methodName: method,
+              args: args || {},
+              gas: gas,
+              deposit: deposit,
+            },
+          },
+        ],
+      },
+    ],
+  })
+  
+  // Extract transaction hash from result array
+  let transactionHash = null
+  const txResult = Array.isArray(result) ? result[0] : result
+  
+  if (txResult?.transaction?.hash) {
+    transactionHash = txResult.transaction.hash
+  } else if (txResult?.transactionHash) {
+    transactionHash = txResult.transactionHash
+  } else if (txResult?.receipts_outcome?.[0]?.id) {
+    transactionHash = txResult.receipts_outcome[0].id
+  } else if (typeof txResult === 'string') {
+    transactionHash = txResult
+  }
+  
+  return { ...txResult, transactionHash }
+}
+
+/**
+ * Legacy wrapper for backward compatibility
  */
 export async function callChangeMethod(contractId, methodName, args = {}, options = {}) {
   try {
     const { gasLimit = '30000000000000', attachedDeposit = '0' } = options
-    
-    if (!isValidAccountId(contractId)) {
-      return { success: false, error: 'Invalid contract ID format' }
-    }
-    
-    const accountId = await getActiveAccountId()
-    if (!accountId) {
-      return { success: false, error: 'Please connect your wallet first' }
-    }
-    
-    const selector = await initWalletSelector()
-    const wallet = await selector.wallet()
-    
-    const nearApi = await import('near-api-js')
-    const { transactions } = nearApi
-    
-    const functionCallAction = transactions.functionCall(
-      methodName,
-      Buffer.from(JSON.stringify(args)),
-      gasLimit,
-      attachedDeposit
-    )
-    
-    const result = await wallet.signAndSendTransaction({
-      signerId: accountId,
-      receiverId: contractId,
-      actions: [functionCallAction],
+    const result = await callFunction({ 
+      contractId, 
+      method: methodName, 
+      args, 
+      gas: gasLimit, 
+      deposit: attachedDeposit 
     })
-    
-    let transactionHash = null
-    if (result?.transaction?.hash) {
-      transactionHash = result.transaction.hash
-    } else if (result?.transactionHash) {
-      transactionHash = result.transactionHash
-    } else if (result?.receipts_outcome?.[0]?.id) {
-      transactionHash = result.receipts_outcome[0].id
-    } else if (typeof result === 'string') {
-      transactionHash = result
-    }
-    
-    return { success: true, transactionHash }
+    return { success: true, transactionHash: result.transactionHash }
   } catch (error) {
     let errorMessage = 'Method call failed'
     

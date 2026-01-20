@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { exampleCode } from "../data/examples";
-import { testFunctions, hasTestFunctions } from "../data/testFunctions";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +13,6 @@ import {
   initWalletSelector,
   getActiveAccountId,
   getNearConfig,
-  callViewMethod,
-  callChangeMethod,
 } from "../near/near";
 import { Buffer } from "buffer";
 import ExampleHeader from "./ExampleHeader";
@@ -40,17 +37,7 @@ function ExampleDetail({ example, onBack }) {
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployedContractId, setDeployedContractId] = useState(null);
   const [deploymentTxHash, setDeploymentTxHash] = useState(null);
-  const [testResults, setTestResults] = useState({});
-  const [testParams, setTestParams] = useState({});
-  const [isTesting, setIsTesting] = useState(false);
   const [backendCLIConfigured, setBackendCLIConfigured] = useState(null);
-  const [walletAccountId, setWalletAccountId] = useState(null);
-  const [contractState, setContractState] = useState({
-    counter: 0,
-    message: "Hello, NEAR storage!",
-    greeting: "hello",
-    owner: "contract.testnet",
-  });
 
   const initialCode =
     exampleCode[example.id]?.[activeLanguage] ||
@@ -69,36 +56,6 @@ function ExampleDetail({ example, onBack }) {
   useEffect(() => {
     setCode(initialCode);
   }, [example.id, activeLanguage, initialCode]);
-
-  // Initialize test parameters when example changes
-  useEffect(() => {
-    if (hasTestFunctions(example.id)) {
-      const functions = testFunctions[example.id];
-      const initialParams = {};
-
-      functions.viewMethods.forEach((method) => {
-        method.params.forEach((param) => {
-          initialParams[`${method.name}_${param.name}`] =
-            param.defaultValue || "";
-        });
-      });
-      functions.changeMethods.forEach((method) => {
-        method.params.forEach((param) => {
-          initialParams[`${method.name}_${param.name}`] =
-            param.defaultValue || "";
-        });
-      });
-
-      setTestParams(initialParams);
-      setTestResults({});
-      setContractState({
-        counter: 0,
-        message: "Hello, NEAR storage!",
-        greeting: "hello",
-        owner: "contract.testnet",
-      });
-    }
-  }, [example.id]);
 
   // Reset deploying state on mount (in case user navigated away and came back)
   useEffect(() => {
@@ -122,25 +79,6 @@ function ExampleDetail({ example, onBack }) {
     };
 
     checkBackendStatus();
-  }, []);
-
-  // Check wallet connection status
-  useEffect(() => {
-    const checkWalletConnection = async () => {
-      try {
-        const accountId = await getActiveAccountId();
-        setWalletAccountId(accountId);
-      } catch (error) {
-        console.warn("Could not check wallet connection:", error);
-        setWalletAccountId(null);
-      }
-    };
-
-    checkWalletConnection();
-
-    // Recheck wallet connection every 5 seconds
-    const interval = setInterval(checkWalletConnection, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   // Handle transactionHashes URL parameter - redirect to success page
@@ -471,26 +409,8 @@ function ExampleDetail({ example, onBack }) {
         console.warn("Test call failed:", testError);
       }
 
-      // Store contract ID for success page (same as wallet deployment)
-      if (deployResult.transactionHash) {
-        localStorage.setItem(
-          "pendingDeploymentAccountId",
-          deployResult.contractId
-        );
-
-        // Navigate to success page (same as wallet deployment)
-        addConsoleOutput("\n▶ Redirecting to success page...");
-
-        // Small delay to allow user to see the console output
-        setTimeout(() => {
-          window.history.replaceState(
-            {},
-            "",
-            `/examples/success?transactionHashes=${deployResult.transactionHash}`
-          );
-          window.location.href = `/examples/success?transactionHashes=${deployResult.transactionHash}`;
-        }, 1500);
-      }
+      // Contract deployed successfully!
+      addConsoleOutput("\n🎉 Deployment complete!");
     } catch (error) {
       if (error.name === "TypeError" && error.message.includes("fetch")) {
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
@@ -769,343 +689,6 @@ function ExampleDetail({ example, onBack }) {
     setShowResetDialog(false);
   };
 
-  const generateTxHash = () => {
-    const chars = "0123456789abcdef";
-    let hash = "";
-    for (let i = 0; i < 64; i++) {
-      hash += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return hash;
-  };
-
-  const getTestResult = (methodName, params) => {
-    const paramValues = {};
-    params.forEach((param) => {
-      const value =
-        testParams[`${methodName}_${param.name}`] || param.defaultValue || "";
-      paramValues[param.name] =
-        param.type === "number" ? Number(value) || 0 : value;
-    });
-
-    switch (methodName) {
-      case "hello_world":
-        return "Hello, NEAR!";
-      case "get_message":
-        return contractState.message;
-      case "get_counter":
-        return contractState.counter;
-      case "get_owner":
-        return contractState.owner;
-      case "get_greeting":
-        return contractState.greeting;
-      case "get_greeting_length":
-        return contractState.greeting.length;
-      case "add":
-        const a = paramValues.a !== undefined ? paramValues.a : 2;
-        const b = paramValues.b !== undefined ? paramValues.b : 3;
-        return a + b;
-      default:
-        return null;
-    }
-  };
-
-  const updateContractState = (methodName, params) => {
-    const paramValues = {};
-    params.forEach((param) => {
-      const value =
-        testParams[`${methodName}_${param.name}`] || param.defaultValue || "";
-      paramValues[param.name] =
-        param.type === "number" ? Number(value) || 0 : value;
-    });
-
-    setContractState((prev) => {
-      const newState = { ...prev };
-
-      switch (methodName) {
-        case "set_message":
-          newState.message = paramValues.message || "Hello, NEAR storage!";
-          break;
-        case "set_greeting":
-          newState.greeting = paramValues.greeting || "Hello, NEAR!";
-          break;
-        case "increment":
-          newState.counter = prev.counter + 1;
-          break;
-        case "bulk_increment":
-          const times = paramValues.times || 5;
-          newState.counter = prev.counter + times;
-          break;
-        case "append_suffix":
-          newState.greeting = prev.greeting + (paramValues.suffix || " World");
-          break;
-      }
-
-      return newState;
-    });
-  };
-
-  const handleTestCall = async (method, isViewMethod) => {
-    setIsTesting(true);
-    addConsoleOutput(`\n▶ Calling ${method.name}...`);
-
-    // Prepare method parameters
-    const paramValues = {};
-    method.params.forEach((param) => {
-      const value =
-        testParams[`${method.name}_${param.name}`] ||
-        param.defaultValue ||
-        "";
-      paramValues[param.name] =
-        param.type === "number" ? Number(value) || 0 : value;
-    });
-
-    try {
-      // Check if we have a deployed contract
-      if (deployedContractId) {
-        addConsoleOutput(`✓ Using deployed contract: ${deployedContractId}`);
-        addConsoleOutput(
-          `✓ Method type: ${isViewMethod ? "View (read-only)" : "Change (requires wallet signature)"}`
-        );
-
-        if (isViewMethod) {
-          // Real view method call
-          addConsoleOutput(`▶ Calling view method...`);
-          const viewResult = await callViewMethod(
-            deployedContractId,
-            method.name,
-            paramValues
-          );
-
-          if (!viewResult.success) {
-            throw new Error(viewResult.error || "View method call failed");
-          }
-
-          setTestResults((prev) => ({
-            ...prev,
-            [method.name]: {
-              success: true,
-              result: viewResult.result,
-              timestamp: new Date().toISOString(),
-              isRealCall: true,
-            },
-          }));
-
-          addConsoleOutput(
-            `✓ Result: ${JSON.stringify(viewResult.result)}`
-          );
-        } else {
-          // Real change method call (requires wallet)
-          const accountId = await getActiveAccountId();
-          if (!accountId) {
-            throw new Error(
-              "Please connect your wallet to call change methods"
-            );
-          }
-
-          addConsoleOutput(`▶ Wallet connected: ${accountId}`);
-          addConsoleOutput(`▶ Sending transaction...`);
-          addConsoleOutput(`⏳ Waiting for wallet approval...`);
-
-          const changeResult = await callChangeMethod(
-            deployedContractId,
-            method.name,
-            paramValues,
-            {
-              gasLimit: "30000000000000", // 30 TGas
-              attachedDeposit: "0",
-            }
-          );
-
-          if (!changeResult.success) {
-            throw new Error(changeResult.error || "Change method call failed");
-          }
-
-          setTestResults((prev) => ({
-            ...prev,
-            [method.name]: {
-              success: true,
-              result: { txHash: changeResult.transactionHash },
-              timestamp: new Date().toISOString(),
-              isRealCall: true,
-            },
-          }));
-
-          addConsoleOutput(`✓ Transaction executed successfully`);
-          addConsoleOutput(`✓ Transaction hash: ${changeResult.transactionHash}`);
-
-          // Try to refresh state by calling a related view method
-          const functions = testFunctions[example.id];
-          if (functions.viewMethods.length > 0) {
-            let viewMethod = null;
-
-            if (method.name === "set_message") {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_message"
-              );
-            } else if (method.name === "set_greeting") {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_greeting"
-              );
-            } else if (
-              method.name === "increment" ||
-              method.name === "bulk_increment"
-            ) {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_counter"
-              );
-            } else if (method.name === "append_suffix") {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_greeting"
-              );
-            }
-
-            if (viewMethod) {
-              addConsoleOutput(`▶ Fetching updated state...`);
-              setTimeout(async () => {
-                try {
-                  const updatedViewResult = await callViewMethod(
-                    deployedContractId,
-                    viewMethod.name,
-                    {}
-                  );
-                  if (updatedViewResult.success) {
-                    addConsoleOutput(
-                      `✓ Updated state: ${JSON.stringify(updatedViewResult.result)}`
-                    );
-                    setTestResults((prev) => ({
-                      ...prev,
-                      [viewMethod.name]: {
-                        success: true,
-                        result: updatedViewResult.result,
-                        timestamp: new Date().toISOString(),
-                        isRealCall: true,
-                      },
-                    }));
-                  }
-                } catch (e) {
-                  console.warn("Failed to fetch updated state:", e);
-                }
-              }, 2000); // Wait 2 seconds for transaction to be processed
-            }
-          }
-        }
-      } else {
-        // Simulation mode (no deployed contract)
-        addConsoleOutput(`ℹ️  Running in simulation mode (no deployed contract)`);
-
-        const delay = isViewMethod
-          ? 200 + Math.random() * 300
-          : 800 + Math.random() * 1200;
-        await new Promise((resolve) => setTimeout(resolve, delay));
-
-        if (isViewMethod) {
-          const result = getTestResult(method.name, method.params);
-
-          setTestResults((prev) => ({
-            ...prev,
-            [method.name]: {
-              success: true,
-              result,
-              timestamp: new Date().toISOString(),
-              isRealCall: false,
-            },
-          }));
-
-          addConsoleOutput(`✓ Simulated result: ${JSON.stringify(result)}`);
-        } else {
-          if (method.name === "assert_positive") {
-            const value =
-              paramValues.value !== undefined ? paramValues.value : 10;
-            if (value <= 0) {
-              throw new Error("VALUE_MUST_BE_POSITIVE");
-            }
-          }
-
-          updateContractState(method.name, method.params);
-
-          const txHash = generateTxHash();
-          const result = { success: true, txHash };
-
-          setTestResults((prev) => ({
-            ...prev,
-            [method.name]: {
-              success: true,
-              result,
-              timestamp: new Date().toISOString(),
-              isRealCall: false,
-            },
-          }));
-
-          addConsoleOutput(`✓ Simulated transaction executed`);
-          addConsoleOutput(`✓ Simulated transaction hash: ${txHash}`);
-
-          const functions = testFunctions[example.id];
-          if (functions.viewMethods.length > 0) {
-            let viewMethod = null;
-
-            if (method.name === "set_message") {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_message"
-              );
-            } else if (method.name === "set_greeting") {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_greeting"
-              );
-            } else if (
-              method.name === "increment" ||
-              method.name === "bulk_increment"
-            ) {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_counter"
-              );
-            } else if (method.name === "append_suffix") {
-              viewMethod = functions.viewMethods.find(
-                (m) => m.name === "get_greeting"
-              );
-            }
-
-            if (viewMethod) {
-              setTimeout(() => {
-                try {
-                  const updatedResult = getTestResult(
-                    viewMethod.name,
-                    viewMethod.params
-                  );
-                  addConsoleOutput(
-                    `✓ Simulated state: ${JSON.stringify(updatedResult)}`
-                  );
-                  setTestResults((prev) => ({
-                    ...prev,
-                    [viewMethod.name]: {
-                      success: true,
-                      result: updatedResult,
-                      timestamp: new Date().toISOString(),
-                      isRealCall: false,
-                    },
-                  }));
-                } catch (e) {
-                  // Ignore errors
-                }
-              }, 500);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      setTestResults((prev) => ({
-        ...prev,
-        [method.name]: {
-          success: false,
-          error: error.message,
-          timestamp: new Date().toISOString(),
-        },
-      }));
-      addConsoleOutput(`❌ Error: ${error.message}`);
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
   return (
     <div className="pl-4 py-6 md:py-4 max-w-5xl mx-auto space-y-6">
       <ExampleHeader example={example} activeLanguage={activeLanguage} />
@@ -1161,15 +744,8 @@ function ExampleDetail({ example, onBack }) {
           example={example}
           activeInfoTab={activeInfoTab}
           setActiveInfoTab={setActiveInfoTab}
-          testParams={testParams}
-          setTestParams={setTestParams}
-          testResults={testResults}
-          isTesting={isTesting}
-          onTestCall={handleTestCall}
           code={code}
           activeLanguage={activeLanguage}
-          deployedContractId={deployedContractId}
-          walletAccountId={walletAccountId}
         />
       </div>
 
