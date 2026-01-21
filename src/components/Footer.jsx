@@ -61,10 +61,10 @@ function Footer({ scrollToTop }) {
             © 2024 NEAR by Example. All Rights Reserved.
           </p>
           <div className="flex items-center gap-4">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-near-primary transition-colors">
+            <a href="https://github.com/orgs/Learn-Near-AI/repositories" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-near-primary transition-colors">
               <Github className="h-5 w-5" />
             </a>
-            <a href="#" className="text-gray-400 hover:text-near-primary transition-colors">
+            <a href="https://linktr.ee/learnnear" className="text-gray-400 hover:text-near-primary transition-colors">
               <ExternalLink className="h-5 w-5" />
             </a>
           </div>
