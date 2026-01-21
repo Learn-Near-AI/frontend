@@ -26,7 +26,7 @@ function CodeEditor({
   const [copied, setCopied] = useState(false)
   const [reset, setReset] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
-  const deploymentMethod = activeLanguage === 'Rust' ? 'CLI' : 'Wallet'
+  const deploymentMethod = 'CLI' // Both languages use CLI deployment
 
   const handleCopy = () => {
     onCopy()
@@ -164,9 +164,9 @@ function CodeEditor({
         </button>
         <button
           onClick={onDeploy}
-          disabled={isRunning || isDeploying || (activeLanguage === 'Rust' && backendCLIConfigured === false)}
+          disabled={isRunning || isDeploying || backendCLIConfigured === false}
           className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-[#3e3e42] rounded-lg text-gray-100 hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
-          title={activeLanguage === 'Rust' && backendCLIConfigured === false ? 'Backend CLI not configured' : `Deploy via ${deploymentMethod}`}
+          title={backendCLIConfigured === false ? 'Backend CLI not configured' : `Deploy via ${deploymentMethod}`}
         >
           {isDeploying ? (
             <>

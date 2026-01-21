@@ -20,12 +20,20 @@ import CodeEditor from "./CodeEditor";
 import InfoPanel from "./InfoPanel";
 import ConsolePanel from "./ConsolePanel";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// Backend URLs
+const RUST_COMPILE_URL = import.meta.env.VITE_RUST_COMPILE_URL || "https://near-by-example-backend.fly.dev";
+const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL || "https://learn-near-backend.fly.dev";
+const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || "https://near-by-example-backend.fly.dev";
+
+// Helper function to get the appropriate compile API URL based on language
+const getCompileApiUrl = (language) => {
+  return language === "Rust" ? RUST_COMPILE_URL : JS_COMPILE_URL;
+};
 
 // Helper function to determine deployment method based on language
 const shouldUseCLIDeployment = (language) => {
-  // Use CLI deployment for Rust, wallet for JavaScript/TypeScript
-  return language === "Rust";
+  // Use CLI deployment for both Rust and JavaScript/TypeScript
+  return true;
 };
 
 function ExampleDetail({ example, onBack }) {
@@ -62,11 +70,11 @@ function ExampleDetail({ example, onBack }) {
     setIsDeploying(false);
   }, []);
 
-  // Check backend CLI configuration status
+  // Check backend CLI configuration status (deployment backend)
   useEffect(() => {
     const checkBackendStatus = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/near/status`);
+        const response = await fetch(`${DEPLOY_URL}/api/near/status`);
         if (response.ok) {
           const status = await response.json();
           setBackendCLIConfigured(status.configured);
@@ -158,14 +166,15 @@ function ExampleDetail({ example, onBack }) {
     addConsoleOutput("▶ Compiling contract...");
 
     try {
+      const compileApiUrl = getCompileApiUrl(activeLanguage);
       console.log(
-        `[FRONTEND] Sending compile request to: ${API_BASE_URL}/api/compile`
+        `[FRONTEND] Sending compile request to: ${compileApiUrl}/api/compile`
       );
       console.log(
         `[FRONTEND] Language: ${activeLanguage}, Code length: ${code.length}`
       );
 
-      const compileResponse = await fetch(`${API_BASE_URL}/api/compile`, {
+      const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language: activeLanguage }),
@@ -244,8 +253,9 @@ function ExampleDetail({ example, onBack }) {
       );
     } catch (error) {
       if (error.name === "TypeError" && error.message.includes("fetch")) {
+        const compileApiUrl = getCompileApiUrl(activeLanguage);
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
-        addConsoleOutput(`   Backend URL: ${API_BASE_URL}`);
+        addConsoleOutput(`   Backend URL: ${compileApiUrl}`);
         addConsoleOutput(
           `   Please check if the backend is running and accessible.`
         );
@@ -277,18 +287,19 @@ function ExampleDetail({ example, onBack }) {
     }
   };
 
-  // CLI deployment for Rust contracts
+  // CLI deployment for both Rust and JavaScript contracts
   const handleCLIDeploy = async () => {
     setIsDeploying(true);
     clearConsole();
-    addConsoleOutput("▶ Starting CLI deployment (Rust contract)...");
+    addConsoleOutput(`▶ Starting CLI deployment (${activeLanguage} contract)...`);
     addConsoleOutput("📋 Deployment Method: NEAR CLI (Backend)");
     addConsoleOutput("   No wallet connection required\n");
     addConsoleOutput("▶ Compiling contract...");
 
     try {
       // Step 1: Compile the contract
-      const compileResponse = await fetch(`${API_BASE_URL}/api/compile`, {
+      const compileApiUrl = getCompileApiUrl(activeLanguage);
+      const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language: activeLanguage }),
@@ -327,7 +338,7 @@ function ExampleDetail({ example, onBack }) {
       addConsoleOutput("\n▶ Deploying via NEAR CLI...");
       addConsoleOutput("   (Using backend deployment account)");
 
-      const deployResponse = await fetch(`${API_BASE_URL}/api/deploy`, {
+      const deployResponse = await fetch(`${DEPLOY_URL}/api/deploy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -386,7 +397,7 @@ function ExampleDetail({ example, onBack }) {
       // Optional: Test the deployed contract
       addConsoleOutput("\n▶ Testing deployed contract...");
       try {
-        const testResponse = await fetch(`${API_BASE_URL}/api/contract/view`, {
+        const testResponse = await fetch(`${DEPLOY_URL}/api/contract/view`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -414,7 +425,7 @@ function ExampleDetail({ example, onBack }) {
     } catch (error) {
       if (error.name === "TypeError" && error.message.includes("fetch")) {
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
-        addConsoleOutput(`   Backend URL: ${API_BASE_URL}`);
+        addConsoleOutput(`   Backend URL: ${DEPLOY_URL}`);
         addConsoleOutput(
           `   Please check if the backend is running and accessible.`
         );
@@ -443,14 +454,15 @@ function ExampleDetail({ example, onBack }) {
     addConsoleOutput("▶ Compiling contract...");
 
     try {
+      const compileApiUrl = getCompileApiUrl(activeLanguage);
       console.log(
-        `[FRONTEND] Sending compile request to: ${API_BASE_URL}/api/compile`
+        `[FRONTEND] Sending compile request to: ${compileApiUrl}/api/compile`
       );
       console.log(
         `[FRONTEND] Language: ${activeLanguage}, Code length: ${code.length}`
       );
 
-      const compileResponse = await fetch(`${API_BASE_URL}/api/compile`, {
+      const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language: activeLanguage }),
@@ -658,8 +670,9 @@ function ExampleDetail({ example, onBack }) {
       }
     } catch (error) {
       if (error.name === "TypeError" && error.message.includes("fetch")) {
+        const compileApiUrl = getCompileApiUrl(activeLanguage);
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
-        addConsoleOutput(`   Backend URL: ${API_BASE_URL}`);
+        addConsoleOutput(`   Backend URL: ${compileApiUrl}`);
         addConsoleOutput(
           `   Please check if the backend is running and accessible.`
         );
@@ -694,7 +707,7 @@ function ExampleDetail({ example, onBack }) {
       <ExampleHeader example={example} activeLanguage={activeLanguage} />
 
       {/* Backend CLI Status Warning */}
-      {activeLanguage === "Rust" && backendCLIConfigured === false && (
+      {backendCLIConfigured === false && (
         <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <span className="text-yellow-500 text-xl">⚠️</span>
@@ -703,7 +716,7 @@ function ExampleDetail({ example, onBack }) {
                 Backend CLI Deployment Not Configured
               </h3>
               <p className="text-sm text-yellow-400">
-                Rust contracts require backend deployment via NEAR CLI. The
+                Contracts require backend deployment via NEAR CLI. The
                 backend is not currently configured with deployment credentials.
                 You can still compile and test the code, but deployment is
                 disabled.
@@ -713,12 +726,12 @@ function ExampleDetail({ example, onBack }) {
         </div>
       )}
 
-      {activeLanguage === "Rust" && backendCLIConfigured === true && (
+      {backendCLIConfigured === true && (
         <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-3">
           <div className="flex items-start gap-2">
             <span className="text-blue-400 text-lg">ℹ️</span>
             <p className="text-sm text-blue-300">
-              <strong>Rust contracts</strong> will be deployed via backend NEAR
+              <strong>Contracts</strong> will be deployed via backend NEAR
               CLI. No wallet connection required.
             </p>
           </div>
