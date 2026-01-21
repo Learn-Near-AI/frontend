@@ -71,7 +71,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
 }
 

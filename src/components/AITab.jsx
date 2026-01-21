@@ -122,7 +122,7 @@ Please answer the user's question about this code in a clear and helpful way usi
   return (
     <div className="flex flex-col flex-1 gap-4 min-h-0">
       {/* Chat messages area */}
-      <div className="bg-[#111216] rounded-lg p-3 text-xs text-gray-300 space-y-3 flex-1 overflow-auto min-h-0 border border-[#3e3e42]">
+      <div className="bg-[#111216] rounded-lg p-3 text-xs text-gray-300 space-y-3 flex-1 overflow-y-auto overflow-x-hidden min-h-0 max-h-[400px] border border-[#3e3e42]">
         {messages.length === 0 ? (
           <>
             <p className="font-semibold mb-2">Ask about this code...</p>

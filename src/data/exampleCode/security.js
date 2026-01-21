@@ -68,7 +68,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'role-based-access': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -133,7 +133,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'pausable-contract': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -218,7 +218,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'multi-signature': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -285,7 +285,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'reentrancy-guard': {
     Rust: `use near_sdk::{near_bindgen, env, require, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -346,7 +346,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
 }
 

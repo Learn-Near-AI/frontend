@@ -34,7 +34,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'panic-handling': {
     Rust: `use near_sdk::{near_bindgen, env, require};
@@ -76,7 +76,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'event-patterns': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -130,7 +130,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'initialization': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -176,7 +176,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'gas-optimization': {
     Rust: `use near_sdk::near_bindgen;
@@ -230,7 +230,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'complete-example': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -328,7 +328,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
 }
 

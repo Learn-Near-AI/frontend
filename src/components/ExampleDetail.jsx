@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { exampleCode } from "../data/examples";
 import {
   Dialog,
@@ -46,6 +46,7 @@ function ExampleDetail({ example, onBack }) {
   const [deployedContractId, setDeployedContractId] = useState(null);
   const [deploymentTxHash, setDeploymentTxHash] = useState(null);
   const [backendCLIConfigured, setBackendCLIConfigured] = useState(null);
+  const [isWarningClosed, setIsWarningClosed] = useState(false);
 
   const initialCode =
     exampleCode[example.id]?.[activeLanguage] ||
@@ -726,14 +727,21 @@ function ExampleDetail({ example, onBack }) {
         </div>
       )}
 
-      {backendCLIConfigured === true && (
+      {backendCLIConfigured === true && !isWarningClosed && (
         <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-3">
           <div className="flex items-start gap-2">
             <span className="text-blue-400 text-lg">ℹ️</span>
-            <p className="text-sm text-blue-300">
+            <p className="text-sm text-blue-300 flex-1">
               <strong>Contracts</strong> will be deployed via backend NEAR
               CLI. No wallet connection required.
             </p>
+            <button
+              onClick={() => setIsWarningClosed(true)}
+              className="text-blue-400 hover:text-blue-200 transition-colors"
+              aria-label="Close warning"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

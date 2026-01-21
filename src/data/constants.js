@@ -65,8 +65,6 @@ class Contract {
   placeholder() {
     return "Coming soon!";
   }
-}
-
-export default Contract;`,
+}`,
 }
 

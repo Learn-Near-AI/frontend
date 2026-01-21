@@ -52,7 +52,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'todo-list': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -130,7 +130,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'user-profiles': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -197,7 +197,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'voting-system': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -278,7 +278,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
 }
 

@@ -23,7 +23,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'contract-structure': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId};
@@ -63,7 +63,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'view-methods': {
     Rust: `use near_sdk::near_bindgen;
@@ -103,7 +103,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'change-methods': {
     Rust: `use near_sdk::near_bindgen;
@@ -158,7 +158,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'storage-basics': {
     Rust: `use near_sdk::{near_bindgen, BorshStorageKey};
@@ -208,7 +208,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'state-management': {
     Rust: `use near_sdk::near_bindgen;
@@ -255,7 +255,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'input-validation': {
     Rust: `use near_sdk::{near_bindgen, env, require};
@@ -312,7 +312,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'access-control': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId};
@@ -368,7 +368,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'error-handling': {
     Rust: `use near_sdk::{near_bindgen, env};
@@ -408,7 +408,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'events': {
     Rust: `use near_sdk::{near_bindgen, env};
@@ -455,7 +455,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'collections-vector': {
     Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -513,7 +513,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'collections-map': {
     Rust: `use near_sdk::{near_bindgen, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
@@ -562,7 +562,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
 }
 

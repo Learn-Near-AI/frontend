@@ -35,7 +35,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
   'promises': {
     Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
@@ -72,7 +72,7 @@ class Contract {
   }
 }
 
-export default Contract;`,
+`,
   },
 }
 
