@@ -33,11 +33,9 @@ function Nav({
 }) {
   const { signedAccountId, loading, signIn, signOut } = useNearWallet()
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false)
+  const [walletBalance, setWalletBalance] = useState(null)
   
-  // Note: near-connect-hooks doesn't provide balance directly,
-  // but we can keep the UI simple for now
   const walletAccountId = signedAccountId
-  const walletBalance = null // Can be fetched separately if needed
   const [streakModalOpen, setStreakModalOpen] = useState(false)
   const [currentStreak, setCurrentStreak] = useState(0)
   const [longestStreak, setLongestStreak] = useState(0)
@@ -62,7 +60,56 @@ function Nav({
   const handleWalletDisconnect = () => {
     signOut()
     setWalletDropdownOpen(false)
+    setWalletBalance(null)
   }
+
+  // Fetch wallet balance when account is connected
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!signedAccountId) {
+        setWalletBalance(null)
+        return
+      }
+
+      try {
+        const RPC_URL = 'https://rpc.testnet.near.org'
+        const res = await fetch(RPC_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'dontcare',
+            method: 'query',
+            params: {
+              request_type: 'view_account',
+              finality: 'final',
+              account_id: signedAccountId,
+            },
+          }),
+        })
+
+        const json = await res.json()
+        const amountYocto = json?.result?.amount
+        if (amountYocto) {
+          // Convert yoctoNEAR (1e24) to NEAR, formatted to 3 decimal places
+          const balance = Number(amountYocto) / 1e24
+          setWalletBalance(balance.toFixed(3))
+        } else {
+          setWalletBalance(null)
+        }
+      } catch (e) {
+        console.error('Failed to fetch account balance', e)
+        setWalletBalance(null)
+      }
+    }
+
+    fetchBalance()
+    // Poll balance every 10 seconds to keep it updated
+    const intervalId = setInterval(fetchBalance, 10000)
+    return () => clearInterval(intervalId)
+  }, [signedAccountId])
 
   // Streak tracking logic
   useEffect(() => {
@@ -268,7 +315,7 @@ function Nav({
                             {walletAccountId}
                           </div>
                           <div className="text-xs font-semibold text-near-primary">
-                            Connected
+                            {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}
                           </div>
                         </div>
                       </div>
@@ -283,9 +330,9 @@ function Nav({
                           </div>
                         </div>
                         <div className="p-4 border-b border-[#3e3e42]">
-                          <div className="text-xs text-gray-400 mb-1">Status</div>
+                          <div className="text-xs text-gray-400 mb-1">Balance</div>
                           <div className="text-lg font-semibold text-near-primary">
-                            Connected
+                            {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}
                           </div>
                         </div>
                         <div className="p-2">
@@ -413,9 +460,9 @@ function Nav({
                         </div>
                       </div>
                       <div className="p-3 rounded-lg border border-[#3e3e42] bg-[#111216]">
-                        <div className="text-xs text-gray-400 mb-1">Status</div>
+                        <div className="text-xs text-gray-400 mb-1">Balance</div>
                         <div className="text-lg font-semibold text-near-primary">
-                          Connected
+                          {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}
                         </div>
                       </div>
                       <button
