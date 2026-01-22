@@ -20,10 +20,14 @@ import CodeEditor from "./CodeEditor";
 import InfoPanel from "./InfoPanel";
 import ConsolePanel from "./ConsolePanel";
 
-// Backend URLs
-const RUST_COMPILE_URL = import.meta.env.VITE_RUST_COMPILE_URL || "https://near-by-example-backend.fly.dev";
-const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL || "https://learn-near-backend.fly.dev";
-const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || "https://near-by-example-backend.fly.dev";
+// Backend URLs - use proxy in development to avoid CORS issues
+const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const RUST_COMPILE_URL = import.meta.env.VITE_RUST_COMPILE_URL || 
+  (isDev ? '/api/backend-rust' : 'https://near-by-example-backend.fly.dev');
+const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL || 
+  (isDev ? '/api/backend-js' : 'https://learn-near-backend.fly.dev');
+const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || 
+  (isDev ? '/api/backend-rust' : 'https://near-by-example-backend.fly.dev');
 
 // Helper function to get the appropriate compile API URL based on language
 const getCompileApiUrl = (language) => {

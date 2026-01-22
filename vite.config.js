@@ -26,6 +26,19 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/near-rpc/, ''),
         secure: true,
       },
+      // Proxy backend API requests to avoid CORS issues in development
+      '/api/backend-rust': {
+        target: 'https://near-by-example-backend.fly.dev',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/backend-rust/, ''),
+        secure: true,
+      },
+      '/api/backend-js': {
+        target: 'https://learn-near-backend.fly.dev',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/backend-js/, ''),
+        secure: true,
+      },
     },
   },
 })
