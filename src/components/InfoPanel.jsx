@@ -1,6 +1,7 @@
 import React from 'react'
 import ExplanationTab from './ExplanationTab'
 import AITab from './AITab'
+import FnTestingTab from './FnTestingTab'
 
 function InfoPanel({
   example,
@@ -8,8 +9,13 @@ function InfoPanel({
   setActiveInfoTab,
   code,
   activeLanguage,
+  deployedContractId,
+  isDeploying,
 }) {
-  const tabs = ['Explanation', 'AI']
+  const tabs = ['Explanation', 'AI', 'Fn Testing']
+  
+  // Determine if Fn Testing should be enabled
+  const isFnTestingEnabled = !!deployedContractId
 
   return (
     <div className="lg:basis-2/5 bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col overflow-hidden">
@@ -18,17 +24,34 @@ function InfoPanel({
         {tabs.map((label) => {
           const key = label.toLowerCase()
           const isActive = activeInfoTab === key
+          const isFnTesting = label === 'Fn Testing'
+          const isDisabled = isFnTesting && !isFnTestingEnabled
+          
           return (
             <button
               key={label}
-              onClick={() => setActiveInfoTab(key)}
+              onClick={() => !isDisabled && setActiveInfoTab(key)}
+              disabled={isDisabled}
               className={`flex-1 px-3 py-2 rounded-t-lg border-b-2 -mb-px flex items-center justify-center gap-1.5 ${
                 isActive
                   ? 'border-near-primary text-near-primary font-semibold'
-                  : 'border-transparent text-gray-400 hover:text-gray-200'
+                  : isDisabled
+                  ? 'border-transparent text-gray-600 cursor-not-allowed opacity-50'
+                  : 'border-transparent text-gray-400 hover:text-gray-200 cursor-pointer'
               }`}
+              title={isDisabled ? 'Deploy contract first to enable function testing' : ''}
             >
               {label}
+              {isFnTesting && !isFnTestingEnabled && (
+                <span className="text-[0.6rem] px-1 py-0.5 rounded bg-gray-700 text-gray-400">
+                  🔒
+                </span>
+              )}
+              {isFnTesting && isDeploying && (
+                <span className="text-[0.6rem] px-1 py-0.5 rounded bg-amber-900/30 text-amber-400">
+                  ⏳
+                </span>
+              )}
             </button>
           )
         })}
@@ -37,6 +60,15 @@ function InfoPanel({
       <div className="flex-1 p-4 text-sm flex flex-col bg-[#0d0f14]">
         {activeInfoTab === 'explanation' && <ExplanationTab example={example} />}
         {activeInfoTab === 'ai' && <AITab code={code} example={example} activeLanguage={activeLanguage} />}
+        {activeInfoTab === 'fn testing' && (
+          <FnTestingTab 
+            code={code} 
+            example={example} 
+            activeLanguage={activeLanguage}
+            deployedContractId={deployedContractId}
+            isDeploying={isDeploying}
+          />
+        )}
       </div>
     </div>
   )

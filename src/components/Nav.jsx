@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNearWallet } from 'near-connect-hooks'
 import { 
   Menu,
   X,
@@ -28,19 +29,40 @@ function Nav({
   setMobileMenuOpen,
   scrollToTop,
   launchExamplesBrowser,
-  currentPath,
-  walletAccountId,
-  walletBalance,
-  walletDropdownOpen,
-  setWalletDropdownOpen,
-  handleWalletConnect,
-  handleWalletDisconnect
+  currentPath
 }) {
+  const { signedAccountId, loading, signIn, signOut } = useNearWallet()
+  const [walletDropdownOpen, setWalletDropdownOpen] = useState(false)
+  
+  // Note: near-connect-hooks doesn't provide balance directly,
+  // but we can keep the UI simple for now
+  const walletAccountId = signedAccountId
+  const walletBalance = null // Can be fetched separately if needed
   const [streakModalOpen, setStreakModalOpen] = useState(false)
   const [currentStreak, setCurrentStreak] = useState(0)
   const [longestStreak, setLongestStreak] = useState(0)
   const [totalVisits, setTotalVisits] = useState(0)
   const [showStreakBadge, setShowStreakBadge] = useState(true)
+
+  // Close wallet dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (walletDropdownOpen && !event.target.closest('.wallet-dropdown-container')) {
+        setWalletDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [walletDropdownOpen])
+
+  const handleWalletConnect = () => {
+    signIn()
+  }
+
+  const handleWalletDisconnect = () => {
+    signOut()
+    setWalletDropdownOpen(false)
+  }
 
   // Streak tracking logic
   useEffect(() => {
@@ -246,7 +268,7 @@ function Nav({
                             {walletAccountId}
                           </div>
                           <div className="text-xs font-semibold text-near-primary">
-                            {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}
+                            Connected
                           </div>
                         </div>
                       </div>
@@ -261,9 +283,9 @@ function Nav({
                           </div>
                         </div>
                         <div className="p-4 border-b border-[#3e3e42]">
-                          <div className="text-xs text-gray-400 mb-1">Balance</div>
+                          <div className="text-xs text-gray-400 mb-1">Status</div>
                           <div className="text-lg font-semibold text-near-primary">
-                            {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}
+                            Connected
                           </div>
                         </div>
                         <div className="p-2">
@@ -391,9 +413,9 @@ function Nav({
                         </div>
                       </div>
                       <div className="p-3 rounded-lg border border-[#3e3e42] bg-[#111216]">
-                        <div className="text-xs text-gray-400 mb-1">Balance</div>
+                        <div className="text-xs text-gray-400 mb-1">Status</div>
                         <div className="text-lg font-semibold text-near-primary">
-                          {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}
+                          Connected
                         </div>
                       </div>
                       <button

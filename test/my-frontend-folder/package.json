@@ -1,0 +1,30 @@
+{
+  "name": "hello-near",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "bootstrap": "^5",
+    "bootstrap-icons": "^1.11.3",
+    "near-connect-hooks": "^1.0.2",
+    "next": "^15",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "encoding": "^0.1.13",
+    "eslint": "^9.16.0",
+    "eslint-config-next": "15.0.3",
+    "typescript": "5.9.3"
+  }
+}

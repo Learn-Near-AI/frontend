@@ -17,13 +17,6 @@ import NextEditSuggestions from './components/NextEditSuggestions'
 import CodeWithExtensions from './components/CodeWithExtensions'
 import CodeInAnyLanguage from './components/CodeInAnyLanguage'
 import Footer from './components/Footer'
-import {
-  initWalletSelector,
-  openWalletSelectorModal,
-  getActiveAccountId,
-  getActiveAccountBalance,
-  disconnectWallet,
-} from './near/near'
 
 function App() {
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname || '/')
@@ -33,9 +26,6 @@ function App() {
     const saved = localStorage.getItem('theme')
     return saved ? saved === 'dark' : true
   })
-  const [walletAccountId, setWalletAccountId] = useState(null)
-  const [walletBalance, setWalletBalance] = useState(null)
-  const [walletDropdownOpen, setWalletDropdownOpen] = useState(false)
 
   useEffect(() => {
     // Initialize AOS
@@ -53,37 +43,6 @@ function App() {
       document.documentElement.classList.remove('dark')
     }
   }, [isDark])
-
-  // Initialize Wallet Selector (MyNearWallet) and keep active account + balance in sync
-  useEffect(() => {
-    ;(async () => {
-      try {
-        await initWalletSelector()
-
-        const updateAccountState = async () => {
-          const accountId = await getActiveAccountId()
-          if (!accountId) {
-            setWalletAccountId(null)
-            setWalletBalance(null)
-            return
-          }
-          setWalletAccountId(accountId)
-          const balance = await getActiveAccountBalance()
-          if (balance !== null) {
-            setWalletBalance(balance)
-          }
-        }
-
-        // Initial fetch
-        await updateAccountState()
-        // Poll periodically so state updates after user connects via modal
-        const intervalId = setInterval(updateAccountState, 5000)
-        return () => clearInterval(intervalId)
-      } catch (e) {
-        console.error('Failed to init wallet selector', e)
-      }
-    })()
-  }, [])
 
   useEffect(() => {
     // Handle initial URL with query parameters (e.g., from wallet redirect)
@@ -105,16 +64,6 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // Close wallet dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (walletDropdownOpen && !event.target.closest('.wallet-dropdown-container')) {
-        setWalletDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [walletDropdownOpen])
 
   const navigate = (path) => {
     if (path === currentPath) return
@@ -143,18 +92,6 @@ function App() {
     navigate('/examples')
   }
 
-  const handleWalletConnect = async () => {
-    await initWalletSelector()
-    openWalletSelectorModal()
-  }
-
-  const handleWalletDisconnect = async () => {
-    await disconnectWallet()
-    setWalletAccountId(null)
-    setWalletBalance(null)
-    setWalletDropdownOpen(false)
-  }
-
   return (
     <div className="min-h-screen bg-[#111216]">
       <Toaster 
@@ -178,12 +115,6 @@ function App() {
         scrollToTop={scrollToTop}
         launchExamplesBrowser={launchExamplesBrowser}
         currentPath={currentPath}
-        walletAccountId={walletAccountId}
-        walletBalance={walletBalance}
-        walletDropdownOpen={walletDropdownOpen}
-        setWalletDropdownOpen={setWalletDropdownOpen}
-        handleWalletConnect={handleWalletConnect}
-        handleWalletDisconnect={handleWalletDisconnect}
       />
 
       {currentPath.startsWith('/examples') ? (

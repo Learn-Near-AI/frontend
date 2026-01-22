@@ -767,6 +767,8 @@ function ExampleDetail({ example, onBack }) {
           setActiveInfoTab={setActiveInfoTab}
           code={code}
           activeLanguage={activeLanguage}
+          deployedContractId={deployedContractId}
+          isDeploying={isDeploying}
         />
       </div>
 
