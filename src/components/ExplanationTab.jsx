@@ -134,7 +134,7 @@ function ExplanationTab({ example }) {
   }, [example.id, fullExplanation]);
 
   return (
-    <div className="space-y-4 flex-1 overflow-auto bg-[#0d0f14] rounded-lg p-4">
+    <div className="space-y-4 bg-[#0d0f14] rounded-lg p-2 h-[350px] overflow-y-auto">
       <div>
         <h2 className="text-base font-semibold text-white mb-1">
           {example.name}

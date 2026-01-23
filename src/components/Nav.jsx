@@ -42,6 +42,46 @@ function Nav({
   const [totalVisits, setTotalVisits] = useState(0)
   const [showStreakBadge, setShowStreakBadge] = useState(true)
 
+  // Play a fun sound when streak modal opens
+  useEffect(() => {
+    if (streakModalOpen) {
+      // Create a simple pleasant "success" sound using Web Audio API
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        
+        // Create a short melody with three notes
+        const playNote = (frequency, startTime, duration) => {
+          const oscillator = audioContext.createOscillator()
+          const gainNode = audioContext.createGain()
+          
+          oscillator.connect(gainNode)
+          gainNode.connect(audioContext.destination)
+          
+          oscillator.frequency.value = frequency
+          oscillator.type = 'sine'
+          
+          // Envelope for smooth sound
+          gainNode.gain.setValueAtTime(0, startTime)
+          gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.01)
+          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+          
+          oscillator.start(startTime)
+          oscillator.stop(startTime + duration)
+        }
+        
+        const now = audioContext.currentTime
+        // Play a pleasant C major chord arpeggio
+        playNote(523.25, now, 0.15)        // C5
+        playNote(659.25, now + 0.1, 0.15)  // E5
+        playNote(783.99, now + 0.2, 0.25)  // G5
+        
+      } catch (error) {
+        // Silently fail if audio context isn't available
+        console.log('Audio not available:', error)
+      }
+    }
+  }, [streakModalOpen])
+
   // Close wallet dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -302,7 +342,7 @@ function Nav({
 
             {/* NEAR Wallet connect – only show in examples view */}
             {currentPath.startsWith('/examples') && (
-              <div className="hidden md:block relative wallet-dropdown-container">
+              <div className="hidden md:block relative wallet-dropdown-container tour-wallet-connect">
                 {walletAccountId ? (
                   <>
                     <button

@@ -92,6 +92,7 @@ function CodeEditor({
         <div className="flex-1" />
 
         {/* Action buttons */}
+        <div className="tour-run-deploy flex items-center gap-2">
         <button
           onClick={handleResetClick}
           className={`px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-1 ${
@@ -180,6 +181,7 @@ function CodeEditor({
             </>
           )}
         </button>
+        </div>
       </div>
 
       {/* Code editor area */}

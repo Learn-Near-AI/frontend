@@ -14,9 +14,12 @@ import ExampleDetail from "./ExampleDetail";
 import SuccessPage from "./SuccessPage";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 
+const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
+
 function ExamplesBrowser({ isDark, toggleTheme }) {
   const [selectedExample, setSelectedExample] = useState(null);
   const [comingSoonExample, setComingSoonExample] = useState(null);
+  const [shouldStartTour, setShouldStartTour] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("All");
   const [selectedCategories, setSelectedCategories] = useState(["All"]);
@@ -87,6 +90,34 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Auto-select first example for tour if user should see it
+  useEffect(() => {
+    // Only run on mount and when on examples route
+    if (!currentPath.startsWith('/examples') || currentPath.includes('/success')) {
+      return;
+    }
+
+    const hasCompletedTour = localStorage.getItem(TOUR_STORAGE_KEY);
+    const streakData = JSON.parse(localStorage.getItem('nearStreakData') || '{}');
+    const currentStreak = streakData.currentStreak || 0;
+
+    // Check if user should see tour (streak 0-5 and hasn't completed)
+    const shouldShowTour = !hasCompletedTour && currentStreak <= 5;
+
+    if (shouldShowTour && !selectedExample && !comingSoonExample) {
+      // Auto-select the first working example
+      const firstWorkingExampleId = WORKING_EXAMPLES[0];
+      const firstExample = Object.values(examplesData)
+        .flat()
+        .find(ex => ex.id === firstWorkingExampleId);
+
+      if (firstExample) {
+        setSelectedExample(firstExample);
+        setShouldStartTour(true);
+      }
+    }
+  }, [currentPath, selectedExample, comingSoonExample]);
 
   // Flatten all examples for search
   const allExamples = useMemo(() => {
@@ -244,7 +275,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
 
         {/* Desktop Sidebar - 20% width */}
         <div
-          className={`hidden lg:block lg:w-1/5 border-r border-[#3e3e42] bg-[#111216] rounded-t-xl h-[calc(100vh)] ${
+          className={`tour-example-sidebar hidden lg:block lg:w-1/5 border-r border-[#3e3e42] bg-[#111216] rounded-t-xl h-[calc(100vh)] ${
             sidebarVisible ? "" : "lg:hidden"
           }`}
         >
@@ -266,6 +297,8 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
             <ExampleDetail
               example={selectedExample}
               onBack={handleBackToBrowse}
+              shouldStartTour={shouldStartTour}
+              onTourStart={() => setShouldStartTour(false)}
             />
           ) : comingSoonExample ? (
             <div className="p-6 max-w-3xl mx-auto">

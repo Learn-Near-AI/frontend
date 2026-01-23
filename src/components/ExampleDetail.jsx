@@ -19,6 +19,8 @@ import ExampleHeader from "./ExampleHeader";
 import CodeEditor from "./CodeEditor";
 import InfoPanel from "./InfoPanel";
 import ConsolePanel from "./ConsolePanel";
+import OnboardingTour from "./OnboardingTour";
+import TourButton from "./TourButton";
 
 // Backend URLs - use proxy in development to avoid CORS issues
 const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
@@ -28,6 +30,8 @@ const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL ||
   (isDev ? '/api/backend-js' : 'https://learn-near-backend.fly.dev');
 const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || 
   (isDev ? '/api/backend-rust' : 'https://near-by-example-backend.fly.dev');
+
+const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
 
 // Helper function to get the appropriate compile API URL based on language
 const getCompileApiUrl = (language) => {
@@ -40,9 +44,9 @@ const shouldUseCLIDeployment = (language) => {
   return true;
 };
 
-function ExampleDetail({ example, onBack }) {
+function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }) {
   const [activeLanguage, setActiveLanguage] = useState("Rust");
-  const [activeInfoTab, setActiveInfoTab] = useState("ai");
+  const [activeInfoTab, setActiveInfoTab] = useState("explanation");
   const [code, setCode] = useState("");
   const [consoleOutput, setConsoleOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
@@ -51,6 +55,7 @@ function ExampleDetail({ example, onBack }) {
   const [deploymentTxHash, setDeploymentTxHash] = useState(null);
   const [backendCLIConfigured, setBackendCLIConfigured] = useState(null);
   const [isWarningClosed, setIsWarningClosed] = useState(false);
+  const [runTour, setRunTour] = useState(false);
 
   const initialCode =
     exampleCode[example.id]?.[activeLanguage] ||
@@ -74,6 +79,20 @@ function ExampleDetail({ example, onBack }) {
   useEffect(() => {
     setIsDeploying(false);
   }, []);
+
+  // Start tour if triggered from ExamplesBrowser
+  useEffect(() => {
+    if (shouldStartTour) {
+      // Auto-start tour after a short delay
+      const timer = setTimeout(() => {
+        setRunTour(true);
+        if (onTourStart) {
+          onTourStart();
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldStartTour, onTourStart]);
 
   // Check backend CLI configuration status (deployment backend)
   useEffect(() => {
@@ -695,20 +714,26 @@ function ExampleDetail({ example, onBack }) {
     navigator.clipboard.writeText(code);
   };
 
-  const [showResetDialog, setShowResetDialog] = useState(false);
-
   const handleResetCode = () => {
-    setShowResetDialog(true);
-  };
-
-  const handleResetConfirm = () => {
     setCode(initialCode);
     clearConsole();
-    setShowResetDialog(false);
+  };
+
+  const handleStartTour = () => {
+    setRunTour(true);
+  };
+
+  const handleTourFinish = () => {
+    setRunTour(false);
   };
 
   return (
     <div className="pl-4 py-6 md:py-4 max-w-5xl mx-auto space-y-6">
+      {/* Onboarding Tour */}
+      <OnboardingTour run={runTour} onFinish={handleTourFinish} />
+      
+      {/* Floating Help Button */}
+      <TourButton onStartTour={handleStartTour} />
       <ExampleHeader example={example} activeLanguage={activeLanguage} />
 
       {/* Backend CLI Status Warning */}
@@ -781,32 +806,6 @@ function ExampleDetail({ example, onBack }) {
         deployedContractId={deployedContractId}
         deploymentTxHash={deploymentTxHash}
       />
-
-      {/* Reset Confirmation Dialog */}
-      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Reset Code</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to reset the code to the original example? All your changes will be lost.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <button
-              onClick={() => setShowResetDialog(false)}
-              className="px-4 py-2 text-sm border border-[#3e3e42] rounded-lg text-gray-300 hover:bg-[#1a1b1f] transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleResetConfirm}
-              className="px-4 py-2 text-sm bg-near-primary text-near-darker font-semibold rounded-lg hover:bg-[#00D689] transition-colors"
-            >
-              Reset
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

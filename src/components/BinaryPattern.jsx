@@ -35,7 +35,7 @@ function BinaryPattern({ className = '' }) {
       line-height: 1.4;
       padding: 40px;
       letter-spacing: 6px;
-      transform: rotate(-1deg);
+      transform: rotate(0deg);
       pointer-events: none;
       z-index: 0;
     `

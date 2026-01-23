@@ -3,7 +3,7 @@ import { ExternalLink } from 'lucide-react'
 
 function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
   return (
-    <div className="bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col gap-4">
+    <div className="tour-console bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col gap-4">
       {/* Console Output */}
       <div className="border-b border-[#3e3e42] pb-3 px-4 pt-4">
         <h3 className="text-sm font-semibold text-white mb-2">

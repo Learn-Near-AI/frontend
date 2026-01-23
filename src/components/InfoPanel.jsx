@@ -27,12 +27,18 @@ function InfoPanel({
           const isFnTesting = label === 'Fn Testing'
           const isDisabled = isFnTesting && !isFnTestingEnabled
           
+          // Add tour classes for each tab
+          let tourClass = ''
+          if (label === 'Explanation') tourClass = 'tour-explanation-tab'
+          if (label === 'AI') tourClass = 'tour-ai-tab'
+          if (label === 'Fn Testing') tourClass = 'tour-fn-testing-tab'
+          
           return (
             <button
               key={label}
               onClick={() => !isDisabled && setActiveInfoTab(key)}
               disabled={isDisabled}
-              className={`flex-1 px-3 py-2 rounded-t-lg border-b-2 -mb-px flex items-center justify-center gap-1.5 ${
+              className={`${tourClass} flex-1 px-3 py-2 rounded-t-lg border-b-2 -mb-px flex items-center justify-center gap-1.5 ${
                 isActive
                   ? 'border-near-primary text-near-primary font-semibold'
                   : isDisabled
