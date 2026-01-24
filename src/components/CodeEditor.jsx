@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Play, Rocket, TimerResetIcon, CopyIcon, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -9,6 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog'
+import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view'
+import { EditorState } from '@codemirror/state'
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
+import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
+import { foldGutter, indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldKeymap } from '@codemirror/language'
+import { lintKeymap } from '@codemirror/lint'
+import { javascript } from '@codemirror/lang-javascript'
+import { rust } from '@codemirror/lang-rust'
+import { oneDark } from '@codemirror/theme-one-dark'
 
 function CodeEditor({
   code,
@@ -27,6 +37,8 @@ function CodeEditor({
   const [reset, setReset] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
   const deploymentMethod = 'CLI' // Both languages use CLI deployment
+  const editorRef = useRef(null)
+  const viewRef = useRef(null)
 
   const handleCopy = () => {
     onCopy()
@@ -60,22 +72,112 @@ function CodeEditor({
       return () => clearTimeout(timer)
     }
   }, [reset])
+
+  // Initialize CodeMirror
+  useEffect(() => {
+    if (!editorRef.current) return
+
+    // Get language extension based on active language
+    const languageExtension = activeLanguage === 'JavaScript' ? javascript() : rust()
+
+    // Create editor state with all extensions
+    const state = EditorState.create({
+      doc: code,
+      extensions: [
+        // Basic editor functionality
+        lineNumbers(),
+        highlightActiveLineGutter(),
+        highlightSpecialChars(),
+        history(),
+        foldGutter(),
+        drawSelection(),
+        dropCursor(),
+        EditorState.allowMultipleSelections.of(true),
+        indentOnInput(),
+        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+        bracketMatching(),
+        closeBrackets(),
+        autocompletion(),
+        rectangularSelection(),
+        crosshairCursor(),
+        highlightActiveLine(),
+        highlightSelectionMatches(),
+        
+        // Keymaps
+        keymap.of([
+          ...closeBracketsKeymap,
+          ...defaultKeymap,
+          ...searchKeymap,
+          ...historyKeymap,
+          ...foldKeymap,
+          ...completionKeymap,
+          ...lintKeymap,
+        ]),
+        
+        // Language support and theme
+        languageExtension,
+        oneDark,
+        
+        // Update listener
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            setCode(update.state.doc.toString())
+          }
+        }),
+        
+        // Custom theme
+        EditorView.theme({
+          '&': {
+            height: '100%',
+            fontSize: '0.875rem',
+          },
+          '.cm-scroller': {
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            minHeight: '300px',
+          },
+          '.cm-content': {
+            padding: '8px 0',
+          },
+        }),
+      ],
+    })
+
+    // Create editor view
+    const view = new EditorView({
+      state,
+      parent: editorRef.current,
+    })
+
+    viewRef.current = view
+
+    return () => {
+      view.destroy()
+      viewRef.current = null
+    }
+  }, [activeLanguage])
+
+  // Update code when it changes externally (e.g., reset)
+  useEffect(() => {
+    if (viewRef.current) {
+      const currentCode = viewRef.current.state.doc.toString()
+      if (currentCode !== code) {
+        viewRef.current.dispatch({
+          changes: {
+            from: 0,
+            to: currentCode.length,
+            insert: code,
+          },
+        })
+      }
+    }
+  }, [code])
+
   return (
     <div className="lg:basis-3/5 bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col overflow-hidden">
       {/* Top toolbar */}
       <div className="border-b border-[#3e3e42] px-3 md:px-4 py-2.5 md:py-3 flex flex-wrap items-center gap-2">
         {/* Language tabs */}
         <div className="inline-flex rounded-lg border border-[#3e3e42] bg-[#111216] overflow-hidden text-[0.65rem] md:text-xs">
-          <button
-            className={`px-3 py-1.5 ${
-              activeLanguage === 'Rust'
-                ? 'bg-near-primary text-near-darker font-semibold'
-                : 'text-gray-300 hover:bg-[#1a1b1f]'
-            }`}
-            onClick={() => setActiveLanguage('Rust')}
-          >
-            Rust
-          </button>
           <button
             className={`px-3 py-1.5 font-semibold ${
               activeLanguage === 'JavaScript'
@@ -86,6 +188,16 @@ function CodeEditor({
           >
             <span className="md:hidden">JS</span>
             <span className="hidden md:inline">JavaScript</span>
+          </button>
+          <button
+            className={`px-3 py-1.5 ${
+              activeLanguage === 'Rust'
+                ? 'bg-near-primary text-near-darker font-semibold'
+                : 'text-gray-300 hover:bg-[#1a1b1f]'
+            }`}
+            onClick={() => setActiveLanguage('Rust')}
+          >
+            Rust
           </button>
         </div>
 
@@ -185,18 +297,12 @@ function CodeEditor({
       </div>
 
       {/* Code editor area */}
-      <div className="flex-1 bg-[#0d0f14] text-gray-500 font-mono text-xs md:text-sm overflow-auto p-4 space-y-3">
-        <div className="flex items-center justify-between text-[0.65rem] text-gray-400">
+      <div className="flex-1 bg-[#0d0f14] text-gray-500 font-mono text-xs md:text-sm overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between text-[0.65rem] text-gray-400 px-4 pt-4 pb-2">
           <span>Code Editor • {activeLanguage}</span>
           <span>NEAR SDK</span>
         </div>
-        <textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="w-full h-full bg-transparent text-white/90 font-mono text-xs md:text-sm outline-none resize-none whitespace-pre overflow-x-auto"
-          spellCheck={false}
-          style={{ minHeight: '300px' }}
-        />
+        <div ref={editorRef} className="flex-1 overflow-auto" />
       </div>
 
       {/* Bottom status bar */}
