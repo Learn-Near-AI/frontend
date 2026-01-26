@@ -29,7 +29,8 @@ function Nav({
   setMobileMenuOpen,
   scrollToTop,
   launchExamplesBrowser,
-  currentPath
+  currentPath,
+  navigate
 }) {
   const { signedAccountId, loading, signIn, signOut } = useNearWallet()
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false)
@@ -274,12 +275,16 @@ function Nav({
             >
               Docs
             </a>
-            <a
-              href="#"
-              className="text-gray-300 hover:text-near-primary transition-colors font-medium"
+            <button
+              onClick={() => navigate('/roadmap')}
+              className={`transition-colors font-medium ${
+                currentPath === '/roadmap'
+                  ? 'text-near-primary'
+                  : 'text-gray-300 hover:text-near-primary'
+              }`}
             >
-              Community
-            </a>
+              Roadmap
+            </button>
             <a
               href="https://github.com"
               target="_blank"
@@ -340,8 +345,8 @@ function Nav({
               </button>
             )}
 
-            {/* NEAR Wallet connect – only show in examples view */}
-            {currentPath.startsWith('/examples') && (
+            {/* NEAR Wallet connect – show in examples and roadmap views */}
+            {(currentPath.startsWith('/examples') || currentPath === '/roadmap') && (
               <div className="hidden md:block relative wallet-dropdown-container tour-wallet-connect">
                 {walletAccountId ? (
                   <>
@@ -464,12 +469,16 @@ function Nav({
               >
                 Docs
               </a>
-              <a
-                href="#"
-                className="text-gray-300 hover:text-near-primary transition-colors font-medium py-2"
+              <button
+                onClick={() => navigate('/roadmap')}
+                className={`text-left transition-colors font-medium py-2 ${
+                  currentPath === '/roadmap'
+                    ? 'text-near-primary'
+                    : 'text-gray-300 hover:text-near-primary'
+                }`}
               >
-                Community
-              </a>
+                Roadmap
+              </button>
               <a
                 href="https://github.com"
                 target="_blank"
@@ -488,8 +497,8 @@ function Nav({
                   Get started
                 </button>
               )}
-              {/* NEAR Wallet connect – only show in examples view (mobile) */}
-              {currentPath.startsWith('/examples') && (
+              {/* NEAR Wallet connect – show in examples and roadmap views (mobile) */}
+              {(currentPath.startsWith('/examples') || currentPath === '/roadmap') && (
                 <div className="md:hidden border-t border-[#3e3e42] pt-4 mt-2">
                   {walletAccountId ? (
                     <div className="flex flex-col gap-3">

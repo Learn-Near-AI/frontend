@@ -17,6 +17,7 @@ import NextEditSuggestions from './components/NextEditSuggestions'
 import CodeWithExtensions from './components/CodeWithExtensions'
 import CodeInAnyLanguage from './components/CodeInAnyLanguage'
 import Footer from './components/Footer'
+import Roadmap from './components/Roadmap'
 
 function App() {
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname || '/')
@@ -115,10 +116,13 @@ function App() {
         scrollToTop={scrollToTop}
         launchExamplesBrowser={launchExamplesBrowser}
         currentPath={currentPath}
+        navigate={navigate}
       />
 
       {currentPath.startsWith('/examples') ? (
         <ExamplesBrowser isDark={isDark} toggleTheme={toggleTheme} />
+      ) : currentPath === '/roadmap' ? (
+        <Roadmap scrollToTop={scrollToTop} />
       ) : (
       <>
         <Hero launchExamplesBrowser={launchExamplesBrowser} />
