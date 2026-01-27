@@ -25,11 +25,11 @@ import TourButton from "./TourButton";
 // Backend URLs - use proxy in development to avoid CORS issues
 const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 const RUST_COMPILE_URL = import.meta.env.VITE_RUST_COMPILE_URL || 
-  (isDev ? '/api/backend-rust' : 'https://near-by-example-backend.fly.dev');
+  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
 const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL || 
   (isDev ? '/api/backend-js' : 'https://learn-near-backend.fly.dev');
 const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || 
-  (isDev ? '/api/backend-rust' : 'https://near-by-example-backend.fly.dev');
+  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
 
@@ -362,11 +362,19 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       addConsoleOutput("\n▶ Deploying via NEAR CLI...");
       addConsoleOutput("   (Using backend deployment account)");
 
+      // Get user identifier for deployment
+      const accountId = await getActiveAccountId();
+      const userId = accountId ? accountId.split('.')[0] : 'anonymous';
+      const projectId = example.id || 'near-example';
+
       const deployResponse = await fetch(`${DEPLOY_URL}/api/deploy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           wasmBase64: compileResult.wasm,
+          useSubaccount: true,
+          userId: userId,
+          projectId: projectId,
           initMethod: "new",
           initArgs: {},
         }),

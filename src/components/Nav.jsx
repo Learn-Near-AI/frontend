@@ -113,7 +113,7 @@ function Nav({
       }
 
       try {
-        const RPC_URL = 'https://rpc.testnet.near.org'
+        const RPC_URL = 'https://test.rpc.fastnear.com'
         const res = await fetch(RPC_URL, {
           method: 'POST',
           headers: {

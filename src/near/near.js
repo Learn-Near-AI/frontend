@@ -17,7 +17,7 @@ let modal = null
 
 // Use Vite proxy in development to avoid CORS issues
 const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-const RPC_URL = isDev ? '/api/near-rpc' : 'https://rpc.testnet.near.org'
+const RPC_URL = isDev ? '/api/near-rpc' : 'https://test.rpc.fastnear.com'
 
 export const getNearConfig = () => ({
   networkId: TESTNET_NETWORK,
@@ -299,7 +299,7 @@ export async function deployContract(wasmCode, options = {}) {
 }
 
 /**
- * Calls a view method on a deployed contract (direct RPC, no backend needed)
+ * Calls a view method on a deployed contract via backend API
  * Similar to viewFunction from near-connect-hooks
  * @param {Object} options - View method options
  * @param {string} options.contractId - The contract account ID
@@ -312,55 +312,36 @@ export async function viewFunction({ contractId, method, args = {} }) {
     throw new Error('Invalid contract ID format')
   }
   
-  const config = getNearConfig()
-  const rpcUrl = config.nodeUrl
+  // Use backend API for view methods
+  const backendUrl = isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev'
   
   console.log(`[NEAR] Calling view method: ${method} on ${contractId}`)
-  console.log(`[NEAR] Using RPC: ${rpcUrl}`)
+  console.log(`[NEAR] Using backend: ${backendUrl}`)
   
-  const response = await fetch(rpcUrl, {
+  const response = await fetch(`${backendUrl}/api/contract/view`, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 'dontcare',
-      method: 'query',
-      params: {
-        request_type: 'call_function',
-        finality: 'final',
-        account_id: contractId,
-        method_name: method,
-        args_base64: Buffer.from(JSON.stringify(args)).toString('base64'),
-      },
+      contractAccountId: contractId,
+      methodName: method,
+      args: args,
     }),
   })
   
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
   }
   
   const json = await response.json()
   
-  if (json.error) {
-    const errorMsg = json.error.message || json.error.data || JSON.stringify(json.error)
-    throw new Error(errorMsg)
+  if (!json.success) {
+    throw new Error(json.error || 'View method call failed')
   }
   
-  // Decode result - handle both string and non-string results
-  const resultBytes = json.result?.result
-  if (!resultBytes || resultBytes.length === 0) {
-    return null
-  }
-  
-  const resultString = Buffer.from(resultBytes).toString()
-  try {
-    return JSON.parse(resultString)
-  } catch {
-    // If not valid JSON, return as string
-    return resultString
-  }
+  return json.result
 }
 
 /**

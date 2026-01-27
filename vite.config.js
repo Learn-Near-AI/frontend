@@ -21,14 +21,14 @@ export default defineConfig({
     proxy: {
       // Proxy NEAR RPC requests to avoid CORS issues in development
       '/api/near-rpc': {
-        target: 'https://rpc.testnet.near.org',
+        target: 'https://test.rpc.fastnear.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/near-rpc/, ''),
         secure: true,
       },
       // Proxy backend API requests to avoid CORS issues in development
       '/api/backend-rust': {
-        target: 'https://near-by-example-backend.fly.dev',
+        target: 'https://rustendpoint.fly.dev',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/backend-rust/, ''),
         secure: true,
