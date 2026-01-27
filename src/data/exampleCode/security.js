@@ -22,6 +22,14 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            value: 0,
+        }
+    }
+
     fn assert_owner(&self) {
         require!(
             env::predecessor_account_id() == self.owner_id,
@@ -90,6 +98,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            admins: UnorderedSet::new(b"a"),
+        }
+    }
+
     pub fn add_admin(&mut self, account: AccountId) {
         self.admins.insert(&account);
     }
@@ -156,6 +171,14 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            paused: false,
+        }
+    }
+
     pub fn pause(&mut self) {
         require!(
             env::predecessor_account_id() == self.owner_id,
@@ -244,6 +267,15 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            signers: UnorderedSet::new(b"s"),
+            required_signatures: 2,
+            approvals: UnorderedSet::new(b"ap"),
+        }
+    }
+
     pub fn approve(&mut self) {
         let signer = env::predecessor_account_id();
         require!(self.signers.contains(&signer), "Not a signer");
@@ -308,6 +340,14 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            locked: false,
+            balance: 0,
+        }
+    }
+
     pub fn withdraw(&mut self, amount: u64) {
         require!(!self.locked, "Reentrancy guard: operation locked");
         require!(self.balance >= amount, "Insufficient balance");

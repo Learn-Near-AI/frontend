@@ -9,6 +9,11 @@ pub struct Contract {}
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn add(&self, a: u64, b: u64) -> u64 {
         a + b
     }
@@ -45,6 +50,11 @@ pub struct Contract {}
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
         if b == 0 {
             env::panic_str("Division by zero");
@@ -95,6 +105,11 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { balance: 0 }
+    }
+
     pub fn deposit(&mut self, amount: u64) {
         self.balance += amount;
         env::log_str(&format!(
@@ -145,9 +160,9 @@ pub struct Contract {
 #[near_bindgen]
 impl Contract {
     #[init]
-    pub fn new(owner_id: AccountId) -> Self {
+    pub fn new() -> Self {
         Self {
-            owner_id,
+            owner_id: env::current_account_id(),
             initialized: true,
         }
     }
@@ -197,6 +212,11 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { counter: 0 }
+    }
+
     pub fn bulk_increment(&mut self, times: u32) {
         // Simple loop; in real code you should cap times to avoid out-of-gas
         for _ in 0..times {
@@ -264,6 +284,15 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            tasks: UnorderedMap::new(b"t"),
+            next_id: 1,
+        }
+    }
+
     pub fn add_task(&mut self, title: String) {
         require!(
             env::predecessor_account_id() == self.owner_id,

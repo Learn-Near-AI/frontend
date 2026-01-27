@@ -9,6 +9,11 @@ pub struct Contract {}
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn call_other_contract(&self, contract_id: AccountId, method_name: String) -> Promise {
         Promise::new(contract_id)
             .function_call(
@@ -46,6 +51,11 @@ pub struct Contract {}
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn create_promise(&self, contract_id: AccountId) -> Promise {
         Promise::new(contract_id)
             .function_call(

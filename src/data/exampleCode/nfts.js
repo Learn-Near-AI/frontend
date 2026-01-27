@@ -26,6 +26,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            tokens: UnorderedMap::new(b"t"),
+        }
+    }
+
     pub fn transfer(&mut self, token_id: String, receiver_id: AccountId) {
         let mut token = self.tokens.get(&token_id).expect("Token not found");
         require!(

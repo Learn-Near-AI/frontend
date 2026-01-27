@@ -9,6 +9,11 @@ pub struct Contract {}
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn hello_world(&self) -> String {
         "Hello, NEAR!".to_string()
     }
@@ -45,6 +50,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+        }
+    }
+
     pub fn get_owner(&self) -> AccountId {
         self.owner_id.clone()
     }
@@ -76,6 +88,13 @@ pub struct Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            greeting: "hello".to_string(),
+        }
+    }
+
     pub fn get_greeting(&self) -> String {
         self.greeting.clone()
     }
@@ -125,6 +144,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            greeting: "hello".to_string(),
+        }
+    }
+
     pub fn set_greeting(&mut self, greeting: String) {
         self.greeting = greeting;
     }
@@ -180,6 +206,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            message: "Hello, NEAR storage!".to_string(),
+        }
+    }
+
     pub fn set_message(&mut self, message: String) {
         self.message = message;
     }
@@ -228,6 +261,11 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { counter: 0 }
+    }
+
     pub fn increment(&mut self) {
         self.counter += 1;
     }
@@ -277,6 +315,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            message: String::new(),
+        }
+    }
+
     pub fn set_message(&mut self, message: String) {
         require!(message.len() > 0, "Message cannot be empty");
         require!(message.len() <= 100, "Message too long (max 100 chars)");
@@ -334,6 +379,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+        }
+    }
+
     pub fn set_owner(&mut self, new_owner: AccountId) {
         require!(
             env::predecessor_account_id() == self.owner_id,
@@ -379,6 +431,11 @@ pub struct Contract {}
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn assert_positive(&self, value: i64) {
         if value <= 0 {
             env::panic_str("VALUE_MUST_BE_POSITIVE");
@@ -430,6 +487,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            message: "initial".to_string(),
+        }
+    }
+
     pub fn set_message(&mut self, message: String) {
         env::log_str(&format!("EVENT_JSON:{{\\\"event\\\":\\\"MessageUpdated\\\",\\\"new_message\\\":\\\"{}\\\"}}", message));
         self.message = message;
@@ -477,6 +541,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            items: Vector::new(b"i"),
+        }
+    }
+
     pub fn add_item(&mut self, item: String) {
         self.items.push(&item);
     }
@@ -535,6 +606,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            balances: UnorderedMap::new(b"b"),
+        }
+    }
+
     pub fn set_balance(&mut self, account: AccountId, amount: u64) {
         self.balances.insert(&account, &amount);
     }

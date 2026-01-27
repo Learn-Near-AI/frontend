@@ -25,6 +25,13 @@ impl Default for Contract {
 
 #[near_bindgen]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            items: Vector::new(StorageKey::Items),
+        }
+    }
+
     pub fn add_item(&mut self, item: String) {
         self.items.push(&item);
     }
