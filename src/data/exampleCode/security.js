@@ -388,5 +388,77 @@ class Contract {
 
 `,
   },
+  'upgrade-pattern': {
+    Rust: `use near_sdk::{near_bindgen, env, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+
+#[near_bindgen]
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Contract {
+    owner_id: near_sdk::AccountId,
+    version: u32,
+}
+
+impl Default for Contract {
+    fn default() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            version: 1,
+        }
+    }
+}
+
+#[near_bindgen]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            version: 1,
+        }
+    }
+
+    pub fn get_version(&self) -> u32 {
+        self.version
+    }
+
+    /// Migration hook: call after upgrade to bump version (owner only)
+    pub fn migrate(&mut self) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only owner can migrate"
+        );
+        self.version += 1;
+        env::log_str(&format!("Upgraded to version {}", self.version));
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, version } = {
+    owner_id: near.currentAccountId(),
+    version: 1
+  }) {
+    this.owner_id = owner_id;
+    this.version = version;
+  }
+
+  @view({})
+  get_version() {
+    return this.version;
+  }
+
+  @call({})
+  migrate() {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner can migrate");
+    }
+    this.version += 1;
+    near.log(\`Upgraded to version \${this.version}\`);
+  }
+}
+
+`,
+  },
 }
 

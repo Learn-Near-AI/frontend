@@ -32,6 +32,7 @@ const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL ||
   (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
+const PREFERRED_LANGUAGE_KEY = 'near_examples_preferred_language';
 
 // Helper function to get the appropriate compile API URL based on language
 const getCompileApiUrl = (language) => {
@@ -44,8 +45,23 @@ const shouldUseCLIDeployment = (language) => {
   return true;
 };
 
+function getStoredLanguage() {
+  try {
+    const stored = localStorage.getItem(PREFERRED_LANGUAGE_KEY);
+    return stored === "JavaScript" || stored === "Rust" ? stored : "Rust";
+  } catch {
+    return "Rust";
+  }
+}
+
 function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }) {
-  const [activeLanguage, setActiveLanguage] = useState("JavaScript");
+  const [activeLanguage, setActiveLanguageState] = useState(getStoredLanguage);
+  const setActiveLanguage = (lang) => {
+    setActiveLanguageState(lang);
+    try {
+      localStorage.setItem(PREFERRED_LANGUAGE_KEY, lang);
+    } catch (_) {}
+  };
   const [activeInfoTab, setActiveInfoTab] = useState("explanation");
   const [code, setCode] = useState("");
   const [consoleOutput, setConsoleOutput] = useState("");
@@ -65,11 +81,6 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   const addConsoleOutput = (message) => {
     setConsoleOutput((prev) => prev + message + "\n");
   };
-
-  // Reset active language to JavaScript when example changes
-  useEffect(() => {
-    setActiveLanguage("JavaScript");
-  }, [example.id]);
 
   useEffect(() => {
     setCode(initialCode);

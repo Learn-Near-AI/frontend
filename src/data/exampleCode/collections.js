@@ -287,5 +287,143 @@ class Contract {
 
 `,
   },
+  'simple-marketplace': {
+    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+use near_sdk::collections::UnorderedMap;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Listing {
+    seller_id: AccountId,
+    price: u128,
+    token_id: String,
+}
+
+#[near_bindgen]
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Contract {
+    listings: UnorderedMap<String, Listing>,
+}
+
+impl Default for Contract {
+    fn default() -> Self {
+        Self {
+            listings: UnorderedMap::new(b"l"),
+        }
+    }
+}
+
+#[near_bindgen]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            listings: UnorderedMap::new(b"l"),
+        }
+    }
+
+    pub fn list_item(&mut self, listing_id: String, token_id: String, price: u128) {
+        let seller = env::predecessor_account_id();
+        self.listings.insert(&listing_id, &Listing {
+            seller_id: seller,
+            price,
+            token_id,
+        });
+    }
+
+    pub fn get_listing(&self, listing_id: String) -> Option<Listing> {
+        self.listings.get(&listing_id)
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ listings } = { listings: {} }) {
+    this.listings = listings || {};
+  }
+
+  @view({})
+  get_listing({ listing_id }) {
+    return this.listings[listing_id] || null;
+  }
+
+  @call({})
+  list_item({ listing_id, token_id, price }) {
+    const seller = near.predecessorAccountId();
+    this.listings[listing_id] = {
+      seller_id: seller,
+      price,
+      token_id,
+    };
+  }
+}
+
+`,
+  },
+  'batch-operations': {
+    Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize, BorshStorageKey}};
+use near_sdk::collections::Vector;
+
+#[derive(BorshStorageKey)]
+enum StorageKey {
+    Items,
+}
+
+#[near_bindgen]
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Contract {
+    items: Vector<String>,
+}
+
+impl Default for Contract {
+    fn default() -> Self {
+        Self {
+            items: Vector::new(StorageKey::Items),
+        }
+    }
+}
+
+#[near_bindgen]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            items: Vector::new(StorageKey::Items),
+        }
+    }
+
+    pub fn add_many(&mut self, items: Vec<String>) {
+        for item in items {
+            self.items.push(&item);
+        }
+    }
+
+    pub fn get_all(&self) -> Vec<String> {
+        self.items.iter().collect()
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ items } = { items: [] }) {
+    this.items = items || [];
+  }
+
+  @view({})
+  get_all() {
+    return this.items;
+  }
+
+  @call({})
+  add_many({ items }) {
+    for (const item of items) {
+      this.items.push(item);
+    }
+  }
+}
+
+`,
+  },
 }
 

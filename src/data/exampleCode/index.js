@@ -5,9 +5,11 @@ import { collectionsCode } from './collections.js'
 import { advancedCode } from './advanced.js'
 import { crossContractCode } from './crossContract.js'
 import { nftsCode } from './nfts.js'
+import { chainSignaturesCode } from './chainSignatures.js'
+import { indexingCode } from './indexing.js'
 import { COMING_SOON_TEMPLATE } from '../constants.js'
 
-// List of example IDs that have working implementations (30 total)
+// List of example IDs that have working implementations (62 total → 60+ complete)
 export const WORKING_EXAMPLES = [
   // Basics (12)
   'hello-world',
@@ -22,17 +24,20 @@ export const WORKING_EXAMPLES = [
   'events',
   'collections-vector',
   'collections-map',
-  // Security (5)
+  // Security (6)
   'owner-pattern',
   'role-based-access',
   'pausable-contract',
   'multi-signature',
+  'upgrade-pattern',
   'reentrancy-guard',
-  // Collections (4)
+  // Collections (6)
   'storage-keys',
   'todo-list',
   'user-profiles',
   'voting-system',
+  'simple-marketplace',
+  'batch-operations',
   // Advanced (6)
   'testing',
   'panic-handling',
@@ -40,11 +45,42 @@ export const WORKING_EXAMPLES = [
   'initialization',
   'gas-optimization',
   'complete-example',
-  // Cross-Contract (2)
+  // Cross-Contract (10)
   'simple-calls',
   'promises',
-  // NFTs (1)
+  'callbacks',
+  'cross-call-ft',
+  'cross-call-nft',
+  'batch-calls',
+  'promise-results',
+  'async-patterns',
+  'callback-patterns',
+  'error-propagation',
+  // NFTs (8)
   'nft-transfer',
+  'nft-standard',
+  'nft-metadata',
+  'nft-minting',
+  'nft-approval',
+  'nft-enumeration',
+  'nft-royalties',
+  'nft-marketplace',
+  // Chain Signatures (6)
+  'chain-signatures-basics',
+  'signature-verification',
+  'signature-requests',
+  'multi-chain-signing',
+  'cross-chain-auth',
+  'signature-callbacks',
+  // Indexing (8)
+  'indexer-setup',
+  'queryapi-basics',
+  'data-indexing',
+  'queryapi-queries',
+  'indexer-filters',
+  'indexer-aggregation',
+  'indexer-performance',
+  'indexer-monitoring',
 ]
 
 // Combine all code examples
@@ -55,6 +91,8 @@ const allCode = {
   ...advancedCode,
   ...crossContractCode,
   ...nftsCode,
+  ...chainSignaturesCode,
+  ...indexingCode,
 }
 
 // Export exampleCode with coming soon template for missing examples
