@@ -4,7 +4,7 @@ import DotsPattern from './DotsPattern'
 
 function NextEditSuggestions({ launchExamplesBrowser }) {
   return (
-    <section className="py-20 bg-[#111216] relative">
+    <section className="py-20 bg-white dark:bg-[#111216] relative">
       <DotsPattern />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -13,7 +13,7 @@ function NextEditSuggestions({ launchExamplesBrowser }) {
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
               Learn by doing
             </h2>
-            <p className="text-lg text-gray-400 mb-6 leading-relaxed">
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
               Run code in your browser instantly. See results immediately and understand how NEAR smart contracts work through hands-on practice.
             </p>
             <button

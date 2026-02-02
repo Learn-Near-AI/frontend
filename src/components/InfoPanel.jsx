@@ -18,9 +18,9 @@ function InfoPanel({
   const isFnTestingEnabled = !!deployedContractId
 
   return (
-    <div className="lg:basis-2/5 bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col overflow-hidden">
+    <div className="lg:basis-2/5 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
       {/* Tabs */}
-      <div className="border-b border-[#3e3e42] px-3 pt-3 flex text-xs md:text-sm">
+      <div className="border-b border-gray-200 dark:border-[#3e3e42] px-3 pt-3 flex text-xs md:text-sm">
         {tabs.map((label) => {
           const key = label.toLowerCase()
           const isActive = activeInfoTab === key
@@ -43,7 +43,7 @@ function InfoPanel({
                   ? 'border-near-primary text-near-primary font-semibold'
                   : isDisabled
                   ? 'border-transparent text-gray-600 cursor-not-allowed opacity-50'
-                  : 'border-transparent text-gray-400 hover:text-gray-200 cursor-pointer'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer'
               }`}
               title={isDisabled ? 'Deploy contract first to enable function testing' : ''}
             >
@@ -63,7 +63,7 @@ function InfoPanel({
         })}
       </div>
 
-      <div className="flex-1 p-4 text-sm flex flex-col bg-[#0d0f14]">
+      <div className="flex-1 p-4 text-sm flex flex-col bg-gray-50 dark:bg-[#0d0f14]">
         {activeInfoTab === 'explanation' && <ExplanationTab example={example} />}
         {activeInfoTab === 'ai' && <AITab code={code} example={example} activeLanguage={activeLanguage} />}
         {activeInfoTab === 'fn testing' && (

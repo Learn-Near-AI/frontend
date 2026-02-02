@@ -48,16 +48,16 @@ function CodeInAnyLanguage() {
   ]
 
   return (
-    <section className="py-20 bg-[#111216] relative">
+    <section className="py-20 bg-white dark:bg-[#111216] relative">
       {/* <DotsPattern /> */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left - Text */}
           <div className="order-1" data-aos="fade-up" data-aos-delay="100">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               Code in any language
             </h2>
-            <p className="text-base text-gray-400 mb-6 leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
               Learn NEAR smart contracts in your preferred language. Examples available in JavaScript, TypeScript, and Rust.
             </p>
           </div>
@@ -71,7 +71,7 @@ function CodeInAnyLanguage() {
                   className="flex items-center gap-4"
                 >
                   {lang.icon}
-                  <span className="text-lg text-gray-300 font-medium">
+                  <span className="text-lg text-gray-700 dark:text-gray-300 font-medium">
                     {lang.name}
                   </span>
                 </div>

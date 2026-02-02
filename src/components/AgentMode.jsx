@@ -4,7 +4,7 @@ import DotsPattern from './DotsPattern'
 
 function AgentMode({ launchExamplesBrowser }) {
   return (
-    <section className="py-20 bg-[#111216] relative">
+    <section className="py-20 bg-white dark:bg-[#111216] relative">
       <DotsPattern />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -13,7 +13,7 @@ function AgentMode({ launchExamplesBrowser }) {
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
               AI Code Assistant
             </h2>
-            <p className="text-lg text-gray-400 mb-6 leading-relaxed">
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
               Get instant explanations, bug fixes, and code suggestions. Your personal NEAR tutor understands your codebase and helps you learn faster.
             </p>
             <button

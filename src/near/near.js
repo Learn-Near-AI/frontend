@@ -144,7 +144,7 @@ export async function viewFunction({ contractId, method, args = {} }) {
   }
   
   // Use backend API for view methods
-  const backendUrl = isDev ? '/api/backend-rust' : 'http://localhost:3001'
+  const backendUrl = isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev'
   
   console.log(`[NEAR] Calling view method: ${method} on ${contractId}`)
   console.log(`[NEAR] Using backend: ${backendUrl}`)

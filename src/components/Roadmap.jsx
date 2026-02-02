@@ -89,11 +89,11 @@ function Roadmap({ scrollToTop }) {
 
   return (
     <>
-      <section className="bg-[#111216] pt-24 pb-20">
+      <section className="bg-white dark:bg-[#111216] pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
               Roadmap
             </h1>
           </div>
@@ -103,7 +103,7 @@ function Roadmap({ scrollToTop }) {
             {milestones.map((milestone, index) => (
               <div
                 key={milestone.id}
-                className={`relative bg-[#111216] rounded-xl p-6 border-2 ${getStatusColor(milestone.status)} transition-all duration-300 hover:shadow-lg hover:shadow-near-primary/10 flex flex-col`}
+                className={`relative bg-white dark:bg-[#111216] rounded-xl p-6 border-2 ${getStatusColor(milestone.status)} transition-all duration-300 hover:shadow-lg hover:shadow-near-primary/10 flex flex-col`}
               >
                 {/* Status Badge */}
                 <div className="flex items-center justify-between mb-4">
@@ -114,24 +114,24 @@ function Roadmap({ scrollToTop }) {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl font-bold text-white mb-3">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                   {milestone.title}
                 </h3>
 
                 {/* Date */}
-                <div className="flex items-center gap-2 text-gray-400 mb-4">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-4">
                   <Calendar className="h-4 w-4" />
                   <span className="text-sm">{milestone.date}</span>
                 </div>
 
                 {/* Deliverables */}
                 <div className="flex-1">
-                  <h4 className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wide">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
                     Deliverables
                   </h4>
                   <ul className="space-y-2">
                     {milestone.deliverables.map((deliverable, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-gray-300">
+                      <li key={idx} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <span className={`mt-1 flex-shrink-0 ${
                           milestone.status === 'completed' ? 'text-near-primary' : 'text-gray-500'
                         }`}>

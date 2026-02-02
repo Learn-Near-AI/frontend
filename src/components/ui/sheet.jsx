@@ -30,22 +30,22 @@ const SheetContent = React.forwardRef(
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed z-50 gap-4 bg-[#111216] p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+          "fixed z-50 gap-4 bg-white dark:bg-[#111216] p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "left" &&
-            "inset-y-0 left-0 h-full w-full border-r border-[#3e3e42] data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+            "inset-y-0 left-0 h-full w-full border-r border-gray-200 dark:border-[#3e3e42] data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
           side === "right" &&
-            "inset-y-0 right-0 h-full w-full border-l border-[#3e3e42] data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+            "inset-y-0 right-0 h-full w-full border-l border-gray-200 dark:border-[#3e3e42] data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
           side === "top" &&
-            "inset-x-0 top-0 border-b border-[#3e3e42] data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+            "inset-x-0 top-0 border-b border-gray-200 dark:border-[#3e3e42] data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
           side === "bottom" &&
-            "inset-x-0 bottom-0 border-b border-[#3e3e42] data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+            "inset-x-0 bottom-0 border-b border-gray-200 dark:border-[#3e3e42] data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
           className
         )}
         {...props}
       >
         {children}
         <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-near-primary focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-          <X className="h-4 w-4 text-gray-300" />
+          <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
@@ -79,7 +79,7 @@ SheetFooter.displayName = "SheetFooter"
 const SheetTitle = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold text-white", className)}
+    className={cn("text-lg font-semibold text-gray-900 dark:text-white", className)}
     {...props}
   />
 ))
@@ -88,7 +88,7 @@ SheetTitle.displayName = DialogPrimitive.Title.displayName
 const SheetDescription = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-gray-400", className)}
+    className={cn("text-sm text-gray-500 dark:text-gray-400", className)}
     {...props}
   />
 ))

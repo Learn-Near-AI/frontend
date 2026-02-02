@@ -151,7 +151,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
   if (!deployedContractId) {
     return (
       <div className="flex flex-col flex-1 items-center justify-center gap-4 min-h-[300px] text-center p-6">
-        <div className="p-4 rounded-full bg-[#1a1b1f] border border-[#3e3e42]">
+        <div className="p-4 rounded-full bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42]">
           {isDeploying ? (
             <Loader2 className="h-8 w-8 text-near-primary animate-spin" />
           ) : (
@@ -159,10 +159,10 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
           )}
         </div>
         <div className="space-y-2 max-w-md">
-          <h3 className="text-base font-semibold text-gray-300">
+          <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300">
             {isDeploying ? 'Deploying Contract...' : 'Deploy Contract First'}
           </h3>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-600 dark:text-gray-500">
             {isDeploying 
               ? 'Please wait while your contract is being deployed to the NEAR network.'
               : 'Click the "Deploy" button in the code editor to deploy this contract. Once deployed, you\'ll be able to test its functions here.'
@@ -176,7 +176,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
   return (
     <div className="flex flex-col flex-1 gap-4 min-h-0 overflow-y-auto">
       {/* Contract Info */}
-      <div className="bg-[#111216] rounded-lg p-3 border border-[#3e3e42]">
+      <div className="bg-white dark:bg-[#111216] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42]">
         <div className="flex items-center gap-2 text-xs">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
           <span className="text-gray-400">Contract:</span>
@@ -198,7 +198,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
             {parsedMethods.viewMethods.map((method, idx) => (
               <div
                 key={`view-${idx}`}
-                className="bg-[#111216] rounded-lg p-3 border border-[#3e3e42] space-y-2"
+                className="bg-white dark:bg-[#111216] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42] space-y-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -222,7 +222,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
                         value={methodArgs}
                         onChange={(e) => setMethodArgs(e.target.value)}
                         rows={2}
-                        className="w-full bg-[#0d0f14] text-xs text-gray-100 px-2 py-1.5 rounded border border-[#3e3e42] outline-none focus:border-blue-500 resize-none font-mono"
+                        className="w-full bg-gray-50 dark:bg-[#0d0f14] text-xs text-gray-900 dark:text-gray-100 px-2 py-1.5 rounded border border-gray-200 dark:border-[#3e3e42] outline-none focus:border-blue-500 resize-none font-mono"
                         placeholder='{}'
                       />
                     </div>
@@ -256,7 +256,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
             {parsedMethods.callMethods.map((method, idx) => (
               <div
                 key={`call-${idx}`}
-                className="bg-[#111216] rounded-lg p-3 border border-[#3e3e42] space-y-2"
+                className="bg-white dark:bg-[#111216] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42] space-y-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -281,7 +281,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
                         value={methodArgs}
                         onChange={(e) => setMethodArgs(e.target.value)}
                         rows={2}
-                        className="w-full bg-[#0d0f14] text-xs text-gray-100 px-2 py-1.5 rounded border border-[#3e3e42] outline-none focus:border-purple-500 resize-none font-mono"
+                        className="w-full bg-gray-50 dark:bg-[#0d0f14] text-xs text-gray-900 dark:text-gray-100 px-2 py-1.5 rounded border border-gray-200 dark:border-[#3e3e42] outline-none focus:border-purple-500 resize-none font-mono"
                         placeholder='{}'
                       />
                     </div>
@@ -317,18 +317,18 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
 
       {/* Result or Error Display */}
       {(result !== null || error) && (
-        <div className="bg-[#111216] rounded-lg p-3 border border-[#3e3e42] space-y-2">
+                <div className="bg-white dark:bg-[#111216] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42] space-y-2">
           <div className="flex items-center gap-2">
             {error ? (
               <AlertCircle className="h-4 w-4 text-red-400" />
             ) : (
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             )}
-            <span className="text-xs font-semibold text-gray-300">
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
               {error ? 'Error' : 'Result'}
             </span>
           </div>
-          <div className="bg-[#0d0f14] rounded p-2 overflow-auto max-h-40">
+          <div className="bg-gray-50 dark:bg-[#0d0f14] rounded p-2 overflow-auto max-h-40">
             <pre className="text-xs text-gray-300 whitespace-pre-wrap break-words font-mono">
               {error ? error : JSON.stringify(result, null, 2)}
             </pre>

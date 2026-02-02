@@ -20,11 +20,11 @@ import TourButton from "./TourButton";
 // Backend URLs - use proxy in development to avoid CORS issues
 const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 const RUST_COMPILE_URL = import.meta.env.VITE_RUST_COMPILE_URL || 
-  (isDev ? '/api/backend-rust' : 'http://localhost:3001');
+  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
 const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL || 
   (isDev ? '/api/backend-js' : 'https://learn-near-backend.fly.dev');
 const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || 
-  (isDev ? '/api/backend-rust' : 'http://localhost:3001');
+  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
 const PREFERRED_LANGUAGE_KEY = 'near_examples_preferred_language';

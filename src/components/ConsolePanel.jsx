@@ -32,13 +32,13 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
   }
 
   return (
-    <div className="tour-console bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col gap-4">
+    <div className="tour-console bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col gap-4">
       {/* Console Output */}
-      <div className="border-b border-[#3e3e42] pb-3 px-4 pt-4">
+      <div className="border-b border-gray-200 dark:border-[#3e3e42] pb-3 px-4 pt-4">
         <h3 className="text-sm font-semibold text-white mb-2">
           Console Output
         </h3>
-        <div className="bg-[#0a0c10] rounded-lg p-3 text-[0.7rem] font-mono text-gray-100 max-h-60 overflow-auto whitespace-pre-wrap border border-[#3e3e42]">
+        <div className="bg-gray-100 dark:bg-[#0a0c10] rounded-lg p-3 text-[0.7rem] font-mono text-gray-800 dark:text-gray-100 max-h-60 overflow-auto whitespace-pre-wrap border border-gray-200 dark:border-[#3e3e42]">
           {renderConsoleOutput()}
         </div>
       </div>
@@ -48,7 +48,7 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
           Deployment
         </h3>
-        <div className="text-xs text-gray-300 space-y-1">
+        <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
           {deployedContractId ? (
             <> 
               <p>
@@ -83,7 +83,7 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
               </a>
             </>
           ) : (
-            <p className="text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400">
               No contract deployed yet. Click "Deploy" to deploy your contract.
             </p>
           )}

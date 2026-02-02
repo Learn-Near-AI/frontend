@@ -67,7 +67,7 @@ function FiltersPanel({
       <div className="relative" ref={difficultyRef}>
         <button
           onClick={() => setIsDifficultyOpen(!isDifficultyOpen)}
-          className="flex items-center gap-2 px-4 py-2 border border-[#3e3e42] rounded-lg bg-[#111216] text-white hover:bg-[#1a1b1f] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-[#3e3e42] rounded-lg bg-white dark:bg-[#111216] text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors"
         >
           <span className="text-sm font-medium">
             <span className="sm:hidden">Difficulty</span>
@@ -83,7 +83,7 @@ function FiltersPanel({
         </button>
 
         {isDifficultyOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-[#111216] border border-[#3e3e42] rounded-lg shadow-lg z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#111216] border border-gray-200 dark:border-[#3e3e42] rounded-lg shadow-lg z-50">
             <div className="py-1">
               {availableDifficulties.map((difficulty) => (
                 <button
@@ -92,10 +92,10 @@ function FiltersPanel({
                     setSelectedDifficulty(difficulty);
                     setIsDifficultyOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-[#1a1b1f] transition-colors ${
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors ${
                     selectedDifficulty === difficulty
                       ? "bg-near-primary/10 text-near-primary font-medium"
-                      : "text-white"
+                      : "text-gray-900 dark:text-white"
                   }`}
                 >
                   {difficulty}
@@ -110,7 +110,7 @@ function FiltersPanel({
       <div className="relative" ref={categoryRef}>
         <button
           onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-          className="flex items-center gap-2 px-4 py-2 border border-[#3e3e42] rounded-lg bg-[#111216] text-white hover:bg-[#1a1b1f] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-[#3e3e42] rounded-lg bg-white dark:bg-[#111216] text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors"
         >
           <span className="text-sm font-medium">
             Category
@@ -127,10 +127,10 @@ function FiltersPanel({
         </button>
 
         {isCategoryOpen && (
-          <div className="absolute right-0 mt-2 w-64 bg-[#111216] border border-[#3e3e42] rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+          <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111216] border border-gray-200 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
             <div className="p-2">
               {/* All Category Option */}
-              <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#1a1b1f] cursor-pointer">
+              <label className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1b1f] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={
@@ -140,7 +140,7 @@ function FiltersPanel({
                   onChange={() => toggleCategory("All")}
                   className="w-4 h-4 accent-near-primary border-gray-500 rounded focus:ring-near-primary bg-transparent"
                 />
-                <span className="text-sm font-medium text-white">All</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">All</span>
               </label>
               {availableCategories
                 .sort((a, b) => {
@@ -154,7 +154,7 @@ function FiltersPanel({
                 .map((category) => (
                   <label
                     key={category}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#1a1b1f] cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1b1f] cursor-pointer"
                   >
                     <input
                       type="checkbox"
@@ -162,7 +162,7 @@ function FiltersPanel({
                       onChange={() => toggleCategory(category)}
                       className="w-4 h-4 accent-near-primary border-gray-500 rounded focus:ring-near-primary bg-transparent"
                     />
-                    <span className="text-sm text-white">{category}</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{category}</span>
                   </label>
                 ))}
             </div>

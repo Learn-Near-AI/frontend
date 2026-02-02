@@ -26,7 +26,7 @@ function CategorySidebar({
 
   if (categories.length === 0) {
     return (
-      <div className="p-4 text-center text-gray-400">
+      <div className="p-4 text-center text-gray-600 dark:text-gray-400">
         <p>No examples found</p>
         <p className="text-sm mt-2">Try adjusting your filters</p>
       </div>
@@ -36,7 +36,7 @@ function CategorySidebar({
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="p-4 pb-2">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">
           Categories
         </h2>
       </div>
@@ -52,7 +52,7 @@ function CategorySidebar({
               {/* Category Header */}
               <button
                 onClick={() => toggleCategory(category)}
-                className="w-full flex items-center justify-between px-3 py-3.5 rounded-lg hover:bg-[#1a1b1f] transition-colors group"
+                className="w-full flex items-center justify-between px-3 py-3.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors group"
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   {icon.startsWith('/') ? (
@@ -64,17 +64,17 @@ function CategorySidebar({
                   ) : (
                     <span className="text-lg flex-shrink-0">{icon}</span>
                   )}
-                  <span className="text-sm font-medium text-white truncate">
+                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {category}
                   </span>
-                  <span className="text-xs text-gray-400 flex-shrink-0">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                     ({examples.length})
                   </span>
                 </div> 
                 {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                 )}
               </button>
 

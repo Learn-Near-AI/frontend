@@ -173,16 +173,16 @@ function CodeEditor({
   }, [code])
 
   return (
-    <div className="lg:basis-3/5 bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col overflow-hidden">
+    <div className="lg:basis-3/5 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
       {/* Top toolbar */}
-      <div className="border-b border-[#3e3e42] px-3 md:px-4 py-2.5 md:py-3 flex flex-wrap items-center gap-2">
+      <div className="border-b border-gray-200 dark:border-[#3e3e42] px-3 md:px-4 py-2.5 md:py-3 flex flex-wrap items-center gap-2">
         {/* Language tabs: Rust | JavaScript (Rust default, selection persisted) */}
-        <div className="inline-flex rounded-lg border border-[#3e3e42] bg-[#111216] overflow-hidden text-[0.65rem] md:text-xs">
+        <div className="inline-flex rounded-lg border border-gray-200 dark:border-[#3e3e42] bg-gray-50 dark:bg-[#111216] overflow-hidden text-[0.65rem] md:text-xs">
           <button
             className={`px-3 py-1.5 font-semibold ${
               activeLanguage === 'Rust'
                 ? 'bg-near-primary text-near-darker'
-                : 'text-gray-300 hover:bg-[#1a1b1f]'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
             }`}
             onClick={() => setActiveLanguage('Rust')}
           >
@@ -192,7 +192,7 @@ function CodeEditor({
             className={`px-3 py-1.5 ${
               activeLanguage === 'JavaScript'
                 ? 'bg-near-primary text-near-darker font-semibold'
-                : 'text-gray-300 hover:bg-[#1a1b1f]'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
             }`}
             onClick={() => setActiveLanguage('JavaScript')}
           >
@@ -229,7 +229,7 @@ function CodeEditor({
             <DialogFooter className="gap-2">
               <button
                 onClick={() => setShowResetDialog(false)}
-                className="px-4 py-2 text-sm border border-[#3e3e42] rounded-lg text-gray-300 hover:bg-[#1a1b1f] transition-colors"
+                className="px-4 py-2 text-sm border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors"
               >
                 Cancel
               </button>
@@ -278,7 +278,7 @@ function CodeEditor({
         <button
           onClick={onDeploy}
           disabled={isRunning || isDeploying || backendCLIConfigured === false}
-          className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-[#3e3e42] rounded-lg text-gray-100 hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
+          className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
           title={backendCLIConfigured === false ? 'Backend CLI not configured' : `Deploy via ${deploymentMethod}`}
         >
           {isDeploying ? (
@@ -306,7 +306,7 @@ function CodeEditor({
       </div>
 
       {/* Bottom status bar */}
-      <div className="border-t border-[#3e3e42] bg-[#0d0f14] px-3 md:px-4 py-1.5 md:py-2 text-[0.7rem] text-gray-400 flex items-center justify-between">
+      <div className="border-t border-gray-200 dark:border-[#3e3e42] bg-gray-50 dark:bg-[#0d0f14] px-3 md:px-4 py-1.5 md:py-2 text-[0.7rem] text-gray-500 dark:text-gray-400 flex items-center justify-between">
         <span>Lines: 10 • Chars: 180 (approx)</span>
         <span>{activeLanguage} • Ready to run ✓</span>
       </div>

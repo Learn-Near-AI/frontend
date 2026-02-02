@@ -214,9 +214,9 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   const availableDifficulties = ["All", "Beginner", "Intermediate", "Advanced"];
 
   return (
-    <div className="min-h-screen pt-16 bg-[#111216]">
+    <div className="min-h-screen pt-16 bg-white dark:bg-[#111216]">
       {/* Top Bar with Search and Filters */}
-      <div className="sticky top-16 z-40 bg-[#111216] border-b border-[#3e3e42]">
+      <div className="sticky top-16 z-40 bg-white dark:bg-[#111216] border-b border-gray-200 dark:border-[#3e3e42]">
         <div className="flex items-center gap-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex-1">
             <SearchBar
@@ -242,13 +242,13 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
           onClick={() => setSidebarVisible(!sidebarVisible)}
           className={`absolute ${
             sidebarVisible ? "lg:left-[calc(20%-0.5rem)] left-0" : "left-0"
-          } top-0 z-30 p-2 bg-[#111216] border border-[#3e3e42] rounded hover:bg-[#1a1b1f] transition-all duration-300 shadow-lg`}
+          } top-0 z-30 p-2 bg-white dark:bg-[#111216] border border-gray-200 dark:border-[#3e3e42] rounded hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-all duration-300 shadow-lg`}
           aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
         >
           {sidebarVisible ? (
-            <ChevronLeft className="h-5 w-5 text-gray-300" />
+            <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
           ) : (
-            <ChevronRight className="h-5 w-5 text-gray-300" />
+            <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-300" />
           )}
         </button>
 
@@ -275,7 +275,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
 
         {/* Desktop Sidebar - 20% width */}
         <div
-          className={`tour-example-sidebar hidden lg:block lg:w-1/5 border-r border-[#3e3e42] bg-[#111216] rounded-t-xl h-[calc(100vh)] ${
+          className={`tour-example-sidebar hidden lg:block lg:w-1/5 border-r border-gray-200 dark:border-[#3e3e42] bg-white dark:bg-[#111216] rounded-t-xl h-[calc(100vh)] ${
             sidebarVisible ? "" : "lg:hidden"
           }`}
         >
@@ -290,7 +290,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
         </div>
 
         {/* Main Content Area - expands when sidebar is hidden */}
-        <div className="flex-1 bg-[#111216] transition-all duration-300">
+        <div className="flex-1 bg-white dark:bg-[#111216] transition-all duration-300">
           {currentPath.includes("/success") ? (
             <SuccessPage onBack={handleBackToBrowse} />
           ) : selectedExample ? (
@@ -302,15 +302,15 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
             />
           ) : comingSoonExample ? (
             <div className="p-6 max-w-3xl mx-auto">
-              <div className="bg-[#111216] rounded-xl border border-dashed border-[#3e3e42] p-4 sm:p-6 text-center space-y-4">
-                <h2 className="text-xl font-semibold text-white">
+              <div className="bg-white dark:bg-[#111216] rounded-xl border border-dashed border-gray-300 dark:border-[#3e3e42] p-4 sm:p-6 text-center space-y-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {comingSoonExample.name}
                 </h2>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   The full interactive learning interface for this example is
                   coming soon.
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   This example is currently under development. Check back soon!
                 </p>
               </div>

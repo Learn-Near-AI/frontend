@@ -4,11 +4,11 @@ import BinaryPattern from './BinaryPattern'
 
 function Hero({ launchExamplesBrowser }) {
   return (
-    <section className="relative overflow-hidden bg-[#111216] pt-16 binary-pattern" data-aos="fade-in">
+    <section className="relative overflow-hidden bg-white dark:bg-[#111216] pt-16 binary-pattern" data-aos="fade-in">
       <BinaryPattern />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-24 sm:pb-20 z-10">
         <div className="text-center" data-aos="fade-up" data-aos-delay="100">
-          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 text-white max-w-2xl mx-auto">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 text-gray-900 dark:text-white max-w-2xl mx-auto">
             Learn NEAR Smart Contracts by Doing
           </h1>
           
@@ -16,7 +16,7 @@ function Hero({ launchExamplesBrowser }) {
           <div className="mt-8 flex justify-center" data-aos="fade-up" data-aos-delay="200">
             <button
               onClick={launchExamplesBrowser}
-              className="water-fill-button relative inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-[#111216] border border-[#3e3e42] rounded-lg overflow-hidden transition-all duration-200 z-10"
+              className="water-fill-button relative inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-gray-900 dark:text-white bg-white dark:bg-[#111216] border border-gray-300 dark:border-[#3e3e42] rounded-lg overflow-hidden transition-all duration-200 z-10"
             >
               <span className="relative z-10 water-fill-text">Launch</span>
             </button>
@@ -62,7 +62,7 @@ function Hero({ launchExamplesBrowser }) {
           `}</style>
 
           {/* Secondary Text */}
-          <div className="mt-6 text-xs text-gray-400" data-aos="fade-up" data-aos-delay="300">
+          <div className="mt-6 text-xs text-gray-500 dark:text-gray-400" data-aos="fade-up" data-aos-delay="300">
             Run code in your browser. Deploy to TestNet in one click.
           </div>
 
