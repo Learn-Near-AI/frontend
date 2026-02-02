@@ -28,7 +28,7 @@ export default defineConfig({
       },
       // Proxy backend API requests to avoid CORS issues in development
       '/api/backend-rust': {
-        target: 'https://rustendpoint.fly.dev',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/backend-rust/, ''),
         secure: true,

@@ -1,13 +1,15 @@
 // Indexing examples - Indexer setup, QueryAPI, data indexing (JS-focused; Rust = contract emitting events)
 export const indexingCode = {
   'indexer-setup': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, PanicOnDefault};
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -35,13 +37,15 @@ class Contract {
 `,
   },
   'queryapi-basics': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -68,24 +72,18 @@ class Contract {
 `,
   },
   'data-indexing': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, PanicOnDefault};
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     records: UnorderedMap<String, String>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            records: UnorderedMap::new(b"r"),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -126,13 +124,15 @@ class Contract {
 `,
   },
   'queryapi-queries': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -161,13 +161,15 @@ class Contract {
 `,
   },
   'indexer-filters': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -193,13 +195,15 @@ class Contract {
 `,
   },
   'indexer-aggregation': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -225,13 +229,15 @@ class Contract {
 `,
   },
   'indexer-performance': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -257,13 +263,15 @@ class Contract {
 `,
   },
   'indexer-monitoring': {
-    Rust: `use near_sdk::{near_bindgen, env, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {

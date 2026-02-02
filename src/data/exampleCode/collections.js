@@ -1,34 +1,23 @@
 // Collections and data structure examples
 export const collectionsCode = {
   'storage-keys': {
-    Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize, BorshStorageKey}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
+use near_sdk::PanicOnDefault;
 
-#[derive(BorshStorageKey)]
-enum StorageKey {
-    Items,
-}
-
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     items: Vector<String>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            items: Vector::new(StorageKey::Items),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            items: Vector::new(StorageKey::Items),
+            items: Vector::new(b"i"),
         }
     }
 
@@ -62,8 +51,11 @@ class Contract {
 `,
   },
   'todo-list': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Todo {
@@ -73,24 +65,23 @@ pub struct Todo {
     owner: AccountId,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     todos: Vector<Todo>,
     next_id: u64,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
         Self {
             todos: Vector::new(b"t"),
             next_id: 1,
         }
     }
-}
 
-#[near_bindgen]
-impl Contract {
     pub fn add_todo(&mut self, title: String) {
         require!(title.len() > 0, "Title cannot be empty");
         let todo = Todo {
@@ -103,8 +94,8 @@ impl Contract {
         self.next_id += 1;
     }
 
-    pub fn get_todos(&self) -> Vec<Todo> {
-        self.todos.iter().collect()
+    pub fn get_todos(&self) -> Vec<(u64, String, bool, AccountId)> {
+        self.todos.iter().map(|t| (t.id, t.title.clone(), t.completed, t.owner.clone())).collect()
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -140,8 +131,11 @@ class Contract {
 `,
   },
   'user-profiles': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Profile {
@@ -150,22 +144,21 @@ pub struct Profile {
     created_at: u64,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     profiles: UnorderedMap<AccountId, Profile>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
         Self {
             profiles: UnorderedMap::new(b"p"),
         }
     }
-}
 
-#[near_bindgen]
-impl Contract {
     pub fn set_profile(&mut self, name: String, bio: String) {
         let account = env::predecessor_account_id();
         let profile = Profile {
@@ -176,8 +169,8 @@ impl Contract {
         self.profiles.insert(&account, &profile);
     }
 
-    pub fn get_profile(&self, account: AccountId) -> Option<Profile> {
-        self.profiles.get(&account)
+    pub fn get_profile(&self, account: AccountId) -> Option<(String, String, u64)> {
+        self.profiles.get(&account).map(|p| (p.name.clone(), p.bio.clone(), p.created_at))
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -207,29 +200,31 @@ class Contract {
 `,
   },
   'voting-system': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     votes_yes: u64,
     votes_no: u64,
     voters: UnorderedSet<AccountId>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
         Self {
             votes_yes: 0,
             votes_no: 0,
             voters: UnorderedSet::new(b"v"),
         }
     }
-}
 
-#[near_bindgen]
-impl Contract {
     pub fn vote(&mut self, choice: bool) {
         let voter = env::predecessor_account_id();
         require!(!self.voters.contains(&voter), "Already voted");
@@ -288,8 +283,11 @@ class Contract {
 `,
   },
   'simple-marketplace': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Listing {
@@ -298,21 +296,13 @@ pub struct Listing {
     token_id: String,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     listings: UnorderedMap<String, Listing>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            listings: UnorderedMap::new(b"l"),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -330,8 +320,8 @@ impl Contract {
         });
     }
 
-    pub fn get_listing(&self, listing_id: String) -> Option<Listing> {
-        self.listings.get(&listing_id)
+    pub fn get_listing(&self, listing_id: String) -> Option<(AccountId, u128, String)> {
+        self.listings.get(&listing_id).map(|l| (l.seller_id.clone(), l.price, l.token_id.clone()))
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -361,34 +351,23 @@ class Contract {
 `,
   },
   'batch-operations': {
-    Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize, BorshStorageKey}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
+use near_sdk::PanicOnDefault;
 
-#[derive(BorshStorageKey)]
-enum StorageKey {
-    Items,
-}
-
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     items: Vector<String>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            items: Vector::new(StorageKey::Items),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            items: Vector::new(StorageKey::Items),
+            items: Vector::new(b"i"),
         }
     }
 

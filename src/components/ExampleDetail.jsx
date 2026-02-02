@@ -9,12 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import {
-  initWalletSelector,
-  getActiveAccountId,
-  getNearConfig,
-} from "../near/near";
-import { Buffer } from "buffer";
+import { getActiveAccountId } from "../near/near";
 import ExampleHeader from "./ExampleHeader";
 import CodeEditor from "./CodeEditor";
 import InfoPanel from "./InfoPanel";
@@ -25,11 +20,11 @@ import TourButton from "./TourButton";
 // Backend URLs - use proxy in development to avoid CORS issues
 const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 const RUST_COMPILE_URL = import.meta.env.VITE_RUST_COMPILE_URL || 
-  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
+  (isDev ? '/api/backend-rust' : 'http://localhost:3001');
 const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL || 
   (isDev ? '/api/backend-js' : 'https://learn-near-backend.fly.dev');
 const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || 
-  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
+  (isDev ? '/api/backend-rust' : 'http://localhost:3001');
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
 const PREFERRED_LANGUAGE_KEY = 'near_examples_preferred_language';
@@ -37,12 +32,6 @@ const PREFERRED_LANGUAGE_KEY = 'near_examples_preferred_language';
 // Helper function to get the appropriate compile API URL based on language
 const getCompileApiUrl = (language) => {
   return language === "Rust" ? RUST_COMPILE_URL : JS_COMPILE_URL;
-};
-
-// Helper function to determine deployment method based on language
-const shouldUseCLIDeployment = (language) => {
-  // Use CLI deployment for both Rust and JavaScript/TypeScript
-  return true;
 };
 
 function getStoredLanguage() {
@@ -152,7 +141,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       const transactionHashes = urlParams.get("transactionHashes");
       const currentUrl = window.location.href;
 
-      // If URL changed (wallet redirect), reset deploying state
+      // If URL changed, reset deploying state
       if (currentUrl !== previousUrl) {
         setIsDeploying(false);
         previousUrl = currentUrl;
@@ -199,6 +188,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     setIsRunning(true);
     clearConsole();
     addConsoleOutput("▶ Compiling contract...");
+    const compileStartRun = Date.now();
 
     try {
       const compileApiUrl = getCompileApiUrl(activeLanguage);
@@ -278,10 +268,12 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         return; // Don't throw, just show the error and return
       }
 
+      const compileTimeRun = ((Date.now() - compileStartRun) / 1000).toFixed(2);
       addConsoleOutput("✓ Contract compiled successfully");
       addConsoleOutput(
         `✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`
       );
+      addConsoleOutput(JSON.stringify({ text: `✓ Compilation Time: ${compileTimeRun}s`, color: "green", bold: true }));
       addConsoleOutput("\n💡 Note: Full execution requires deployment.");
       addConsoleOutput(
         '   Click "Deploy" to deploy and test your contract on TestNet.'
@@ -309,17 +301,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       addConsoleOutput("❌ Error: No code to deploy");
       return;
     }
-
-    // Check if we should use CLI or wallet deployment
-    const useCLI = shouldUseCLIDeployment(activeLanguage);
-
-    if (useCLI) {
-      // Use backend CLI deployment for Rust
-      await handleCLIDeploy();
-    } else {
-      // Use wallet deployment for JavaScript/TypeScript
-      await handleWalletDeploy();
-    }
+    await handleCLIDeploy();
   };
 
   // CLI deployment for both Rust and JavaScript contracts
@@ -330,6 +312,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     addConsoleOutput("📋 Deployment Method: NEAR CLI (Backend)");
     addConsoleOutput("   No wallet connection required\n");
     addConsoleOutput("▶ Compiling contract...");
+    const compileStartCLI = Date.now();
 
     try {
       // Step 1: Compile the contract
@@ -359,17 +342,17 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         );
       }
 
+      const compileTimeCLI = compileResult.compilation_time != null
+        ? Number(compileResult.compilation_time).toFixed(2)
+        : ((Date.now() - compileStartCLI) / 1000).toFixed(2);
       addConsoleOutput("✓ Contract compiled successfully");
       addConsoleOutput(
         `✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`
       );
-      if (compileResult.compilation_time) {
-        addConsoleOutput(
-          `✓ Compilation time: ${compileResult.compilation_time}s`
-        );
-      }
+      addConsoleOutput(JSON.stringify({ text: `✓ Compilation Time: ${compileTimeCLI}s`, color: "green", bold: true }));
 
       // Step 2: Deploy using backend NEAR CLI
+      addConsoleOutput(JSON.stringify({ text: "— Deploying now", color: "red" }));
       addConsoleOutput("\n▶ Deploying via NEAR CLI...");
       addConsoleOutput("   (Using backend deployment account)");
 
@@ -476,254 +459,6 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         addConsoleOutput(`❌ Error: ${error.message}`);
       }
       console.error("CLI Deploy error:", error);
-    } finally {
-      setIsDeploying(false);
-    }
-  };
-
-  // Wallet deployment for JavaScript/TypeScript contracts
-  const handleWalletDeploy = async () => {
-    const accountId = await getActiveAccountId();
-    if (!accountId) {
-      addConsoleOutput("❌ Error: Please connect your wallet first");
-      return;
-    }
-
-    setIsDeploying(true);
-    clearConsole();
-    addConsoleOutput("▶ Starting wallet deployment (JavaScript contract)...");
-    addConsoleOutput("📋 Deployment Method: MyNearWallet");
-    addConsoleOutput("   Deploying to your connected account\n");
-    addConsoleOutput("▶ Compiling contract...");
-
-    try {
-      const compileApiUrl = getCompileApiUrl(activeLanguage);
-      console.log(
-        `[FRONTEND] Sending compile request to: ${compileApiUrl}/api/compile`
-      );
-      console.log(
-        `[FRONTEND] Language: ${activeLanguage}, Code length: ${code.length}`
-      );
-
-      const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language: activeLanguage }),
-      });
-
-      console.log(
-        `[FRONTEND] Response status: ${compileResponse.status} ${compileResponse.statusText}`
-      );
-
-      if (!compileResponse.ok) {
-        const errorData = await compileResponse
-          .json()
-          .catch(() => ({ error: "Unknown error" }));
-        console.error("[FRONTEND] Error response:", errorData);
-        const errorMsg =
-          errorData.stderr ||
-          errorData.error ||
-          errorData.message ||
-          `HTTP ${compileResponse.status}: ${compileResponse.statusText}`;
-        addConsoleOutput(`❌ Error: ${errorMsg}`);
-        return;
-      }
-
-      const compileResult = await compileResponse.json();
-      console.log("[FRONTEND] Compile result:", {
-        success: compileResult.success,
-        hasWasm: !!compileResult.wasm,
-        size: compileResult.size,
-      });
-
-      if (!compileResult.success) {
-        // Extract detailed error message
-        let errorMsg =
-          compileResult.stderr ||
-          compileResult.error ||
-          compileResult.message ||
-          "Compilation failed";
-
-        // If stderr is very long, extract the most relevant part
-        if (errorMsg.length > 1000) {
-          // Try to find the actual error line
-          const errorMatch =
-            errorMsg.match(/✖\s+error\s+(.+?)(\n|$)/i) ||
-            errorMsg.match(/error:\s*(.+?)(\n|$)/i) ||
-            errorMsg.match(/Command failed:\s*(.+?)(\n|$)/i);
-          if (errorMatch) {
-            errorMsg = errorMatch[1].trim();
-          } else {
-            // Take last 1000 chars
-            errorMsg = "..." + errorMsg.slice(-1000);
-          }
-        }
-
-        console.error("[FRONTEND] Compilation failed:", errorMsg);
-        addConsoleOutput(`❌ Compilation Error:`);
-        // Split long error messages into multiple lines
-        const errorLines = errorMsg.split("\n").slice(0, 10); // Show first 10 lines
-        errorLines.forEach((line) => {
-          if (line.trim()) {
-            addConsoleOutput(`   ${line.trim()}`);
-          }
-        });
-        if (errorMsg.split("\n").length > 10) {
-          addConsoleOutput(`   ... (see browser console for full error)`);
-        }
-        return; // Don't throw, just show the error and return
-      }
-
-      addConsoleOutput("✓ Contract compiled successfully");
-      addConsoleOutput(
-        `✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`
-      );
-
-      const selector = await initWalletSelector();
-      const wallet = await selector.wallet();
-      const accountIdCheck = await getActiveAccountId();
-
-      if (!accountIdCheck) {
-        throw new Error("Please connect your wallet first");
-      }
-
-      const timestamp = Date.now();
-      const subaccountName = `${example.id}-${timestamp}`;
-      const contractId = `${subaccountName}.${
-        accountIdCheck.split(".")[1] || "testnet"
-      }`;
-
-      addConsoleOutput(`▶ Deploying to: ${contractId}`);
-      addConsoleOutput("▶ Preparing deployment transaction...");
-
-      const wasmBuffer = Buffer.from(compileResult.wasm, "base64");
-      const wasmUint8Array = Array.from(new Uint8Array(wasmBuffer));
-
-      const { nodeUrl } = getNearConfig();
-
-      let accountExists = false;
-      try {
-        const checkRes = await fetch(nodeUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: "dontcare",
-            method: "query",
-            params: {
-              request_type: "view_account",
-              finality: "final",
-              account_id: contractId,
-            },
-          }),
-        });
-        const checkJson = await checkRes.json();
-        accountExists = !checkJson.error && checkJson.result;
-      } catch (e) {
-        accountExists = false;
-      }
-
-      if (!accountExists) {
-        addConsoleOutput(
-          `ℹ️  Account ${contractId} will be created during deployment`
-        );
-        addConsoleOutput(
-          "   (Subaccount creation requires parent account balance)"
-        );
-      }
-
-      addConsoleOutput("▶ Uploading WASM contract...");
-      addConsoleOutput("▶ Waiting for wallet approval...");
-
-      const targetAccountId = accountExists ? contractId : accountIdCheck;
-
-      // Store target account ID for retrieval after redirect
-      localStorage.setItem("pendingDeploymentAccountId", targetAccountId);
-
-      if (!accountExists) {
-        addConsoleOutput(`ℹ️  Deploying to your account: ${targetAccountId}`);
-        addConsoleOutput("   (To deploy to subaccount, create it first)");
-      }
-
-      const deployAction = {
-        type: "DeployContract",
-        params: {
-          code: wasmUint8Array,
-        },
-      };
-
-      // Set a timeout to reset deploying state if wallet doesn't respond
-      // This handles cases where the wallet redirects but the state wasn't reset
-      const deployTimeout = setTimeout(() => {
-        console.warn(
-          "Deploy timeout: Resetting deploying state (wallet may have redirected)"
-        );
-        setIsDeploying(false);
-      }, 30000); // 30 second timeout
-
-      try {
-        const deployResult = await wallet.signAndSendTransaction({
-          signerId: accountIdCheck,
-          receiverId: targetAccountId,
-          actions: [deployAction],
-        });
-
-        clearTimeout(deployTimeout);
-
-        addConsoleOutput("✓ Contract deployed successfully!");
-
-        const txHash =
-          deployResult?.transaction?.hash ||
-          deployResult?.transactionHash ||
-          deployResult?.receipts_outcome?.[0]?.id ||
-          "pending";
-
-        addConsoleOutput(`✓ Transaction hash: ${txHash}`);
-        addConsoleOutput(`✓ Contract available at: ${targetAccountId}`);
-
-        setDeployedContractId(targetAccountId);
-        setDeploymentTxHash(txHash);
-
-        // Note: Modal will be shown after redirect via URL parameter handler
-        // The wallet redirects to external site, so we can't show modal here
-        // Reset deploying state since transaction was sent (wallet will redirect)
-        setIsDeploying(false);
-      } catch (walletError) {
-        clearTimeout(deployTimeout);
-        // If wallet redirects, the error might be that we're being redirected
-        // In that case, reset the state and let the redirect handler take over
-        if (
-          walletError.message &&
-          (walletError.message.includes("redirect") ||
-            walletError.message.includes("User rejected") ||
-            walletError.message.includes("cancelled"))
-        ) {
-          setIsDeploying(false);
-          if (
-            walletError.message.includes("User rejected") ||
-            walletError.message.includes("cancelled")
-          ) {
-            addConsoleOutput("ℹ️  Deployment cancelled by user");
-          } else {
-            addConsoleOutput("ℹ️  Redirecting to wallet...");
-          }
-          throw walletError;
-        }
-        throw walletError;
-      }
-    } catch (error) {
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
-        const compileApiUrl = getCompileApiUrl(activeLanguage);
-        addConsoleOutput(`❌ Error: Failed to connect to backend`);
-        addConsoleOutput(`   Backend URL: ${compileApiUrl}`);
-        addConsoleOutput(
-          `   Please check if the backend is running and accessible.`
-        );
-        addConsoleOutput(`   Error details: ${error.message}`);
-      } else {
-        addConsoleOutput(`❌ Error: ${error.message}`);
-      }
-      console.error("Wallet Deploy error:", error);
     } finally {
       setIsDeploying(false);
     }

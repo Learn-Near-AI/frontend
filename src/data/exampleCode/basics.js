@@ -1,13 +1,14 @@
 // Basic examples code - Foundation to Intermediate
 export const basicsCode = {
   'hello-world': {
-    Rust: `use near_sdk::near_bindgen;
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -31,24 +32,17 @@ class Contract {
 `,
   },
   'contract-structure': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId};
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, AccountId};
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -78,15 +72,16 @@ class Contract {
 `,
   },
   'view-methods': {
-    Rust: `use near_sdk::near_bindgen;
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     greeting: String,
 }
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -125,24 +120,17 @@ class Contract {
 `,
   },
   'change-methods': {
-    Rust: `use near_sdk::near_bindgen;
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     greeting: String,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            greeting: "hello".to_string(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -187,24 +175,17 @@ class Contract {
 `,
   },
   'storage-basics': {
-    Rust: `use near_sdk::{near_bindgen, BorshStorageKey};
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     message: String,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            message: "Hello, NEAR storage!".to_string(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -244,22 +225,17 @@ class Contract {
 `,
   },
   'state-management': {
-    Rust: `use near_sdk::near_bindgen;
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     counter: u64,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { counter: 0 }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -296,24 +272,18 @@ class Contract {
 `,
   },
   'input-validation': {
-    Rust: `use near_sdk::{near_bindgen, env, require};
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     message: String,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            message: String::new(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -360,24 +330,18 @@ class Contract {
 `,
   },
   'access-control': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId};
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -423,13 +387,15 @@ class Contract {
 `,
   },
   'error-handling': {
-    Rust: `use near_sdk::{near_bindgen, env};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::env;
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -468,24 +434,18 @@ class Contract {
 `,
   },
   'events': {
-    Rust: `use near_sdk::{near_bindgen, env};
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::env;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     message: String,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            message: "initial".to_string(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -522,24 +482,18 @@ class Contract {
 `,
   },
   'collections-vector': {
-    Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     items: Vector<String>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            items: Vector::new(b"i"),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -587,24 +541,19 @@ class Contract {
 `,
   },
   'collections-map': {
-    Rust: `use near_sdk::{near_bindgen, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::AccountId;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     balances: UnorderedMap<AccountId, u64>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            balances: UnorderedMap::new(b"b"),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {

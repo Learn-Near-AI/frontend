@@ -1,13 +1,14 @@
 // Advanced patterns and testing examples
 export const advancedCode = {
   'testing': {
-    Rust: `use near_sdk::near_bindgen;
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -25,7 +26,7 @@ mod tests {
 
     #[test]
     fn test_add() {
-        let contract = Contract::default();
+        let contract = Contract::new();
         assert_eq!(contract.add(2, 3), 5);
     }
 }`,
@@ -42,13 +43,15 @@ class Contract {
 `,
   },
   'panic-handling': {
-    Rust: `use near_sdk::{near_bindgen, env, require};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, require};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -89,21 +92,18 @@ class Contract {
 `,
   },
   'event-patterns': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     balance: u64,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { balance: 0 }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -148,31 +148,25 @@ class Contract {
 `,
   },
   'initialization': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
     initialized: bool,
 }
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
             owner_id: env::current_account_id(),
             initialized: true,
-        }
-    }
-}
-
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-            initialized: false,
         }
     }
 }`,
@@ -194,23 +188,18 @@ class Contract {
 `,
   },
   'gas-optimization': {
-    Rust: `use near_sdk::near_bindgen;
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     // Store only minimal data on-chain to save gas
     counter: u64,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { counter: 0 }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -253,8 +242,11 @@ class Contract {
 `,
   },
   'complete-example': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Task {
@@ -264,25 +256,15 @@ pub struct Task {
     owner: AccountId,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
     tasks: UnorderedMap<u64, Task>,
     next_id: u64,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-            tasks: UnorderedMap::new(b"t"),
-            next_id: 1,
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -312,8 +294,8 @@ impl Contract {
         env::log_str(&format!("Task {} added", task.id));
     }
 
-    pub fn get_task(&self, id: u64) -> Option<Task> {
-        self.tasks.get(&id)
+    pub fn get_task(&self, id: u64) -> Option<(u64, String, bool, AccountId)> {
+        self.tasks.get(&id).map(|t| (t.id, t.title.clone(), t.completed, t.owner.clone()))
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";

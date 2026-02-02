@@ -1,8 +1,11 @@
 // NFT examples
 export const nftsCode = {
   'nft-transfer': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Token {
@@ -10,21 +13,13 @@ pub struct Token {
     owner_id: AccountId,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     tokens: UnorderedMap<String, Token>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            tokens: UnorderedMap::new(b"t"),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -45,8 +40,8 @@ impl Contract {
         env::log_str(&format!("Transferred token {} to {}", token_id, receiver_id));
     }
 
-    pub fn get_token(&self, token_id: String) -> Option<Token> {
-        self.tokens.get(&token_id)
+    pub fn get_token(&self, token_id: String) -> Option<(String, AccountId)> {
+        self.tokens.get(&token_id).map(|t| (t.token_id.clone(), t.owner_id.clone()))
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -81,15 +76,12 @@ class Contract {
 `,
   },
   'nft-standard': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-
-#[derive(BorshDeserialize, BorshSerialize)]
-pub struct TokenMetadata {
-    pub title: Option<String>,
-    pub description: Option<String>,
-    pub media: Option<String>,
-}
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Token {
@@ -98,19 +90,13 @@ pub struct Token {
     pub metadata: Option<TokenMetadata>,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     tokens: UnorderedMap<String, Token>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { tokens: UnorderedMap::new(b"t") }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -124,8 +110,8 @@ impl Contract {
         self.tokens.insert(&token_id, &token);
     }
 
-    pub fn nft_token(&self, token_id: String) -> Option<Token> {
-        self.tokens.get(&token_id)
+    pub fn nft_token(&self, token_id: String) -> Option<(String, AccountId, Option<TokenMetadata>)> {
+        self.tokens.get(&token_id).map(|t| (t.token_id.clone(), t.owner_id.clone(), t.metadata.clone()))
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -154,29 +140,19 @@ class Contract {
 `,
   },
   'nft-metadata': {
-    Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::PanicOnDefault;
+use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 
-#[derive(BorshDeserialize, BorshSerialize)]
-pub struct NFTMetadata {
-    pub title: String,
-    pub description: String,
-    pub media: String,
-}
-
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
-    metadata: UnorderedMap<String, NFTMetadata>,
+    metadata: UnorderedMap<String, TokenMetadata>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { metadata: UnorderedMap::new(b"m") }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -184,10 +160,24 @@ impl Contract {
     }
 
     pub fn set_metadata(&mut self, token_id: String, title: String, description: String, media: String) {
-        self.metadata.insert(&token_id, &NFTMetadata { title, description, media });
+        let meta = TokenMetadata {
+            title: Some(title),
+            description: Some(description),
+            media: Some(media),
+            media_hash: None,
+            copies: None,
+            issued_at: None,
+            expires_at: None,
+            starts_at: None,
+            updated_at: None,
+            extra: None,
+            reference: None,
+            reference_hash: None,
+        };
+        self.metadata.insert(&token_id, &meta);
     }
 
-    pub fn get_metadata(&self, token_id: String) -> Option<NFTMetadata> {
+    pub fn get_metadata(&self, token_id: String) -> Option<TokenMetadata> {
         self.metadata.get(&token_id)
     }
 }`,
@@ -213,8 +203,11 @@ class Contract {
 `,
   },
   'nft-minting': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Token {
@@ -222,25 +215,15 @@ pub struct Token {
     owner_id: AccountId,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     tokens: UnorderedMap<String, Token>,
     next_id: u64,
     owner_id: AccountId,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            tokens: UnorderedMap::new(b"t"),
-            next_id: 1,
-            owner_id: env::current_account_id(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -262,8 +245,8 @@ impl Contract {
         token_id
     }
 
-    pub fn get_token(&self, token_id: String) -> Option<Token> {
-        self.tokens.get(&token_id)
+    pub fn get_token(&self, token_id: String) -> Option<(String, AccountId)> {
+        self.tokens.get(&token_id).map(|t| (t.token_id.clone(), t.owner_id.clone()))
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -298,8 +281,11 @@ class Contract {
 `,
   },
   'nft-approval': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Token {
@@ -307,19 +293,13 @@ pub struct Token {
     approved_account_id: Option<AccountId>,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     tokens: UnorderedMap<String, Token>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { tokens: UnorderedMap::new(b"t") }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -387,9 +367,11 @@ class Contract {
 `,
   },
   'nft-enumeration': {
-    Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize, BorshStorageKey}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{UnorderedMap, Vector};
 use near_sdk::AccountId;
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Token {
@@ -397,35 +379,20 @@ pub struct Token {
     owner_id: AccountId,
 }
 
-#[derive(BorshStorageKey)]
-enum StorageKey {
-    Tokens,
-    TokenIds,
-}
-
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     tokens: UnorderedMap<String, Token>,
     token_ids: Vector<String>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            tokens: UnorderedMap::new(b"t"),
-            token_ids: Vector::new(StorageKey::TokenIds),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
             tokens: UnorderedMap::new(b"t"),
-            token_ids: Vector::new(StorageKey::TokenIds),
+            token_ids: Vector::new(b"i"),
         }
     }
 
@@ -433,13 +400,13 @@ impl Contract {
         self.token_ids.len()
     }
 
-    pub fn nft_tokens(&self, from_index: Option<u64>, limit: Option<u64>) -> Vec<Token> {
+    pub fn nft_tokens(&self, from_index: Option<u64>, limit: Option<u64>) -> Vec<(String, AccountId)> {
         let start = from_index.unwrap_or(0) as usize;
         let limit = limit.unwrap_or(50) as usize;
         self.token_ids.iter()
             .skip(start)
             .take(limit)
-            .filter_map(|id| self.tokens.get(&id))
+            .filter_map(|id| self.tokens.get(&id).map(|t| (t.token_id.clone(), t.owner_id.clone())))
             .collect()
     }
 }`,
@@ -468,24 +435,18 @@ class Contract {
 `,
   },
   'nft-royalties': {
-    Rust: `use near_sdk::{near_bindgen, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use std::collections::HashMap;
-use near_sdk::AccountId;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     royalties: UnorderedMap<String, u16>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { royalties: UnorderedMap::new(b"r") }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -524,8 +485,11 @@ class Contract {
 `,
   },
   'nft-marketplace': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Sale {
@@ -534,19 +498,13 @@ pub struct Sale {
     price: u128,
 }
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     sales: UnorderedMap<String, Sale>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self { sales: UnorderedMap::new(b"s") }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -562,8 +520,8 @@ impl Contract {
         });
     }
 
-    pub fn get_sale(&self, listing_id: String) -> Option<Sale> {
-        self.sales.get(&listing_id)
+    pub fn get_sale(&self, listing_id: String) -> Option<(String, AccountId, u128)> {
+        self.sales.get(&listing_id).map(|s| (s.token_id.clone(), s.seller_id.clone(), s.price))
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";

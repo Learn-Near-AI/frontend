@@ -1,26 +1,19 @@
 // Security and access control examples
 export const securityCode = {
   'owner-pattern': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require};
+    Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
     value: u64,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-            value: 0,
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -79,24 +72,19 @@ class Contract {
 `,
   },
   'role-based-access': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     admins: UnorderedSet<AccountId>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            admins: UnorderedSet::new(b"a"),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -151,25 +139,19 @@ class Contract {
 `,
   },
   'pausable-contract': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
     paused: bool,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-            paused: false,
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -244,28 +226,21 @@ class Contract {
 `,
   },
   'multi-signature': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     signers: UnorderedSet<AccountId>,
     required_signatures: u32,
     approvals: UnorderedSet<AccountId>,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            signers: UnorderedSet::new(b"s"),
-            required_signatures: 2,
-            approvals: UnorderedSet::new(b"ap"),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -320,25 +295,19 @@ class Contract {
 `,
   },
   'reentrancy-guard': {
-    Rust: `use near_sdk::{near_bindgen, env, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     locked: bool,
     balance: u64,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            locked: false,
-            balance: 0,
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -389,25 +358,19 @@ class Contract {
 `,
   },
   'upgrade-pattern': {
-    Rust: `use near_sdk::{near_bindgen, env, require, borsh::{self, BorshDeserialize, BorshSerialize}};
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::{env, require};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: near_sdk::AccountId,
     version: u32,
 }
 
-impl Default for Contract {
-    fn default() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-            version: 1,
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {

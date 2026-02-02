@@ -2,6 +2,35 @@ import React from 'react'
 import { ExternalLink } from 'lucide-react'
 
 function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
+  // Parse console output to identify styled text
+  const renderConsoleOutput = () => {
+    if (!consoleOutput) {
+      return 'Console output will appear here when you run or deploy...'
+    }
+
+    const lines = consoleOutput.split('\n')
+    return lines.map((line, idx) => {
+      try {
+        // Try to parse JSON-formatted styled text
+        const parsed = JSON.parse(line)
+        if (parsed.text && parsed.color) {
+          let colorClass = ''
+          if (parsed.color === 'red') colorClass = 'text-red-500'
+          else if (parsed.color === 'green') colorClass = 'text-green-500'
+          const boldClass = parsed.bold ? 'font-bold' : ''
+          return (
+            <div key={idx} className={`${colorClass} ${boldClass}`}>
+              {parsed.text}
+            </div>
+          )
+        }
+      } catch {
+        // Not JSON, render as plain text
+      }
+      return <div key={idx}>{line}</div>
+    })
+  }
+
   return (
     <div className="tour-console bg-[#111216] rounded-xl border border-[#3e3e42] flex flex-col gap-4">
       {/* Console Output */}
@@ -10,11 +39,11 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
           Console Output
         </h3>
         <div className="bg-[#0a0c10] rounded-lg p-3 text-[0.7rem] font-mono text-gray-100 max-h-60 overflow-auto whitespace-pre-wrap border border-[#3e3e42]">
-          {consoleOutput || 'Console output will appear here when you run or deploy...'}
+          {renderConsoleOutput()}
         </div>
       </div>
 
-      {/* Deployment status */}
+      {/* Deployment Section */}
       <div className="px-4 pb-4 space-y-3">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
           Deployment
@@ -65,4 +94,3 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
 }
 
 export default ConsolePanel
-

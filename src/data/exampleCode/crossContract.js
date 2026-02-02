@@ -1,13 +1,15 @@
 // Cross-contract call examples
 export const crossContractCode = {
   'simple-calls': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -17,8 +19,8 @@ impl Contract {
     pub fn call_other_contract(&self, contract_id: AccountId, method_name: String) -> Promise {
         Promise::new(contract_id)
             .function_call(
-                method_name,
-                b"{}".to_vec(),
+                method_name.as_bytes(),
+                b"{}",
                 0,
                 env::prepaid_gas() / 2,
             )
@@ -43,13 +45,15 @@ class Contract {
 `,
   },
   'promises': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -59,8 +63,8 @@ impl Contract {
     pub fn create_promise(&self, contract_id: AccountId) -> Promise {
         Promise::new(contract_id)
             .function_call(
-                b"get_value".to_vec(),
-                b"{}".to_vec(),
+                b"get_value",
+                b"{}",
                 0,
                 env::prepaid_gas() / 2,
             )
@@ -85,13 +89,15 @@ class Contract {
 `,
   },
   'callbacks': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -100,10 +106,10 @@ impl Contract {
 
     pub fn call_then_callback(&self, contract_id: AccountId) -> Promise {
         Promise::new(contract_id.clone())
-            .function_call(b"get_value".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 3)
+            .function_call(b"get_value", b"{}", 0, env::prepaid_gas() / 3)
             .and_then(
                 Promise::new(env::current_account_id())
-                    .function_call(b"on_result".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 3),
+                    .function_call(b"on_result", b"{}", 0, env::prepaid_gas() / 3),
             )
     }
 
@@ -133,13 +139,15 @@ class Contract {
 `,
   },
   'cross-call-ft': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -150,7 +158,7 @@ impl Contract {
         let args = format!(r#"{{"receiver_id":"{}","amount":"{}","memo":null}}"#, receiver_id, amount);
         Promise::new(token_contract)
             .function_call(
-                b"ft_transfer".to_vec(),
+                b"ft_transfer",
                 args.into_bytes(),
                 1,
                 env::prepaid_gas() / 2,
@@ -172,13 +180,15 @@ class Contract {
 `,
   },
   'cross-call-nft': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -192,7 +202,7 @@ impl Contract {
         );
         Promise::new(nft_contract)
             .function_call(
-                b"nft_transfer_call".to_vec(),
+                b"nft_transfer_call",
                 args.into_bytes(),
                 1,
                 env::prepaid_gas() / 2,
@@ -219,13 +229,15 @@ class Contract {
 `,
   },
   'batch-calls': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -235,10 +247,10 @@ impl Contract {
     pub fn batch_call(&self, contract_a: AccountId, contract_b: AccountId) -> Promise {
         let gas_per_call = env::prepaid_gas() / 3;
         Promise::new(contract_a)
-            .function_call(b"get_value".to_vec(), b"{}".to_vec(), 0, gas_per_call)
+            .function_call(b"get_value", b"{}", 0, gas_per_call)
             .and_then(
                 Promise::new(contract_b)
-                    .function_call(b"get_value".to_vec(), b"{}".to_vec(), 0, gas_per_call),
+                    .function_call(b"get_value", b"{}", 0, gas_per_call),
             )
     }
 }`,
@@ -259,13 +271,15 @@ class Contract {
 `,
   },
   'promise-results': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -274,10 +288,10 @@ impl Contract {
 
     pub fn call_and_check(&self, contract_id: AccountId) -> Promise {
         Promise::new(contract_id)
-            .function_call(b"get_value".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 2)
+            .function_call(b"get_value", b"{}", 0, env::prepaid_gas() / 2)
             .then(
                 Promise::new(env::current_account_id())
-                    .function_call(b"handle_result".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 2),
+                    .function_call(b"handle_result", b"{}", 0, env::prepaid_gas() / 2),
             )
     }
 
@@ -310,13 +324,15 @@ class Contract {
 `,
   },
   'async-patterns': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -326,10 +342,10 @@ impl Contract {
     pub fn chain_promises(&self, contract_id: AccountId) -> Promise {
         let gas = env::prepaid_gas() / 4;
         Promise::new(contract_id.clone())
-            .function_call(b"step1".to_vec(), b"{}".to_vec(), 0, gas)
+            .function_call(b"step1", b"{}", 0, gas)
             .and_then(
                 Promise::new(contract_id)
-                    .function_call(b"step2".to_vec(), b"{}".to_vec(), 0, gas),
+                    .function_call(b"step2", b"{}", 0, gas),
             )
     }
 }`,
@@ -350,13 +366,15 @@ class Contract {
 `,
   },
   'callback-patterns': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -366,10 +384,10 @@ impl Contract {
     pub fn call_with_callback(&self, target: AccountId) -> Promise {
         let current = env::current_account_id();
         Promise::new(target)
-            .function_call(b"compute".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 2)
+            .function_call(b"compute", b"{}", 0, env::prepaid_gas() / 2)
             .and_then(
                 Promise::new(current)
-                    .function_call(b"on_compute_done".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 2),
+                    .function_call(b"on_compute_done", b"{}", 0, env::prepaid_gas() / 2),
             )
     }
 
@@ -399,13 +417,15 @@ class Contract {
 `,
   },
   'error-propagation': {
-    Rust: `use near_sdk::{near_bindgen, env, AccountId, Promise};
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, Promise};
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
@@ -414,10 +434,10 @@ impl Contract {
 
     pub fn call_may_fail(&self, contract_id: AccountId) -> Promise {
         Promise::new(contract_id)
-            .function_call(b"risky".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 2)
+            .function_call(b"risky", b"{}", 0, env::prepaid_gas() / 2)
             .then(
                 Promise::new(env::current_account_id())
-                    .function_call(b"on_result".to_vec(), b"{}".to_vec(), 0, env::prepaid_gas() / 2),
+                    .function_call(b"on_result", b"{}", 0, env::prepaid_gas() / 2),
             )
     }
 
