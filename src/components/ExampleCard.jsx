@@ -10,7 +10,7 @@ function ExampleCard({ example, isSelected, onClick }) {
       onClick={onClick}
       className={`w-full text-left px-3 py-3.5 rounded border-b border-gray-200 dark:border-[#3e3e42] transition-all duration-200 ${
         isSelected
-          ? ' border-l border-near-primary '
+          ? 'border-l border-near-primary text-gray-900 dark:text-white'
           : 'hover:bg-gray-100 dark:hover:bg-[#1a1b1f] text-gray-700 dark:text-gray-300'
       }`}
     >

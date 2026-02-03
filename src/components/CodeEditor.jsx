@@ -210,7 +210,7 @@ function CodeEditor({
           className={`px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-1 ${
             reset
               ? 'border-near-primary bg-near-primary/10 text-near-primary'
-              : 'border-[#3e3e42] text-gray-200 hover:bg-[#1a1b1f]'
+              : 'border-[#3e3e42] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
           }`}
           title={reset ? 'Reset!' : 'Reset code'}
         >
@@ -247,7 +247,7 @@ function CodeEditor({
           className={`px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-1 ${
             copied
               ? 'border-near-primary bg-near-primary/10 text-near-primary'
-              : 'border-[#3e3e42] text-gray-200 hover:bg-[#1a1b1f]'
+              : 'border-[#3e3e42] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
           }`}
           title={copied ? 'Copied!' : 'Copy code'}
         >

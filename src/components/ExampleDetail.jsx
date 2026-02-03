@@ -511,16 +511,16 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       )}
 
       {backendCLIConfigured === true && !isWarningClosed && (
-        <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-3">
+        <div className="bg-blue-100 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-800 rounded-lg p-3">
           <div className="flex items-start gap-2">
-            <span className="text-blue-400 text-lg">ℹ️</span>
-            <p className="text-sm text-blue-300 flex-1">
+            <span className="text-blue-600 dark:text-blue-400 text-lg">ℹ️</span>
+            <p className="text-sm text-blue-800 dark:text-blue-300 flex-1">
               <strong>Contracts</strong> will be deployed via backend NEAR
               CLI. No wallet connection required.
             </p>
             <button
               onClick={() => setIsWarningClosed(true)}
-              className="text-blue-400 hover:text-blue-200 transition-colors"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
               aria-label="Close warning"
             >
               <X className="h-4 w-4" />
