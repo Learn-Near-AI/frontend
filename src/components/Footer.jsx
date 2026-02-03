@@ -25,7 +25,7 @@ function Footer({ scrollToTop }) {
 
           {/* Solutions Column */}
           <div data-aos="fade-up" data-aos-delay="200">
-            <h4 className="text-white font-semibold text-sm mb-4">Solutions</h4>
+            <h4 className="text-gray-900 dark:text-white font-semibold text-sm mb-4">Solutions</h4>
             <ul className="space-y-2">
               <li><a href="#" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors text-sm">Getting Started</a></li>
               <li><a href="#" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors text-sm">Examples</a></li>

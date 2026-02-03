@@ -21,7 +21,7 @@ function Roadmap({ scrollToTop }) {
       id: 2,
       title: "Full 60 examples + AI features",
       date: "Mid-February 2026",
-      status: "in-progress",
+      status: "completed",
       deliverables: [
         "Additional 30 examples (total 60)",
         "AI Bug Fixer + Code Generator live",
@@ -35,7 +35,7 @@ function Roadmap({ scrollToTop }) {
       id: 3,
       title: "Polish, audit & official launch",
       date: "End of February 2026",
-      status: "upcoming",
+      status: "in-progress",
       deliverables: [
         "Security & code review",
         "Integration with docs.near.org",
