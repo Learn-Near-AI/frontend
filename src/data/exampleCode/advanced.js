@@ -29,6 +29,12 @@ mod tests {
         let contract = Contract::new();
         assert_eq!(contract.add(2, 3), 5);
     }
+
+    #[test]
+    fn test_add_zero() {
+        let contract = Contract::new();
+        assert_eq!(contract.add(0, 0), 0);
+    }
 }`,
     JavaScript: `import { NearBindgen, view } from "near-sdk-js";
 
@@ -58,90 +64,44 @@ impl Contract {
         Self {}
     }
 
+    /// Returns None on division by zero instead of panicking
     pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
         if b == 0 {
-            env::panic_str("Division by zero");
+            return None;
         }
         Some(a / b)
     }
 
+    /// Panics with a clear message - use for unrecoverable errors
     pub fn assert_positive(&self, value: i64) {
         require!(value > 0, "Value must be positive");
     }
-}`,
-    JavaScript: `import { NearBindgen, call, near } from "near-sdk-js";
 
-@NearBindgen({})
-class Contract {
-  @call({})
-  safe_divide({ a, b }) {
-    if (b === 0) {
-      near.panic("Division by zero");
-    }
-    return a / b;
-  }
-
-  @call({})
-  assert_positive({ value }) {
-    if (value <= 0) {
-      near.panic("Value must be positive");
-    }
-  }
-}
-
-`,
-  },
-  'event-patterns': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, AccountId};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    balance: u64,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self { balance: 0 }
-    }
-
-    pub fn deposit(&mut self, amount: u64) {
-        self.balance += amount;
-        env::log_str(&format!(
-            "EVENT_JSON:{{\\\"event\\\":\\\"Deposit\\\",\\\"account\\\":\\\"{}\\\",\\\"amount\\\":{}}}",
-            env::predecessor_account_id(),
-            amount
-        ));
+    /// Demonstrates env::panic_str for critical failures
+    pub fn strict_check(&self, value: u64) {
+        if value == 0 {
+            env::panic_str("ZERO_NOT_ALLOWED");
+        }
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ balance } = { balance: 0 }) {
-    this.balance = balance;
-  }
-
   @view({})
-  get_balance() {
-    return this.balance;
+  safe_divide({ a, b }) {
+    if (b === 0) return null;
+    return a / b;
   }
 
   @call({})
-  deposit({ amount }) {
-    this.balance += amount;
-    near.log(
-      JSON.stringify({
-        event: "Deposit",
-        account: near.predecessorAccountId(),
-        amount,
-      })
-    );
+  assert_positive({ value }) {
+    if (value <= 0) near.panic("Value must be positive");
+  }
+
+  @call({})
+  strict_check({ value }) {
+    if (value === 0) near.panic("ZERO_NOT_ALLOWED");
   }
 }
 
@@ -150,9 +110,10 @@ class Contract {
   'initialization': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, AccountId};
+use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
+/// PanicOnDefault: contract panics if deserialized without explicit init.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
@@ -169,19 +130,32 @@ impl Contract {
             initialized: true,
         }
     }
+
+    pub fn get_owner(&self) -> AccountId {
+        self.owner_id.clone()
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        self.initialized
+    }
+
+    /// Migration: run after code upgrade. Owner-only; use for schema changes.
+    pub fn migrate(&mut self) {
+        require!(env::predecessor_account_id() == self.owner_id, "Only owner can migrate");
+        self.initialized = true;
+        env::log_str("Migration complete");
+    }
 }`,
     JavaScript: `import { NearBindgen, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ owner_id, initialized } = {}) {
-    if (near.isInitialized()) {
-      this.owner_id = owner_id || near.currentAccountId();
-      this.initialized = initialized !== undefined ? initialized : true;
-    } else {
-      this.owner_id = owner_id || near.currentAccountId();
-      this.initialized = true;
-    }
+  constructor({ owner_id, initialized } = {
+    owner_id: near.currentAccountId(),
+    initialized: true
+  }) {
+    this.owner_id = owner_id ?? near.currentAccountId();
+    this.initialized = initialized ?? true;
   }
 }
 
@@ -190,51 +164,56 @@ class Contract {
   'gas-optimization': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
+use near_sdk::collections::Vector;
+use near_sdk::{require, PanicOnDefault};
+
+const MAX_BATCH: u32 = 100;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    // Store only minimal data on-chain to save gas
-    counter: u64,
+    items: Vector<String>,
 }
 
 #[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
-        Self { counter: 0 }
+        Self { items: Vector::new(b"i") }
     }
 
-    pub fn bulk_increment(&mut self, times: u32) {
-        // Simple loop; in real code you should cap times to avoid out-of-gas
-        for _ in 0..times {
-            self.counter += 1;
+    /// Gas optimization: batch inserts instead of many single-item calls
+    pub fn add_many(&mut self, new_items: Vec<String>) {
+        require!(new_items.len() <= MAX_BATCH as usize, "Batch too large");
+        for item in new_items {
+            self.items.push(&item);
         }
     }
 
-    pub fn get_counter(&self) -> u64 {
-        self.counter
+    pub fn len(&self) -> u64 {
+        self.items.len()
     }
 }`,
-    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+const MAX_BATCH = 100;
 
 @NearBindgen({})
 class Contract {
-  constructor({ counter } = { counter: 0 }) {
-    this.counter = counter;
+  constructor({ items } = { items: [] }) {
+    this.items = items || [];
   }
 
   @view({})
-  get_counter() {
-    return this.counter;
+  len() {
+    return this.items.length;
   }
 
   @call({})
-  bulk_increment({ times }) {
-    // In production, always validate "times" to avoid excessive gas usage
-    for (let i = 0; i < times; i += 1) {
-      this.counter += 1;
+  add_many({ new_items }) {
+    if (new_items.length > MAX_BATCH) near.panic("Batch too large");
+    for (const item of new_items) {
+      this.items.push(item);
     }
   }
 }
@@ -244,7 +223,7 @@ class Contract {
   'complete-example': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::UnorderedMap;
+use near_sdk::collections::{UnorderedMap, Vector};
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
@@ -261,6 +240,7 @@ pub struct Task {
 pub struct Contract {
     owner_id: AccountId,
     tasks: UnorderedMap<u64, Task>,
+    task_ids: Vector<u64>,
     next_id: u64,
 }
 
@@ -271,6 +251,7 @@ impl Contract {
         Self {
             owner_id: env::current_account_id(),
             tasks: UnorderedMap::new(b"t"),
+            task_ids: Vector::new(b"i"),
             next_id: 1,
         }
     }
@@ -282,20 +263,41 @@ impl Contract {
         );
         require!(title.len() > 0, "Title cannot be empty");
         
+        let id = self.next_id;
         let task = Task {
-            id: self.next_id,
+            id,
             title,
             completed: false,
             owner: self.owner_id.clone(),
         };
-        self.tasks.insert(&self.next_id, &task);
+        self.tasks.insert(&id, &task);
+        self.task_ids.push(&id);
         self.next_id += 1;
         
-        env::log_str(&format!("Task {} added", task.id));
+        env::log_str(&format!("Task {} added", id));
+    }
+
+    pub fn complete_task(&mut self, id: u64) {
+        let mut task = self.tasks.get(&id).expect("Task not found");
+        require!(task.owner == env::predecessor_account_id(), "Not owner");
+        task.completed = true;
+        self.tasks.insert(&id, &task);
+    }
+
+    pub fn delete_task(&mut self, id: u64) {
+        let task = self.tasks.get(&id).expect("Task not found");
+        require!(task.owner == env::predecessor_account_id(), "Not owner");
+        self.tasks.remove(&id);
+        let idx = self.task_ids.iter().position(|&i| i == id).expect("Task id not in list") as u64;
+        self.task_ids.swap_remove(idx);
     }
 
     pub fn get_task(&self, id: u64) -> Option<(u64, String, bool, AccountId)> {
         self.tasks.get(&id).map(|t| (t.id, t.title.clone(), t.completed, t.owner.clone()))
+    }
+
+    pub fn get_task_ids(&self) -> Vec<u64> {
+        self.task_ids.iter().collect()
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -336,6 +338,22 @@ class Contract {
     this.next_id += 1;
     
     near.log(\`Task \${task.id} added\`);
+  }
+
+  @call({})
+  complete_task({ id }) {
+    const task = this.tasks[id];
+    if (!task) near.panic("Task not found");
+    if (task.owner !== near.predecessorAccountId()) near.panic("Not owner");
+    this.tasks[id] = { ...task, completed: true };
+  }
+
+  @call({})
+  delete_task({ id }) {
+    const task = this.tasks[id];
+    if (!task) near.panic("Task not found");
+    if (task.owner !== near.predecessorAccountId()) near.panic("Not owner");
+    delete this.tasks[id];
   }
 }
 

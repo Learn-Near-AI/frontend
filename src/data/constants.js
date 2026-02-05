@@ -35,20 +35,44 @@ export const languageIcons = {
   'JavaScript': '📜',
 }
 
+// Audited examples: production-safe, no known issues (from content audit)
+// Experimental: exploratory examples; may have edge cases or need verification
+export const AUDITED_EXAMPLES = [
+  'hello-world', 'contract-structure', 'view-methods', 'change-methods',
+  'storage-basics', 'state-management', 'input-validation', 'access-control',
+  'owner-pattern', 'role-based-access', 'upgrade-pattern',
+  'storage-keys', 'user-profiles', 'voting-system', 'batch-operations',
+  'nft-transfer', 'nft-metadata', 'nft-minting', 'nft-approval', 'nft-enumeration',
+  'simple-calls', 'cross-call-ft', 'cross-call-nft', 'promise-results', 'async-patterns',
+  'gas-optimization', 'panic-handling',
+  'indexer-events', 'indexer-data',
+  'chain-signatures-basics', 'signature-verification', 'signature-requests',
+  'multi-chain-signing', 'cross-chain-auth',
+]
+
+export const isAuditedExample = (exampleId) =>
+  AUDITED_EXAMPLES.includes(exampleId)
+
 // Coming soon template for examples without code
 export const COMING_SOON_TEMPLATE = {
   Rust: `// Coming Soon
 // This example is under development.
 // Check back soon for a complete implementation!
 
-use near_sdk::near_bindgen;
+use near_sdk::near;
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
-#[derive(Default)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {}
 
-#[near_bindgen]
+#[near]
 impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn placeholder(&self) -> String {
         "Coming soon!".to_string()
     }

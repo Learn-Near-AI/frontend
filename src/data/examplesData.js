@@ -24,7 +24,6 @@ export const examplesData = {
     // Advanced - Advanced Security
     { id: 'multi-signature', name: 'Multi-Signature', difficulty: 'Advanced', language: 'Rust' },
     { id: 'upgrade-pattern', name: 'Upgrade Pattern', difficulty: 'Advanced', language: 'Rust' },
-    { id: 'reentrancy-guard', name: 'Reentrancy Guard', difficulty: 'Advanced', language: 'Rust' },
   ],
   'Collections & Data': [
     // Intermediate - Data Structures and Applications
@@ -53,16 +52,13 @@ export const examplesData = {
     // Beginner - Basic Cross-Contract Calls
     { id: 'simple-calls', name: 'Simple Calls', difficulty: 'Beginner', language: 'Rust' },
     // Intermediate - Promise and Callback Patterns
-    { id: 'promises', name: 'Promises', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'callbacks', name: 'Callbacks', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'cross-call-ft', name: 'Cross-Call FT', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'cross-call-nft', name: 'Cross-Call NFT', difficulty: 'Intermediate', language: 'Rust' },
     // Advanced - Complex Patterns
-    { id: 'batch-calls', name: 'Batch Calls', difficulty: 'Advanced', language: 'Rust' },
+    { id: 'batch-calls', name: 'Chained Calls', difficulty: 'Advanced', language: 'Rust' },
     { id: 'promise-results', name: 'Promise Results', difficulty: 'Advanced', language: 'Rust' },
     { id: 'async-patterns', name: 'Async Patterns', difficulty: 'Advanced', language: 'Rust' },
-    { id: 'callback-patterns', name: 'Callback Patterns', difficulty: 'Advanced', language: 'Rust' },
-    { id: 'error-propagation', name: 'Error Propagation', difficulty: 'Advanced', language: 'Rust' },
   ],
   'Chain Signatures': [
     // Intermediate - Chain Signatures Basics
@@ -75,22 +71,14 @@ export const examplesData = {
     { id: 'signature-callbacks', name: 'Signature Callbacks', difficulty: 'Advanced', language: 'Rust' },
   ],
   Indexing: [
-    // Intermediate - Indexing Basics
-    { id: 'indexer-setup', name: 'Indexer Setup', difficulty: 'Intermediate', language: 'JS' },
-    { id: 'queryapi-basics', name: 'QueryAPI Basics', difficulty: 'Intermediate', language: 'JS' },
-    { id: 'data-indexing', name: 'Data Indexing', difficulty: 'Intermediate', language: 'JS' },
-    { id: 'queryapi-queries', name: 'QueryAPI Queries', difficulty: 'Intermediate', language: 'JS' },
-    // Advanced - Advanced Indexing
-    { id: 'indexer-filters', name: 'Indexer Filters', difficulty: 'Advanced', language: 'JS' },
-    { id: 'indexer-aggregation', name: 'Indexer Aggregation', difficulty: 'Advanced', language: 'JS' },
-    { id: 'indexer-performance', name: 'Indexer Performance', difficulty: 'Advanced', language: 'JS' },
-    { id: 'indexer-monitoring', name: 'Indexer Monitoring', difficulty: 'Advanced', language: 'JS' },
+    // Contract side: NEP-297 event emission (indexer setup is off-chain)
+    { id: 'indexer-events', name: 'NEP-297 Events', difficulty: 'Intermediate', language: 'Rust' },
+    { id: 'indexer-data', name: 'State + Events', difficulty: 'Intermediate', language: 'Rust' },
   ],
   'Advanced Patterns': [
     // Intermediate - Testing and Patterns
     { id: 'testing', name: 'Unit Testing', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'panic-handling', name: 'Panic Handling', difficulty: 'Intermediate', language: 'Rust' },
-    { id: 'event-patterns', name: 'Event Patterns', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'initialization', name: 'Contract Initialization', difficulty: 'Intermediate', language: 'Rust' },
     // Advanced - Optimization and Complete Examples
     { id: 'gas-optimization', name: 'Gas Optimization', difficulty: 'Advanced', language: 'Rust' },

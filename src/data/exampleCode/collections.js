@@ -1,7 +1,8 @@
 // Collections and data structure examples
 export const collectionsCode = {
   'storage-keys': {
-    Rust: `use near_sdk::near;
+    Rust: `// Storage keys: unique prefixes namespace each collection to avoid collisions
+use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
 use near_sdk::PanicOnDefault;
@@ -9,7 +10,8 @@ use near_sdk::PanicOnDefault;
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    items: Vector<String>,
+    items: Vector<String>,   // prefix b"i"
+    tags: Vector<String>,    // prefix b"t" - different key, no collision
 }
 
 #[near]
@@ -18,6 +20,7 @@ impl Contract {
     pub fn new() -> Self {
         Self {
             items: Vector::new(b"i"),
+            tags: Vector::new(b"t"),
         }
     }
 
@@ -25,16 +28,26 @@ impl Contract {
         self.items.push(&item);
     }
 
+    pub fn add_tag(&mut self, tag: String) {
+        self.tags.push(&tag);
+    }
+
     pub fn get_items(&self) -> Vec<String> {
         self.items.iter().collect()
     }
+
+    pub fn get_tags(&self) -> Vec<String> {
+        self.tags.iter().collect()
+    }
 }`,
-    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScript: `// Storage keys: unique prefixes namespace each collection
+import { NearBindgen, view, call } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ items } = { items: [] }) {
+  constructor({ items, tags } = { items: [], tags: [] }) {
     this.items = items || [];
+    this.tags = tags || [];
   }
 
   @view({})
@@ -42,9 +55,19 @@ class Contract {
     return this.items;
   }
 
+  @view({})
+  get_tags() {
+    return this.tags;
+  }
+
   @call({})
   add_item({ item }) {
     this.items.push(item);
+  }
+
+  @call({})
+  add_tag({ tag }) {
+    this.tags.push(tag);
   }
 }
 
@@ -53,7 +76,7 @@ class Contract {
   'todo-list': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::Vector;
+use near_sdk::collections::{UnorderedMap, Vector};
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
@@ -68,7 +91,8 @@ pub struct Todo {
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    todos: Vector<Todo>,
+    todos: UnorderedMap<u64, Todo>,
+    todo_ids: Vector<u64>,
     next_id: u64,
 }
 
@@ -77,25 +101,53 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            todos: Vector::new(b"t"),
+            todos: UnorderedMap::new(b"t"),
+            todo_ids: Vector::new(b"i"),
             next_id: 1,
         }
     }
 
     pub fn add_todo(&mut self, title: String) {
         require!(title.len() > 0, "Title cannot be empty");
+        let id = self.next_id;
         let todo = Todo {
-            id: self.next_id,
+            id,
             title,
             completed: false,
             owner: env::predecessor_account_id(),
         };
-        self.todos.push(&todo);
+        self.todos.insert(&id, &todo);
+        self.todo_ids.push(&id);
         self.next_id += 1;
     }
 
+    pub fn complete_todo(&mut self, id: u64) {
+        let mut todo = self.todos.get(&id).expect("Todo not found");
+        require!(todo.owner == env::predecessor_account_id(), "Not owner");
+        todo.completed = true;
+        self.todos.insert(&id, &todo);
+    }
+
+    pub fn update_todo(&mut self, id: u64, title: String) {
+        require!(title.len() > 0, "Title cannot be empty");
+        let mut todo = self.todos.get(&id).expect("Todo not found");
+        require!(todo.owner == env::predecessor_account_id(), "Not owner");
+        todo.title = title;
+        self.todos.insert(&id, &todo);
+    }
+
+    pub fn delete_todo(&mut self, id: u64) {
+        let todo = self.todos.get(&id).expect("Todo not found");
+        require!(todo.owner == env::predecessor_account_id(), "Not owner");
+        self.todos.remove(&id);
+        let idx = self.todo_ids.iter().position(|&i| i == id).expect("Todo id not in list") as u64;
+        self.todo_ids.swap_remove(idx);
+    }
+
     pub fn get_todos(&self) -> Vec<(u64, String, bool, AccountId)> {
-        self.todos.iter().map(|t| (t.id, t.title.clone(), t.completed, t.owner.clone())).collect()
+        self.todo_ids.iter()
+            .filter_map(|id| self.todos.get(&id).map(|t| (t.id, t.title.clone(), t.completed, t.owner.clone())))
+            .collect()
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -114,17 +166,39 @@ class Contract {
 
   @call({})
   add_todo({ title }) {
-    if (title.length === 0) {
-      near.panic("Title cannot be empty");
-    }
-    const todo = {
+    if (title.length === 0) near.panic("Title cannot be empty");
+    this.todos.push({
       id: this.next_id,
       title,
       completed: false,
       owner: near.predecessorAccountId(),
-    };
-    this.todos.push(todo);
+    });
     this.next_id += 1;
+  }
+
+  @call({})
+  complete_todo({ id }) {
+    const todo = this.todos.find(t => t.id === id);
+    if (!todo) near.panic("Todo not found");
+    if (todo.owner !== near.predecessorAccountId()) near.panic("Not owner");
+    todo.completed = true;
+  }
+
+  @call({})
+  update_todo({ id, title }) {
+    if (title.length === 0) near.panic("Title cannot be empty");
+    const todo = this.todos.find(t => t.id === id);
+    if (!todo) near.panic("Todo not found");
+    if (todo.owner !== near.predecessorAccountId()) near.panic("Not owner");
+    todo.title = title;
+  }
+
+  @call({})
+  delete_todo({ id }) {
+    const idx = this.todos.findIndex(t => t.id === id);
+    if (idx < 0) near.panic("Todo not found");
+    if (this.todos[idx].owner !== near.predecessorAccountId()) near.panic("Not owner");
+    this.todos.splice(idx, 1);
   }
 }
 
@@ -286,12 +360,13 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, AccountId};
+use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Listing {
     seller_id: AccountId,
+    nft_contract_id: AccountId,
     price: u128,
     token_id: String,
 }
@@ -311,20 +386,40 @@ impl Contract {
         }
     }
 
-    pub fn list_item(&mut self, listing_id: String, token_id: String, price: u128) {
+    /// Seller must approve this contract on the NFT contract before listing.
+    pub fn list_item(&mut self, listing_id: String, nft_contract_id: AccountId, token_id: String, price: u128) {
         let seller = env::predecessor_account_id();
         self.listings.insert(&listing_id, &Listing {
             seller_id: seller,
+            nft_contract_id,
             price,
             token_id,
         });
     }
 
-    pub fn get_listing(&self, listing_id: String) -> Option<(AccountId, u128, String)> {
-        self.listings.get(&listing_id).map(|l| (l.seller_id.clone(), l.price, l.token_id.clone()))
+    #[payable]
+    pub fn buy(&mut self, listing_id: String) -> near_sdk::Promise {
+        let listing = self.listings.get(&listing_id).expect("Listing not found");
+        require!(env::attached_deposit() >= listing.price, "Insufficient payment");
+        let seller = listing.seller_id.clone();
+        let nft_contract = listing.nft_contract_id.clone();
+        let token_id = listing.token_id.clone();
+        let price = listing.price;
+        let buyer = env::predecessor_account_id();
+        self.listings.remove(&listing_id);
+        env::log_str(&format!("Sold {} to {}", listing_id, buyer));
+        let transfer_promise = near_sdk::Promise::new(seller.clone()).transfer(price);
+        let args = format!(r#"{{"owner_id":"{}","receiver_id":"{}","token_id":"{}"}}"#, seller, buyer, token_id);
+        let nft_promise = near_sdk::Promise::new(nft_contract)
+            .function_call(b"nft_transfer_from", args.into_bytes(), 1, env::prepaid_gas() / 2);
+        near_sdk::Promise::and(transfer_promise, nft_promise)
+    }
+
+    pub fn get_listing(&self, listing_id: String) -> Option<(AccountId, AccountId, u128, String)> {
+        self.listings.get(&listing_id).map(|l| (l.seller_id.clone(), l.nft_contract_id.clone(), l.price, l.token_id.clone()))
     }
 }`,
-    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near, NearPromise, bytes } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
@@ -338,13 +433,41 @@ class Contract {
   }
 
   @call({})
-  list_item({ listing_id, token_id, price }) {
+  list_item({ listing_id, nft_contract_id, token_id, price }) {
     const seller = near.predecessorAccountId();
     this.listings[listing_id] = {
       seller_id: seller,
+      nft_contract_id,
       price,
       token_id,
     };
+  }
+
+  @call({ payable: true })
+  buy({ listing_id }) {
+    const listing = this.listings[listing_id];
+    if (!listing) near.panic("Listing not found");
+    const deposit = near.attachedDeposit();
+    if (deposit < listing.price) near.panic("Insufficient payment");
+    const seller = listing.seller_id;
+    const nft_contract = listing.nft_contract_id;
+    const token_id = listing.token_id;
+    const price = listing.price;
+    const buyer = near.predecessorAccountId();
+    delete this.listings[listing_id];
+    near.log("Sold " + listing_id + " to " + buyer);
+    const gas = BigInt(Math.floor(Number(near.prepaidGas()) / 2));
+    const nftArgs = bytes(JSON.stringify({ owner_id: seller, receiver_id: buyer, token_id }));
+    return NearPromise.new(nft_contract)
+      .functionCall("nft_transfer_from", nftArgs, 1n, gas)
+      .then(NearPromise.new(near.currentAccountId())
+        .functionCall("on_payment_sent", bytes(JSON.stringify({ seller_id: seller, amount: price.toString() })), 0n, gas))
+      .asReturn();
+  }
+
+  @call({})
+  on_payment_sent({ seller_id, amount }) {
+    return NearPromise.new(seller_id).transfer(BigInt(amount)).asReturn();
   }
 }
 

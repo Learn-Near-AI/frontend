@@ -38,7 +38,6 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  {/* <span className="text-2xl">{languageIcon}</span> */}
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors">
                     {example.name}
                   </h3>

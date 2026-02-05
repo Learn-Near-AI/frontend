@@ -21,7 +21,7 @@ function ExampleHeader({ example, activeLanguage }) {
           <div>
             <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
               {example.name}
-            </h1> 
+            </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {example.category} • {activeLanguage}
             </p>

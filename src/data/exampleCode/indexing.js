@@ -1,10 +1,13 @@
-// Indexing examples - Indexer setup, QueryAPI, data indexing (JS-focused; Rust = contract emitting events)
+// Indexing examples - Contract side: NEP-297 event emission
+// Indexer setup, QueryAPI, filters, aggregation are off-chain; see NEAR docs for indexer configuration.
 export const indexingCode = {
-  'indexer-setup': {
+  'indexer-events': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, PanicOnDefault};
 
+/// NEP-297 event format: standard, version, event, data
+/// Indexers parse EVENT_JSON: prefix from logs.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {}
@@ -16,67 +19,45 @@ impl Contract {
         Self {}
     }
 
-    pub fn emit_event(&self, event_type: String, data: String) {
-        env::log_str(&format!("EVENT_JSON:{{\"event\":\"{}\",\"data\":\"{}\"}}", event_type, data));
+    /// Emit NEP-297 event. Indexers capture these from receipt logs.
+    pub fn record_action(&self, action: String, account_id: String, amount: u64) {
+        let json = format!(
+            r#"{{"standard":"example","version":"1.0.0","event":"{}","data":{{"account_id":"{}","amount":"{}"}}}}"#,
+            action.replace('"', "\\\""),
+            account_id.replace('"', "\\\""),
+            amount
+        );
+        env::log_str(&format!("EVENT_JSON:{}", json));
     }
 }`,
-    JavaScript: `// Indexer setup: define schema and start indexer
-// Example: NEAR Indexer for Explorer / custom indexer
-import { NearBindgen, call, near } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, call, near } from "near-sdk-js";
 
+// NEP-297 event format: standard, version, event, data
+// Indexers parse EVENT_JSON: prefix from receipt logs.
 @NearBindgen({})
 class Contract {
   @call({})
-  emit_event({ event_type, data }) {
-    near.log(\`EVENT_JSON:{"event":"\${event_type}","data":"\${data}"}\`);
+  record_action({ action, account_id, amount }) {
+    const event = {
+      standard: "example",
+      version: "1.0.0",
+      event: action,
+      data: { account_id, amount: String(amount) },
+    };
+    near.log("EVENT_JSON:" + JSON.stringify(event));
   }
 }
 
-// Indexer (external): listens to network, indexes by block/account
-// QueryAPI: create indexer with schema, run queries
-`,
+// Off-chain: NEAR Indexer / QueryAPI listens to receipts, indexes by block/account.
+// See docs.near.org for indexer setup and SQL queries.`,
   },
-  'queryapi-basics': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn log_for_index(&self, action: String, account: String) {
-        env::log_str(&format!("INDEX:{}:{}", action, account));
-    }
-}`,
-    JavaScript: `// QueryAPI: create indexer, define SQL schema, query indexed data
-import { NearBindgen, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  log_for_index({ action, account }) {
-    near.log(\`INDEX:\${action}:\${account}\`);
-  }
-}
-
-// Query example (run in QueryAPI):
-// SELECT * FROM actions WHERE block_timestamp > ...
-`,
-  },
-  'data-indexing': {
+  'indexer-data': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::{env, PanicOnDefault};
 
+/// Contract with state + NEP-297 events. Indexers track both state changes and events.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
@@ -93,8 +74,16 @@ impl Contract {
     }
 
     pub fn set_record(&mut self, key: String, value: String) {
+        let prev = self.records.get(&key);
         self.records.insert(&key, &value);
-        env::log_str(&format!("RECORD:{}:{}", key, value));
+        let replaced = if prev.is_some() { "true" } else { "false" };
+        let json = format!(
+            r#"{{"standard":"example","version":"1.0.0","event":"record_updated","data":{{"key":"{}","value":"{}","replaced":{}}}}}"#,
+            key.replace('"', "\\\""),
+            value.replace('"', "\\\""),
+            replaced
+        );
+        env::log_str(&format!("EVENT_JSON:{}", json));
     }
 
     pub fn get_record(&self, key: String) -> Option<String> {
@@ -103,6 +92,7 @@ impl Contract {
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
+// Contract with state + NEP-297 events. Indexers track both state and events.
 @NearBindgen({})
 class Contract {
   constructor({ records } = { records: {} }) {
@@ -116,184 +106,18 @@ class Contract {
 
   @call({})
   set_record({ key, value }) {
+    const replaced = key in this.records;
     this.records[key] = value;
-    near.log(\`RECORD:\${key}:\${value}\`);
+    const event = {
+      standard: "example",
+      version: "1.0.0",
+      event: "record_updated",
+      data: { key, value, replaced },
+    };
+    near.log("EVENT_JSON:" + JSON.stringify(event));
   }
 }
 
-`,
+// Indexers: filter by account_id, method_name; aggregate with SQL (COUNT, SUM, etc.).`,
   },
-  'queryapi-queries': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn action(&self, name: String) {
-        env::log_str(&format!("ACTION:{}", name));
-    }
-}`,
-    JavaScript: `// QueryAPI queries: SELECT * FROM indexer_name WHERE ...
-import { NearBindgen, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  action({ name }) {
-    near.log(\`ACTION:\${name}\`);
-  }
 }
-
-// Example queries:
-// - Filter by account, method, block range
-// - Aggregate counts, sums
-// - Join with other indexers
-`,
-  },
-  'indexer-filters': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn emit(&self, kind: String, payload: String) {
-        env::log_str(&format!("FILTER:{}:{}", kind, payload));
-    }
-}`,
-    JavaScript: `// Indexer filters: filter by account_id, method_name, block height
-import { NearBindgen, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  emit({ kind, payload }) {
-    near.log(\`FILTER:\${kind}:\${payload}\`);
-  }
-}
-
-// In indexer config: filter stream by account / method
-`,
-  },
-  'indexer-aggregation': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn add_value(&self, amount: u64) {
-        env::log_str(&format!("AGG:{}", amount));
-    }
-}`,
-    JavaScript: `// Indexer aggregation: COUNT, SUM, GROUP BY in QueryAPI
-import { NearBindgen, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  add_value({ amount }) {
-    near.log(\`AGG:\${amount}\`);
-  }
-}
-
-// Query: SELECT method_name, COUNT(*) FROM actions GROUP BY method_name
-`,
-  },
-  'indexer-performance': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn tick(&self) {
-        env::log_str("TICK");
-    }
-}`,
-    JavaScript: `// Indexer performance: batch processing, backpressure, parallel workers
-import { NearBindgen, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  tick() {
-    near.log("TICK");
-  }
-}
-
-// Best practices: index in batches, use LIMIT, avoid heavy JOINs
-`,
-  },
-  'indexer-monitoring': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn event(&self, name: String) {
-        env::log_str(&format!("MONITOR:{}", name));
-    }
-}`,
-    JavaScript: `// Indexer monitoring: health checks, lag, error alerts
-import { NearBindgen, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  event({ name }) {
-    near.log(\`MONITOR:\${name}\`);
-  }
-}
-
-// Monitor: indexer head vs chain head, failed blocks, query latency
-`,
-  },
-};

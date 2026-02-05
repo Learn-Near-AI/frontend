@@ -154,9 +154,13 @@ npm run test
 
 ### Adding New Examples
 
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full guide, including the **Content Review Checklist** (correctness, no duplication, clear learning goal). Quick steps:
+
 1. Add example metadata to `src/data/examplesData.js`
 2. Add code samples to `src/data/exampleCode/`
 3. Add to `WORKING_EXAMPLES` in `src/data/exampleCode/index.js` if fully implemented
+4. Add explanation to `src/data/contractExplanations.js`
+5. Complete the Content Review Checklist in CONTRIBUTING.md before opening a PR
 
 ---
 
@@ -171,12 +175,15 @@ We welcome contributions! Please follow these steps:
    - Run `npm run test`
 4. **Submit a PR** with a descriptive title and summary
 
+For **new or changed examples**, complete the [Content Review Checklist in CONTRIBUTING.md](CONTRIBUTING.md#content-review-checklist-required-for-new-examples).
+
 ### Pull Request Checklist
 
 - [ ] Code follows project style (lint passes)
 - [ ] Code is formatted (Prettier)
 - [ ] Tests pass
 - [ ] Documentation updated if needed
+- [ ] Content Review Checklist completed (for new/changed examples)
 
 ### Questions?
 

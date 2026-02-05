@@ -402,32 +402,62 @@ impl Contract {
         Self {}
     }
 
+    /// Returns Option - graceful handling for expected failures
+    pub fn try_parse_number(&self, s: String) -> Option<u64> {
+        s.parse().ok()
+    }
+
+    /// Uses unwrap_or for fallback when Option is None
+    pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
+        s.parse().unwrap_or(default)
+    }
+
+    /// Panic for unrecoverable errors
     pub fn assert_positive(&self, value: i64) {
         if value <= 0 {
             env::panic_str("VALUE_MUST_BE_POSITIVE");
         }
     }
+}
 
-    pub fn assert_owner(&self, account_id: String) {
-        assert_eq!(env::current_account_id().to_string(), account_id, "ONLY_OWNER");
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_parse_number() {
+        let contract = Contract::new();
+        assert_eq!(contract.try_parse_number("42".to_string()), Some(42));
+        assert_eq!(contract.try_parse_number("abc".to_string()), None);
+    }
+
+    #[test]
+    fn test_parse_with_default() {
+        let contract = Contract::new();
+        assert_eq!(contract.parse_with_default("10".to_string(), 0), 10);
+        assert_eq!(contract.parse_with_default("x".to_string(), 99), 99);
     }
 }`,
-    JavaScript: `import { NearBindgen, call, near } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  @call({})
-  assert_positive({ value }) {
-    if (value <= 0) {
-      near.panic("VALUE_MUST_BE_POSITIVE");
-    }
+  @view({})
+  try_parse_number({ s }) {
+    const n = parseInt(s, 10);
+    return isNaN(n) ? null : n;
   }
 
+  @view({})
+  parse_with_default({ s, default: d }) {
+    const n = parseInt(s, 10);
+    return isNaN(n) ? d : n;
+  }
+
+  // @call: panic methods are change methods; views that panic can have different gas/revert behavior
   @call({})
-  assert_owner({ account_id }) {
-    if (near.currentAccountId() !== account_id) {
-      near.panic("ONLY_OWNER");
-    }
+  assert_positive({ value }) {
+    if (value <= 0) near.panic("VALUE_MUST_BE_POSITIVE");
   }
 }
 
@@ -454,8 +484,16 @@ impl Contract {
         }
     }
 
+    pub fn get_message(&self) -> String {
+        self.message.clone()
+    }
+
     pub fn set_message(&mut self, message: String) {
-        env::log_str(&format!("EVENT_JSON:{{\\\"event\\\":\\\"MessageUpdated\\\",\\\"new_message\\\":\\\"{}\\\"}}", message));
+        let json = format!(
+            r#"{{"standard":"example","version":"1.0.0","event":"MessageUpdated","data":{{"new_message":"{}"}}}}"#,
+            message.replace('"', "\\\"")
+        );
+        env::log_str(&format!("EVENT_JSON:{}", json));
         self.message = message;
     }
 }`,
@@ -469,12 +507,13 @@ class Contract {
 
   @call({})
   set_message({ message }) {
-    near.log(
-      JSON.stringify({
-        event: "MessageUpdated",
-        new_message: message,
-      }),
-    );
+    const event = {
+      standard: "example",
+      version: "1.0.0",
+      event: "MessageUpdated",
+      data: { new_message: message },
+    };
+    near.log("EVENT_JSON:" + JSON.stringify(event));
     this.message = message;
   }
 }
@@ -485,7 +524,7 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
-use near_sdk::PanicOnDefault;
+use near_sdk::{require, PanicOnDefault};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -504,6 +543,11 @@ impl Contract {
 
     pub fn add_item(&mut self, item: String) {
         self.items.push(&item);
+    }
+
+    pub fn remove_item(&mut self, index: u64) {
+        require!(index < self.items.len(), "Index out of bounds");
+        self.items.swap_remove(index);
     }
 
     pub fn get_item(&self, index: u64) -> Option<String> {
@@ -536,6 +580,11 @@ class Contract {
   add_item({ item }) {
     this.items.push(item);
   }
+
+  @call({})
+  remove_item({ index }) {
+    this.items.splice(index, 1);
+  }
 }
 
 `,
@@ -566,6 +615,10 @@ impl Contract {
         self.balances.insert(&account, &amount);
     }
 
+    pub fn remove_balance(&mut self, account: AccountId) {
+        self.balances.remove(&account);
+    }
+
     pub fn get_balance(&self, account: AccountId) -> Option<u64> {
         self.balances.get(&account)
     }
@@ -580,12 +633,17 @@ class Contract {
 
   @view({})
   get_balance({ account }) {
-    return this.balances[account] || 0;
+    return this.balances[account] ?? null;
   }
 
   @call({})
   set_balance({ account, amount }) {
     this.balances[account] = amount;
+  }
+
+  @call({})
+  remove_balance({ account }) {
+    delete this.balances[account];
   }
 }
 

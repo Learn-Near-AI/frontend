@@ -104,6 +104,7 @@ impl Contract {
     }
 
     pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String) {
+        require!(env::attached_deposit() == 1, "Requires exactly 1 yoctoNEAR (NEP-171)");
         let mut token = self.tokens.get(&token_id).expect("Token not found");
         require!(token.owner_id == env::predecessor_account_id(), "Not owner");
         token.owner_id = receiver_id;
@@ -129,11 +130,12 @@ class Contract {
 
   @call({})
   nft_transfer({ receiver_id, token_id }) {
+    if (near.attachedDeposit() !== 1n) near.panic("Requires exactly 1 yoctoNEAR (NEP-171)");
     const token = this.tokens[token_id];
     if (!token) near.panic("Token not found");
     if (token.owner_id !== near.predecessorAccountId()) near.panic("Not owner");
     token.owner_id = receiver_id;
-    this.tokens[token_id] = token;
+    this.tokens[token_id] = { ...token, owner_id: receiver_id };
   }
 }
 
@@ -196,7 +198,20 @@ class Contract {
 
   @call({})
   set_metadata({ token_id, title, description, media }) {
-    this.metadata[token_id] = { title, description, media };
+    this.metadata[token_id] = {
+      title: title ?? null,
+      description: description ?? null,
+      media: media ?? null,
+      media_hash: null,
+      copies: null,
+      issued_at: null,
+      expires_at: null,
+      starts_at: null,
+      updated_at: null,
+      extra: null,
+      reference: null,
+      reference_hash: null,
+    };
   }
 }
 
@@ -370,7 +385,7 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{UnorderedMap, Vector};
-use near_sdk::AccountId;
+use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -384,6 +399,8 @@ pub struct Token {
 pub struct Contract {
     tokens: UnorderedMap<String, Token>,
     token_ids: Vector<String>,
+    next_id: u64,
+    owner_id: AccountId,
 }
 
 #[near]
@@ -393,7 +410,21 @@ impl Contract {
         Self {
             tokens: UnorderedMap::new(b"t"),
             token_ids: Vector::new(b"i"),
+            next_id: 1,
+            owner_id: env::current_account_id(),
         }
+    }
+
+    pub fn mint(&mut self, receiver_id: AccountId) -> String {
+        require!(env::predecessor_account_id() == self.owner_id, "Only owner can mint");
+        let token_id = self.next_id.to_string();
+        self.tokens.insert(&token_id.clone(), &Token {
+            token_id: token_id.clone(),
+            owner_id: receiver_id,
+        });
+        self.token_ids.push(&token_id);
+        self.next_id += 1;
+        token_id
     }
 
     pub fn nft_total_supply(&self) -> u64 {
@@ -410,13 +441,30 @@ impl Contract {
             .collect()
     }
 }`,
-    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ tokens, token_ids } = { tokens: {}, token_ids: [] }) {
+  constructor({ tokens, token_ids, next_id, owner_id } = {
+    tokens: {},
+    token_ids: [],
+    next_id: 1,
+    owner_id: near.currentAccountId()
+  }) {
     this.tokens = tokens || {};
     this.token_ids = token_ids || [];
+    this.next_id = next_id ?? 1;
+    this.owner_id = owner_id || near.currentAccountId();
+  }
+
+  @call({})
+  mint({ receiver_id }) {
+    if (near.predecessorAccountId() !== this.owner_id) near.panic("Only owner can mint");
+    const token_id = String(this.next_id);
+    this.tokens[token_id] = { token_id, owner_id: receiver_id };
+    this.token_ids.push(token_id);
+    this.next_id += 1;
+    return token_id;
   }
 
   @view({})
@@ -438,11 +486,13 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
+    owner_id: AccountId,
     royalties: UnorderedMap<String, u16>,
 }
 
@@ -450,11 +500,15 @@ pub struct Contract {
 impl Contract {
     #[init]
     pub fn new() -> Self {
-        Self { royalties: UnorderedMap::new(b"r") }
+        Self {
+            owner_id: env::current_account_id(),
+            royalties: UnorderedMap::new(b"r"),
+        }
     }
 
     pub fn set_royalty(&mut self, token_id: String, percent_basis_points: u16) {
-        assert!(percent_basis_points <= 10000, "Royalty max 100%");
+        require!(env::predecessor_account_id() == self.owner_id, "Only owner can set royalty");
+        require!(percent_basis_points <= 10000, "Royalty max 100%");
         self.royalties.insert(&token_id, &percent_basis_points);
     }
 
@@ -488,13 +542,14 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, AccountId};
+use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Sale {
     token_id: String,
     seller_id: AccountId,
+    nft_contract_id: AccountId,
     price: u128,
 }
 
@@ -511,20 +566,40 @@ impl Contract {
         Self { sales: UnorderedMap::new(b"s") }
     }
 
-    pub fn list(&mut self, token_id: String, price: u128) {
+    /// Seller must approve this contract on the NFT contract before listing.
+    pub fn list(&mut self, nft_contract_id: AccountId, token_id: String, price: u128) {
         let listing_id = format!("{}:{}", env::predecessor_account_id(), token_id);
         self.sales.insert(&listing_id, &Sale {
             token_id,
             seller_id: env::predecessor_account_id(),
+            nft_contract_id,
             price,
         });
     }
 
-    pub fn get_sale(&self, listing_id: String) -> Option<(String, AccountId, u128)> {
-        self.sales.get(&listing_id).map(|s| (s.token_id.clone(), s.seller_id.clone(), s.price))
+    #[payable]
+    pub fn buy(&mut self, listing_id: String) -> near_sdk::Promise {
+        let sale = self.sales.get(&listing_id).expect("Sale not found");
+        require!(env::attached_deposit() >= sale.price, "Insufficient payment");
+        let seller = sale.seller_id.clone();
+        let nft_contract = sale.nft_contract_id.clone();
+        let token_id = sale.token_id.clone();
+        let price = sale.price;
+        let buyer = env::predecessor_account_id();
+        self.sales.remove(&listing_id);
+        env::log_str(&format!("NFT sale {} to {}", listing_id, buyer));
+        let args = format!(r#"{{"owner_id":"{}","receiver_id":"{}","token_id":"{}"}}"#, seller, buyer, token_id);
+        let nft_promise = near_sdk::Promise::new(nft_contract)
+            .function_call(b"nft_transfer_from", args.into_bytes(), 1, env::prepaid_gas() / 2);
+        let transfer_promise = near_sdk::Promise::new(seller).transfer(price);
+        near_sdk::Promise::and(nft_promise, transfer_promise)
+    }
+
+    pub fn get_sale(&self, listing_id: String) -> Option<(String, AccountId, AccountId, u128)> {
+        self.sales.get(&listing_id).map(|s| (s.token_id.clone(), s.seller_id.clone(), s.nft_contract_id.clone(), s.price))
     }
 }`,
-    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near, NearPromise, bytes } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
@@ -538,13 +613,40 @@ class Contract {
   }
 
   @call({})
-  list({ token_id, price }) {
+  list({ nft_contract_id, token_id, price }) {
     const listing_id = near.predecessorAccountId() + ":" + token_id;
     this.sales[listing_id] = {
       token_id,
       seller_id: near.predecessorAccountId(),
+      nft_contract_id,
       price,
     };
+  }
+
+  @call({ payable: true })
+  buy({ listing_id }) {
+    const sale = this.sales[listing_id];
+    if (!sale) near.panic("Sale not found");
+    if (near.attachedDeposit() < sale.price) near.panic("Insufficient payment");
+    const seller = sale.seller_id;
+    const nft_contract = sale.nft_contract_id;
+    const token_id = sale.token_id;
+    const price = sale.price;
+    const buyer = near.predecessorAccountId();
+    delete this.sales[listing_id];
+    near.log("NFT sale " + listing_id + " to " + buyer);
+    const gas = BigInt(Math.floor(Number(near.prepaidGas()) / 2));
+    const nftArgs = bytes(JSON.stringify({ owner_id: seller, receiver_id: buyer, token_id }));
+    return NearPromise.new(nft_contract)
+      .functionCall("nft_transfer_from", nftArgs, 1n, gas)
+      .then(NearPromise.new(near.currentAccountId())
+        .functionCall("on_payment_sent", bytes(JSON.stringify({ seller_id: seller, amount: price.toString() })), 0n, gas))
+      .asReturn();
+  }
+
+  @call({})
+  on_payment_sent({ seller_id, amount }) {
+    return NearPromise.new(seller_id).transfer(BigInt(amount)).asReturn();
   }
 }
 

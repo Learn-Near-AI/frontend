@@ -30,7 +30,6 @@ export const WORKING_EXAMPLES = [
   'pausable-contract',
   'multi-signature',
   'upgrade-pattern',
-  'reentrancy-guard',
   // Collections (6)
   'storage-keys',
   'todo-list',
@@ -38,24 +37,20 @@ export const WORKING_EXAMPLES = [
   'voting-system',
   'simple-marketplace',
   'batch-operations',
-  // Advanced (6)
+  // Advanced (5)
   'testing',
   'panic-handling',
-  'event-patterns',
   'initialization',
   'gas-optimization',
   'complete-example',
-  // Cross-Contract (10)
+  // Cross-Contract (7)
   'simple-calls',
-  'promises',
   'callbacks',
   'cross-call-ft',
   'cross-call-nft',
   'batch-calls',
   'promise-results',
   'async-patterns',
-  'callback-patterns',
-  'error-propagation',
   // NFTs (8)
   'nft-transfer',
   'nft-standard',
@@ -72,15 +67,9 @@ export const WORKING_EXAMPLES = [
   'multi-chain-signing',
   'cross-chain-auth',
   'signature-callbacks',
-  // Indexing (8)
-  'indexer-setup',
-  'queryapi-basics',
-  'data-indexing',
-  'queryapi-queries',
-  'indexer-filters',
-  'indexer-aggregation',
-  'indexer-performance',
-  'indexer-monitoring',
+  // Indexing (2)
+  'indexer-events',
+  'indexer-data',
 ]
 
 // Combine all code examples

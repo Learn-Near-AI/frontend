@@ -82,6 +82,7 @@ use near_sdk::PanicOnDefault;
 #[derive(PanicOnDefault)]
 pub struct Contract {
     admins: UnorderedSet<AccountId>,
+    owner_id: AccountId,
 }
 
 #[near]
@@ -90,10 +91,15 @@ impl Contract {
     pub fn new() -> Self {
         Self {
             admins: UnorderedSet::new(b"a"),
+            owner_id: env::current_account_id(),
         }
     }
 
     pub fn add_admin(&mut self, account: AccountId) {
+        require!(
+            env::predecessor_account_id() == self.owner_id || self.admins.contains(&env::predecessor_account_id()),
+            "Only owner or existing admins can add admins"
+        );
         self.admins.insert(&account);
     }
 
@@ -112,8 +118,9 @@ impl Contract {
 
 @NearBindgen({})
 class Contract {
-  constructor({ admins } = { admins: [] }) {
+  constructor({ admins, owner_id } = { admins: [], owner_id: near.currentAccountId() }) {
     this.admins = admins || [];
+    this.owner_id = owner_id || near.currentAccountId();
   }
 
   @view({})
@@ -123,6 +130,10 @@ class Contract {
 
   @call({})
   add_admin({ account }) {
+    const pred = near.predecessorAccountId();
+    if (pred !== this.owner_id && !this.admins.includes(pred)) {
+      near.panic("Only owner or existing admins can add admins");
+    }
     if (!this.admins.includes(account)) {
       this.admins.push(account);
     }
@@ -175,6 +186,10 @@ impl Contract {
             "Only owner can unpause"
         );
         self.paused = false;
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused
     }
 
     pub fn action(&mut self) {
@@ -232,12 +247,14 @@ use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
+/// Approvals are scoped per action: key "action:signer" means signer approved action.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     signers: UnorderedSet<AccountId>,
     required_signatures: u32,
-    approvals: UnorderedSet<AccountId>,
+    approvals: UnorderedSet<String>,
+    last_executed_action: Option<String>,
 }
 
 #[near]
@@ -248,31 +265,62 @@ impl Contract {
             signers: UnorderedSet::new(b"s"),
             required_signatures: 2,
             approvals: UnorderedSet::new(b"ap"),
+            last_executed_action: None,
         }
     }
 
-    pub fn approve(&mut self) {
-        let signer = env::predecessor_account_id();
-        require!(self.signers.contains(&signer), "Not a signer");
-        self.approvals.insert(&signer);
+    pub fn add_signer(&mut self, account: AccountId) {
+        let pred = env::predecessor_account_id();
+        require!(
+            (self.signers.is_empty() && pred == env::current_account_id()) || self.signers.contains(&pred),
+            "Only deployer (when empty) or signers can add"
+        );
+        self.signers.insert(&account);
     }
 
-    pub fn can_execute(&self) -> bool {
-        self.approvals.len() >= self.required_signatures
+    /// Approve a specific action. Each action requires its own approvals.
+    pub fn approve(&mut self, action: String) {
+        let signer = env::predecessor_account_id();
+        require!(self.signers.contains(&signer), "Not a signer");
+        let key = format!("{}:{}", action, signer);
+        self.approvals.insert(&key);
+    }
+
+    pub fn can_execute(&self, action: &String) -> bool {
+        let count = self.signers.iter()
+            .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
+            .count();
+        count >= self.required_signatures as usize
+    }
+
+    pub fn execute(&mut self, action: String) {
+        require!(self.can_execute(&action), "Not enough approvals for this action");
+        for signer in self.signers.iter() {
+            let key = format!("{}:{}", action, signer);
+            self.approvals.remove(&key);
+        }
+        self.last_executed_action = Some(action.clone());
+        env::log_str(&format!("Executed: {}", action));
+    }
+
+    pub fn get_last_action(&self) -> Option<String> {
+        self.last_executed_action.clone()
     }
 }`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ signers, required_signatures, approvals } = {
+  constructor({ signers, required_signatures, approvals, last_executed_action } = {
     signers: [],
     required_signatures: 2,
-    approvals: []
+    approvals: [],
+    last_executed_action: null
   }) {
     this.signers = signers || [];
     this.required_signatures = required_signatures;
     this.approvals = approvals || [];
+    this.last_executed_action = last_executed_action;
   }
 
   @view({})
@@ -281,77 +329,31 @@ class Contract {
   }
 
   @call({})
-  approve() {
-    const signer = near.predecessorAccountId();
-    if (!this.signers.includes(signer)) {
-      near.panic("Not a signer");
-    }
-    if (!this.approvals.includes(signer)) {
-      this.approvals.push(signer);
-    }
-  }
-}
-
-`,
-  },
-  'reentrancy-guard': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, require};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    locked: bool,
-    balance: u64,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            locked: false,
-            balance: 0,
-        }
-    }
-
-    pub fn withdraw(&mut self, amount: u64) {
-        require!(!self.locked, "Reentrancy guard: operation locked");
-        require!(self.balance >= amount, "Insufficient balance");
-        
-        self.locked = true;
-        self.balance -= amount;
-        self.locked = false;
-    }
-}`,
-    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ locked, balance } = { locked: false, balance: 0 }) {
-    this.locked = locked;
-    this.balance = balance;
-  }
-
-  @view({})
-  get_balance() {
-    return this.balance;
+  add_signer({ account }) {
+    const pred = near.predecessorAccountId();
+    const ok = (this.signers.length === 0 && pred === near.currentAccountId()) || this.signers.includes(pred);
+    if (!ok) near.panic("Only deployer (when empty) or signers can add");
+    if (!this.signers.includes(account)) this.signers.push(account);
   }
 
   @call({})
-  withdraw({ amount }) {
-    if (this.locked) {
-      near.panic("Reentrancy guard: operation locked");
-    }
-    if (this.balance < amount) {
-      near.panic("Insufficient balance");
-    }
-    
-    this.locked = true;
-    this.balance -= amount;
-    this.locked = false;
+  approve() {
+    const signer = near.predecessorAccountId();
+    if (!this.signers.includes(signer)) near.panic("Not a signer");
+    if (!this.approvals.includes(signer)) this.approvals.push(signer);
+  }
+
+  @call({})
+  execute({ action }) {
+    if (!this.can_execute()) near.panic("Not enough approvals");
+    this.last_executed_action = action;
+    this.approvals = [];
+    near.log("Executed: " + action);
+  }
+
+  @view({})
+  get_last_action() {
+    return this.last_executed_action;
   }
 }
 

@@ -16,10 +16,9 @@ function ExampleCard({ example, isSelected, onClick }) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* <span className="text-sm flex-shrink-0">{languageIcon}</span> */}
           <span className={`text-sm truncate ${isSelected ? 'font-semibold' : 'font-medium'}`}>
             {example.name}
-          </span> 
+          </span>
         </div>
         <span
           className={`text-[8px] px-1.5 py-0.5 rounded-full border flex-shrink-0 ${difficultyClass}`}
