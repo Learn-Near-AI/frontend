@@ -1,5 +1,6 @@
 import React from 'react'
 import { Github, ExternalLink } from 'lucide-react'
+import { config } from '../config'
 
 function Footer({ scrollToTop }) {
   return (
@@ -48,7 +49,7 @@ function Footer({ scrollToTop }) {
           <div data-aos="fade-up" data-aos-delay="400">
             <h4 className="text-gray-900 dark:text-white font-semibold text-sm mb-4">Learn</h4>
             <ul className="space-y-2">
-              <li><a href="https://docs.near.org" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors text-sm">NEAR Docs</a></li>
+              <li><a href={config.links.docs} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors text-sm">NEAR Docs</a></li>
               <li><a href="#" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors text-sm">Blog</a></li>
               <li><a href="#" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors text-sm">Guides</a></li>
               <li><a href="#" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors text-sm">Ebooks</a></li>
@@ -61,10 +62,10 @@ function Footer({ scrollToTop }) {
             © 2024 NEAR by Example. All Rights Reserved.
           </p>
           <div className="flex items-center justify-center gap-4 order-1 md:order-2">
-            <a href="https://github.com/orgs/Learn-Near-AI/repositories" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors">
+            <a href={config.links.githubOrg} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors">
               <Github className="h-5 w-5" />
             </a>
-            <a href="https://linktr.ee/learnnear" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors">
+            <a href={config.links.linktree} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors">
               <ExternalLink className="h-5 w-5" />
             </a>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { CheckCircle2, ExternalLink, Copy, ArrowLeft, Loader2 } from 'lucide-react'
 import { getActiveAccountId, getNearConfig } from '../near/near'
+import { logger } from '../lib/logger'
 
 function SuccessPage({ onBack }) {
   const [txHash, setTxHash] = useState(null)
@@ -65,13 +66,12 @@ function SuccessPage({ onBack }) {
             }
           }
         } catch (err) {
-          console.error('Error fetching transaction details:', err)
-          // Continue even if fetch fails
+          logger.error('Error fetching transaction details:', err)
         } finally {
           setLoading(false)
         }
       } catch (err) {
-        console.error('Error loading transaction data:', err)
+        logger.error('Error loading transaction data:', err)
         setError('Failed to load transaction data')
         setLoading(false)
       }
@@ -187,7 +187,7 @@ function SuccessPage({ onBack }) {
           <div className="pt-4 space-y-3">
             {txHash && (
               <a
-                href={`https://testnet.nearblocks.io/txns/${txHash}`}
+                href={`${config.links.nearBlocks}/txns/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-near-primary hover:bg-[#00D689] text-white rounded-lg font-medium transition-colors"

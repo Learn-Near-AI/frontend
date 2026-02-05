@@ -1,5 +1,4 @@
 import React from 'react'
-import { Code2 } from 'lucide-react'
 import BinaryPattern from './BinaryPattern'
 
 function Hero({ launchExamplesBrowser }) {

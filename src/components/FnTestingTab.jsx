@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNearWallet } from 'near-connect-hooks'
 import { Loader2, CheckCircle2, AlertCircle, Info, Lock } from 'lucide-react'
+import { logger } from '../lib/logger'
 
 // Parse code to extract methods
 const parseMethodsFromCode = (code, language) => {
@@ -133,7 +134,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
       
       setResult(response)
     } catch (err) {
-      console.error('Function call error:', err)
+      logger.error('Function call error:', err)
       setError(err.message || 'Failed to call function')
     } finally {
       setIsExecuting(false)

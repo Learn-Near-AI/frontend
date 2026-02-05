@@ -1,11 +1,8 @@
 import React from "react";
-import { Code2 } from "lucide-react";
-import DotsPattern from "./DotsPattern";
 
 function ThreeColumnFeatures() {
   return (
     <section className="py-20 bg-white dark:bg-[#111216] relative">
-      {/* <DotsPattern /> */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid md:grid-cols-3 gap-8">
           {/* Card 1: Interactive Examples */}

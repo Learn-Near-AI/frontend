@@ -3,6 +3,8 @@ import { setupWalletSelector } from '@near-wallet-selector/core'
 import { setupModal } from '@near-wallet-selector/modal-ui'
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
 import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
+import { config } from '../config'
+import { logger } from '../lib/logger'
 
 // Polyfill Buffer for any deps that still expect it (near-api-js, etc.)
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -15,16 +17,12 @@ const CONTRACT_ID = 'example-contract.testnet' // you can change this later
 let selectorPromise = null
 let modal = null
 
-// Use Vite proxy in development to avoid CORS issues
-const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-const RPC_URL = isDev ? '/api/near-rpc' : 'https://test.rpc.fastnear.com'
-
 export const getNearConfig = () => ({
   networkId: TESTNET_NETWORK,
-  nodeUrl: RPC_URL,
-  walletUrl: 'https://testnet.mynearwallet.com',
-  helperUrl: 'https://helper.testnet.near.org',
-  explorerUrl: 'https://explorer.testnet.near.org',
+  nodeUrl: config.rpcUrl,
+  walletUrl: config.near.walletUrl,
+  helperUrl: config.near.helperUrl,
+  explorerUrl: config.near.explorerUrl,
 })
 
 export async function initWalletSelector() {
@@ -95,7 +93,7 @@ export async function getActiveAccountBalance() {
     const balance = Number(amountYocto) / 1e24
     return balance.toFixed(3)
   } catch (e) {
-    console.error('Failed to fetch account balance', e)
+    logger.error('Failed to fetch account balance', e)
     return null
   }
 }
@@ -106,7 +104,7 @@ export async function disconnectWallet() {
     const wallet = await selector.wallet()
     await wallet.signOut()
   } catch (e) {
-    console.error('Failed to disconnect wallet', e)
+    logger.error('Failed to disconnect wallet', e)
   }
 }
 
@@ -143,11 +141,10 @@ export async function viewFunction({ contractId, method, args = {} }) {
     throw new Error('Invalid contract ID format')
   }
   
-  // Use backend API for view methods
-  const backendUrl = isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev'
-  
-  console.log(`[NEAR] Calling view method: ${method} on ${contractId}`)
-  console.log(`[NEAR] Using backend: ${backendUrl}`)
+  const backendUrl = config.backend.deploy
+
+  logger.debug(`[NEAR] Calling view method: ${method} on ${contractId}`)
+  logger.debug(`[NEAR] Using backend: ${backendUrl}`)
   
   const response = await fetch(`${backendUrl}/api/contract/view`, {
     method: 'POST',
@@ -183,7 +180,7 @@ export async function callViewMethod(contractId, methodName, args = {}) {
     const result = await viewFunction({ contractId, method: methodName, args })
     return { success: true, result }
   } catch (error) {
-    console.error('View method call error:', error)
+    logger.error('View method call error:', error)
     return { success: false, error: error.message || 'Failed to call view method' }
   }
 }
@@ -277,7 +274,7 @@ export async function callChangeMethod(contractId, methodName, args = {}, option
       errorMessage = 'Transaction was rejected by user'
     }
     
-    console.error('Change method call error:', error)
+    logger.error('Change method call error:', error)
     return { success: false, error: errorMessage }
   }
 }

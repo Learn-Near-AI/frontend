@@ -1,5 +1,6 @@
 import React from 'react'
 import { ExternalLink } from 'lucide-react'
+import { config } from '../config'
 
 function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
   // Parse console output to identify styled text
@@ -73,7 +74,7 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
                 </p>
               )}
               <a
-                href={`https://explorer.testnet.near.org/accounts/${deployedContractId}`}
+                href={`${config.links.explorer}/accounts/${deployedContractId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-xs text-near-primary hover:text-[#00D689]"

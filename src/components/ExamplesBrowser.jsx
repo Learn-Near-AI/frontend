@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   examplesData,
   categoryIcons,
@@ -12,68 +13,31 @@ import FiltersPanel from "./FiltersPanel";
 import WelcomeContent from "./WelcomeContent";
 import ExampleDetail from "./ExampleDetail";
 import SuccessPage from "./SuccessPage";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
+import { Sheet, SheetContent } from "./ui/sheet";
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
 
 function ExamplesBrowser({ isDark, toggleTheme }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const [selectedExample, setSelectedExample] = useState(null);
   const [comingSoonExample, setComingSoonExample] = useState(null);
   const [shouldStartTour, setShouldStartTour] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("All");
   const [selectedCategories, setSelectedCategories] = useState(["All"]);
-  const [currentPath, setCurrentPath] = useState(
-    () => window.location.pathname
-  );
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
   const [sidebarVisible, setSidebarVisible] = useState(() => {
-    // Hide sidebar by default on mobile, show on desktop
     return window.innerWidth >= 1024;
   });
   const [expandedCategories, setExpandedCategories] = useState(() => {
-    // Initialize all categories as collapsed by default
     return Object.keys(examplesData).reduce((acc, cat) => {
       acc[cat] = false;
       return acc;
     }, {});
   });
-
-  // Listen to path changes
-  useEffect(() => {
-    const handlePathChange = () => {
-      setCurrentPath(window.location.pathname);
-    };
-
-    window.addEventListener("popstate", handlePathChange);
-    // Also check on mount and when path might change
-    const interval = setInterval(() => {
-      if (window.location.pathname !== currentPath) {
-        setCurrentPath(window.location.pathname);
-      }
-    }, 100);
-
-    return () => {
-      window.removeEventListener("popstate", handlePathChange);
-      clearInterval(interval);
-    };
-  }, [currentPath]);
-
-  // Handle transactionHashes URL parameter - redirect to success page
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const transactionHashes = urlParams.get("transactionHashes");
-
-    if (transactionHashes && !window.location.pathname.includes("/success")) {
-      // Redirect to success page with transaction hash
-      window.history.replaceState(
-        {},
-        "",
-        `/examples/success?transactionHashes=${transactionHashes}`
-      );
-      window.location.href = `/examples/success?transactionHashes=${transactionHashes}`;
-    }
-  }, []);
 
   // Handle window resize to update sidebar visibility
   useEffect(() => {
@@ -193,12 +157,8 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   const handleBackToBrowse = () => {
     setSelectedExample(null);
     setComingSoonExample(null);
-    // If on success page, navigate back to /examples
-    if (window.location.pathname.includes("/success")) {
-      // Remove /success from path and clean up URL params
-      const newPath = "/examples";
-      window.history.pushState({}, "", newPath);
-      setCurrentPath(newPath);
+    if (currentPath.includes("/success")) {
+      navigate("/examples");
     }
   };
 

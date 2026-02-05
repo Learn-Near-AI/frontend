@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { GoogleGenAI } from '@google/genai'
 import { Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
+import { logger } from '../lib/logger'
 
 function AITab({ code, example, activeLanguage }) {
   const [question, setQuestion] = useState('')
@@ -95,7 +96,7 @@ Please answer the user's question about this code in a clear and helpful way usi
       // Add AI response
       setMessages(prev => [...prev, { role: 'assistant', content: text }])
     } catch (error) {
-      console.error('AI Error:', error)
+      logger.error('AI Error:', error)
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: `Sorry, I encountered an error: ${error.message}. Please try again.`

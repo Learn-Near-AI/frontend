@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, X } from "lucide-react";
+import { X } from "lucide-react";
 import { exampleCode } from "../data/examples";
 import {
   Dialog,
@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { getActiveAccountId } from "../near/near";
+import { config, getCompileApiUrl } from "../config";
+import { logger } from "../lib/logger";
 import ExampleHeader from "./ExampleHeader";
 import CodeEditor from "./CodeEditor";
 import InfoPanel from "./InfoPanel";
@@ -17,22 +19,7 @@ import ConsolePanel from "./ConsolePanel";
 import OnboardingTour from "./OnboardingTour";
 import TourButton from "./TourButton";
 
-// Backend URLs - use proxy in development to avoid CORS issues
-const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-const RUST_COMPILE_URL = import.meta.env.VITE_RUST_COMPILE_URL || 
-  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
-const JS_COMPILE_URL = import.meta.env.VITE_JS_COMPILE_URL || 
-  (isDev ? '/api/backend-js' : 'https://learn-near-backend.fly.dev');
-const DEPLOY_URL = import.meta.env.VITE_DEPLOY_URL || 
-  (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev');
-
-const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
 const PREFERRED_LANGUAGE_KEY = 'near_examples_preferred_language';
-
-// Helper function to get the appropriate compile API URL based on language
-const getCompileApiUrl = (language) => {
-  return language === "Rust" ? RUST_COMPILE_URL : JS_COMPILE_URL;
-};
 
 function getStoredLanguage() {
   try {
@@ -98,81 +85,19 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   useEffect(() => {
     const checkBackendStatus = async () => {
       try {
-        const response = await fetch(`${DEPLOY_URL}/api/near/status`);
+        const response = await fetch(`${config.backend.deploy}/api/near/status`);
         if (response.ok) {
           const status = await response.json();
           setBackendCLIConfigured(status.configured);
-          console.log("Backend CLI configured:", status.configured);
+          logger.debug("Backend CLI configured:", status.configured);
         }
       } catch (error) {
-        console.warn("Could not check backend CLI status:", error);
+        logger.warn("Could not check backend CLI status:", error);
         setBackendCLIConfigured(false);
       }
     };
 
     checkBackendStatus();
-  }, []);
-
-  // Handle transactionHashes URL parameter - redirect to success page
-  useEffect(() => {
-    // Check URL parameter on mount (for page reloads)
-    const urlParams = new URLSearchParams(window.location.search);
-    const transactionHashes = urlParams.get("transactionHashes");
-
-    if (transactionHashes && !window.location.pathname.includes("/success")) {
-      // Reset deploying state before redirect
-      setIsDeploying(false);
-      // Redirect to success page with transaction hash
-      window.history.replaceState(
-        {},
-        "",
-        `/examples/success?transactionHashes=${transactionHashes}`
-      );
-      window.location.href = `/examples/success?transactionHashes=${transactionHashes}`;
-    }
-  }, []); // Only run on mount
-
-  // Handle transactionHashes URL parameter - check continuously for new transactions and redirect
-  useEffect(() => {
-    let previousUrl = window.location.href;
-
-    const checkAndRedirect = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const transactionHashes = urlParams.get("transactionHashes");
-      const currentUrl = window.location.href;
-
-      // If URL changed, reset deploying state
-      if (currentUrl !== previousUrl) {
-        setIsDeploying(false);
-        previousUrl = currentUrl;
-      }
-
-      if (transactionHashes && !window.location.pathname.includes("/success")) {
-        // Reset deploying state before redirect
-        setIsDeploying(false);
-        // Redirect to success page
-        window.history.replaceState(
-          {},
-          "",
-          `/examples/success?transactionHashes=${transactionHashes}`
-        );
-        window.location.href = `/examples/success?transactionHashes=${transactionHashes}`;
-      }
-    };
-
-    // Check immediately
-    checkAndRedirect();
-
-    // Check periodically to catch URL changes
-    const interval = setInterval(checkAndRedirect, 500);
-
-    // Listen to popstate events
-    window.addEventListener("popstate", checkAndRedirect);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("popstate", checkAndRedirect);
-    };
   }, []);
 
   const clearConsole = () => {
@@ -192,12 +117,8 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
     try {
       const compileApiUrl = getCompileApiUrl(activeLanguage);
-      console.log(
-        `[FRONTEND] Sending compile request to: ${compileApiUrl}/api/compile`
-      );
-      console.log(
-        `[FRONTEND] Language: ${activeLanguage}, Code length: ${code.length}`
-      );
+      logger.debug(`[FRONTEND] Sending compile request to: ${compileApiUrl}/api/compile`);
+      logger.debug(`[FRONTEND] Language: ${activeLanguage}, Code length: ${code.length}`);
 
       const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
         method: "POST",
@@ -205,15 +126,13 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         body: JSON.stringify({ code, language: activeLanguage }),
       });
 
-      console.log(
-        `[FRONTEND] Response status: ${compileResponse.status} ${compileResponse.statusText}`
-      );
+      logger.debug(`[FRONTEND] Response status: ${compileResponse.status} ${compileResponse.statusText}`);
 
       if (!compileResponse.ok) {
         const errorData = await compileResponse
           .json()
           .catch(() => ({ error: "Unknown error" }));
-        console.error("[FRONTEND] Error response:", errorData);
+        logger.error("[FRONTEND] Error response:", errorData);
         const errorMsg =
           errorData.stderr ||
           errorData.error ||
@@ -224,7 +143,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       }
 
       const compileResult = await compileResponse.json();
-      console.log("[FRONTEND] Compile result:", {
+      logger.debug("[FRONTEND] Compile result:", {
         success: compileResult.success,
         hasWasm: !!compileResult.wasm,
         size: compileResult.size,
@@ -253,7 +172,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           }
         }
 
-        console.error("[FRONTEND] Compilation failed:", errorMsg);
+        logger.error("[FRONTEND] Compilation failed:", errorMsg);
         addConsoleOutput(`❌ Compilation Error:`);
         // Split long error messages into multiple lines
         const errorLines = errorMsg.split("\n").slice(0, 10); // Show first 10 lines
@@ -290,7 +209,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       } else {
         addConsoleOutput(`❌ Error: ${error.message}`);
       }
-      console.error("Run error:", error);
+      logger.error("Run error:", error);
     } finally {
       setIsRunning(false);
     }
@@ -361,7 +280,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       const userId = accountId ? accountId.split('.')[0] : 'anonymous';
       const projectId = example.id || 'near-example';
 
-      const deployResponse = await fetch(`${DEPLOY_URL}/api/deploy`, {
+      const deployResponse = await fetch(`${config.backend.deploy}/api/deploy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -423,7 +342,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       // Optional: Test the deployed contract
       addConsoleOutput("\n▶ Testing deployed contract...");
       try {
-        const testResponse = await fetch(`${DEPLOY_URL}/api/contract/view`, {
+        const testResponse = await fetch(`${config.backend.deploy}/api/contract/view`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -442,8 +361,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           }
         }
       } catch (testError) {
-        // Ignore test errors - deployment was successful
-        console.warn("Test call failed:", testError);
+        logger.warn("Test call failed:", testError);
       }
 
       // Contract deployed successfully!
@@ -451,14 +369,14 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     } catch (error) {
       if (error.name === "TypeError" && error.message.includes("fetch")) {
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
-        addConsoleOutput(`   Backend URL: ${DEPLOY_URL}`);
+        addConsoleOutput(`   Backend URL: ${config.backend.deploy}`);
         addConsoleOutput(
           `   Please check if the backend is running and accessible.`
         );
       } else {
         addConsoleOutput(`❌ Error: ${error.message}`);
       }
-      console.error("CLI Deploy error:", error);
+      logger.error("CLI Deploy error:", error);
     } finally {
       setIsDeploying(false);
     }
