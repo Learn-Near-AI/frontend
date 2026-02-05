@@ -5,6 +5,60 @@ import { useStreak } from '../hooks/useStreak'
 import NavWallet from './nav/NavWallet'
 import StreakModal from './nav/StreakModal'
 
+const NAV_ITEMS = [
+  { id: 'examples', label: 'Examples', type: 'button', onClickKey: 'launchExamplesBrowser' },
+  { id: 'docs', label: 'Docs', type: 'link', hrefKey: 'docs' },
+  { id: 'roadmap', label: 'Roadmap', type: 'button', onClickKey: 'navigateRoadmap', path: '/roadmap' },
+  { id: 'learn', label: 'Learn', type: 'link', hrefKey: 'github', icon: ExternalLink },
+]
+
+function NavLinks({ items, currentPath, variant, launchExamplesBrowser, navigate }) {
+  const linkBaseClass = variant === 'desktop'
+    ? 'text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium'
+    : 'text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium py-2 text-left'
+  const buttonBaseClass = `transition-colors font-medium ${variant === 'mobile' ? 'py-2 text-left ' : ''}`
+  const buttonActiveClass = 'text-near-primary'
+  const buttonInactiveClass = 'text-gray-600 dark:text-gray-300 hover:text-near-primary'
+  const containerClass = variant === 'desktop'
+    ? 'hidden md:flex items-center gap-8'
+    : 'flex flex-col gap-4'
+
+  return (
+    <div className={containerClass}>
+      {items.map((item) => {
+        if (item.type === 'link') {
+          const href = config.links[item.hrefKey]
+          return (
+            <a
+              key={item.id}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${linkBaseClass} ${item.icon ? 'flex items-center gap-1' : ''}`}
+            >
+              {item.label}
+              {item.icon && <item.icon className="h-4 w-4" />}
+            </a>
+          )
+        }
+        const isActive = item.path ? currentPath === item.path : false
+        const onClick = item.onClickKey === 'launchExamplesBrowser'
+          ? launchExamplesBrowser
+          : () => navigate('/roadmap')
+        return (
+          <button
+            key={item.id}
+            onClick={onClick}
+            className={`${buttonBaseClass}${isActive ? buttonActiveClass : buttonInactiveClass}`}
+          >
+            {item.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function Nav({
   isDark,
   toggleTheme,
@@ -45,41 +99,13 @@ function Nav({
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-8">
-            <button
-              onClick={launchExamplesBrowser}
-              className="text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium"
-            >
-              Examples
-            </button>
-            <a
-              href={config.links.docs}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium"
-            >
-              Docs
-            </a>
-            <button
-              onClick={() => navigate('/roadmap')}
-              className={`transition-colors font-medium ${
-                currentPath === '/roadmap'
-                  ? 'text-near-primary'
-                  : 'text-gray-600 dark:text-gray-300 hover:text-near-primary'
-              }`}
-            >
-              Roadmap
-            </button>
-            <a
-              href={config.links.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium flex items-center gap-1"
-            >
-              Learn
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </div>
+          <NavLinks
+            items={NAV_ITEMS}
+            currentPath={currentPath}
+            variant="desktop"
+            launchExamplesBrowser={launchExamplesBrowser}
+            navigate={navigate}
+          />
 
           <div className="flex items-center gap-4">
             <button
@@ -169,39 +195,13 @@ function Nav({
                 </button>
               )}
 
-              <button
-                onClick={launchExamplesBrowser}
-                className="text-left text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium py-2"
-              >
-                Examples
-              </button>
-              <a
-                href={config.links.docs}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium py-2"
-              >
-                Docs
-              </a>
-              <button
-                onClick={() => navigate('/roadmap')}
-                className={`text-left transition-colors font-medium py-2 ${
-                  currentPath === '/roadmap'
-                    ? 'text-near-primary'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-near-primary'
-                }`}
-              >
-                Roadmap
-              </button>
-              <a
-                href={config.links.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium py-2 flex items-center gap-1"
-              >
-                Learn
-                <ExternalLink className="h-4 w-4" />
-              </a>
+              <NavLinks
+                items={NAV_ITEMS}
+                currentPath={currentPath}
+                variant="mobile"
+                launchExamplesBrowser={launchExamplesBrowser}
+                navigate={navigate}
+              />
               {currentPath === '/' && (
                 <button
                   onClick={launchExamplesBrowser}

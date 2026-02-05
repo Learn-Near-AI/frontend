@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { GoogleGenAI } from '@google/genai'
 import { Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { logger } from '../lib/logger'
+
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
 function AITab({ code, example, activeLanguage }) {
   const [question, setQuestion] = useState('')
@@ -10,18 +12,16 @@ function AITab({ code, example, activeLanguage }) {
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef(null)
 
-  // Get API key from environment variable (required for security)
-  const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
-  
-  // Validate API key is configured
-  if (!API_KEY) {
-    console.error('VITE_GEMINI_API_KEY environment variable is not set')
-  }
-  
-  // Initialize Gemini AI client
-  const ai = API_KEY ? new GoogleGenAI({
-    apiKey: API_KEY
-  }) : null
+  const ai = useMemo(
+    () => (API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null),
+    []
+  )
+
+  useEffect(() => {
+    if (!API_KEY) {
+      logger.error('VITE_GEMINI_API_KEY environment variable is not set')
+    }
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -31,7 +31,6 @@ function AITab({ code, example, activeLanguage }) {
     scrollToBottom()
   }, [messages])
 
-  // Function to limit text to 500 words
   const limitWords = (text, maxWords = 500) => {
     const words = text.split(/\s+/)
     if (words.length <= maxWords) {
