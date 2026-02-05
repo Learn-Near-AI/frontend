@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import { useNearWallet } from 'near-connect-hooks'
 import { Loader2, CheckCircle2, AlertCircle, Info, Lock } from 'lucide-react'
 import { logger } from '../lib/logger'
@@ -338,6 +339,17 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
       )}
     </div>
   )
+}
+
+FnTestingTab.propTypes = {
+  code: PropTypes.string.isRequired,
+  example: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+  }).isRequired,
+  activeLanguage: PropTypes.oneOf(['Rust', 'JavaScript']).isRequired,
+  deployedContractId: PropTypes.string,
+  isDeploying: PropTypes.bool.isRequired,
 }
 
 export default FnTestingTab

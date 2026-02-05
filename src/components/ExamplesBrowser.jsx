@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import PropTypes from "prop-types";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   examplesData,
@@ -7,6 +8,7 @@ import {
   WORKING_EXAMPLES,
 } from "../data/examples";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { MOBILE_BREAKPOINT_PX, TOUR_STREAK_THRESHOLD } from "../lib/appConstants";
 import CategorySidebar from "./CategorySidebar";
 import SearchBar from "./SearchBar";
 import FiltersPanel from "./FiltersPanel";
@@ -28,9 +30,9 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("All");
   const [selectedCategories, setSelectedCategories] = useState(["All"]);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT_PX);
   const [sidebarVisible, setSidebarVisible] = useState(() => {
-    return window.innerWidth >= 1024;
+    return window.innerWidth >= MOBILE_BREAKPOINT_PX;
   });
   const [expandedCategories, setExpandedCategories] = useState(() => {
     return Object.keys(examplesData).reduce((acc, cat) => {
@@ -42,9 +44,9 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   // Handle window resize to update sidebar visibility
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 1024;
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT_PX;
       setIsMobile(mobile);
-      if (window.innerWidth >= 1024) {
+      if (window.innerWidth >= MOBILE_BREAKPOINT_PX) {
         setSidebarVisible(true);
       } else {
         setSidebarVisible(false);
@@ -66,8 +68,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     const streakData = JSON.parse(localStorage.getItem('nearStreakData') || '{}');
     const currentStreak = streakData.currentStreak || 0;
 
-    // Check if user should see tour (streak 0-5 and hasn't completed)
-    const shouldShowTour = !hasCompletedTour && currentStreak <= 5;
+    const shouldShowTour = !hasCompletedTour && currentStreak <= TOUR_STREAK_THRESHOLD;
 
     if (shouldShowTour && !selectedExample && !comingSoonExample) {
       // Auto-select the first working example
@@ -286,5 +287,10 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     </div>
   );
 }
+
+ExamplesBrowser.propTypes = {
+  isDark: PropTypes.bool.isRequired,
+  toggleTheme: PropTypes.func.isRequired,
+};
 
 export default ExamplesBrowser;

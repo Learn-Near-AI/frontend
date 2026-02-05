@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import PropTypes from 'prop-types'
 import { Play, Rocket, TimerResetIcon, CopyIcon, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -312,6 +313,20 @@ function CodeEditor({
       </div>
     </div>
   )
+}
+
+CodeEditor.propTypes = {
+  code: PropTypes.string.isRequired,
+  setCode: PropTypes.func.isRequired,
+  activeLanguage: PropTypes.oneOf(['Rust', 'JavaScript']).isRequired,
+  setActiveLanguage: PropTypes.func.isRequired,
+  isRunning: PropTypes.bool.isRequired,
+  isDeploying: PropTypes.bool.isRequired,
+  onRun: PropTypes.func.isRequired,
+  onDeploy: PropTypes.func.isRequired,
+  onCopy: PropTypes.func.isRequired,
+  onReset: PropTypes.func.isRequired,
+  backendCLIConfigured: PropTypes.bool,
 }
 
 export default CodeEditor

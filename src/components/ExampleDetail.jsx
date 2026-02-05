@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { X } from "lucide-react";
 import { exampleCode } from "../data/examples";
+import { TOUR_AUTO_START_DELAY_MS, CONSOLE_ERROR_LINES_MAX } from "../lib/appConstants";
 import {
   Dialog,
   DialogContent,
@@ -67,16 +69,14 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     setIsDeploying(false);
   }, []);
 
-  // Start tour if triggered from ExamplesBrowser
   useEffect(() => {
     if (shouldStartTour) {
-      // Auto-start tour after a short delay
       const timer = setTimeout(() => {
         setRunTour(true);
         if (onTourStart) {
           onTourStart();
         }
-      }, 1500);
+      }, TOUR_AUTO_START_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [shouldStartTour, onTourStart]);
@@ -174,14 +174,13 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
         logger.error("[FRONTEND] Compilation failed:", errorMsg);
         addConsoleOutput(`❌ Compilation Error:`);
-        // Split long error messages into multiple lines
-        const errorLines = errorMsg.split("\n").slice(0, 10); // Show first 10 lines
+        const errorLines = errorMsg.split("\n").slice(0, CONSOLE_ERROR_LINES_MAX);
         errorLines.forEach((line) => {
           if (line.trim()) {
             addConsoleOutput(`   ${line.trim()}`);
           }
         });
-        if (errorMsg.split("\n").length > 10) {
+        if (errorMsg.split("\n").length > CONSOLE_ERROR_LINES_MAX) {
           addConsoleOutput(`   ... (see browser console for full error)`);
         }
         return; // Don't throw, just show the error and return
@@ -481,5 +480,15 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     </div>
   );
 }
+
+ExampleDetail.propTypes = {
+  example: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+  }).isRequired,
+  onBack: PropTypes.func.isRequired,
+  shouldStartTour: PropTypes.bool,
+  onTourStart: PropTypes.func,
+};
 
 export default ExampleDetail;

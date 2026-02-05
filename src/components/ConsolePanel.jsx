@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { ExternalLink } from 'lucide-react'
 import { config } from '../config'
 
@@ -92,6 +93,12 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash }) {
       </div>
     </div>
   )
+}
+
+ConsolePanel.propTypes = {
+  consoleOutput: PropTypes.string,
+  deployedContractId: PropTypes.string,
+  deploymentTxHash: PropTypes.string,
 }
 
 export default ConsolePanel

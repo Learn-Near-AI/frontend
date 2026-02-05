@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
+import PropTypes from 'prop-types'
 import { GoogleGenAI } from '@google/genai'
 import { Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { logger } from '../lib/logger'
+import { AI_RESPONSE_MAX_WORDS, AI_PROMPT_MAX_WORDS } from '../lib/appConstants'
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
@@ -31,7 +33,7 @@ function AITab({ code, example, activeLanguage }) {
     scrollToBottom()
   }, [messages])
 
-  const limitWords = (text, maxWords = 500) => {
+  const limitWords = (text, maxWords = AI_PROMPT_MAX_WORDS) => {
     const words = text.split(/\s+/)
     if (words.length <= maxWords) {
       return text
@@ -74,7 +76,7 @@ ${code}
 
 IMPORTANT: 
 - Format your response using Markdown (use **bold**, *italic*, code blocks, lists, etc.)
-- Keep your response concise and under 500 words maximum
+- Keep your response concise and under ${AI_PROMPT_MAX_WORDS} words maximum
 - Be clear and helpful in explaining the code
 
 Please answer the user's question about this code in a clear and helpful way using Markdown formatting.`
@@ -89,8 +91,7 @@ Please answer the user's question about this code in a clear and helpful way usi
 
       let text = response.text
 
-      // Limit response to 300 words
-      text = limitWords(text, 300)
+      text = limitWords(text, AI_RESPONSE_MAX_WORDS)
 
       // Add AI response
       setMessages(prev => [...prev, { role: 'assistant', content: text }])
@@ -105,7 +106,7 @@ Please answer the user's question about this code in a clear and helpful way usi
     }
   }
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleAskAI()
@@ -200,7 +201,7 @@ Please answer the user's question about this code in a clear and helpful way usi
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           rows={3}
           className="w-full bg-transparent text-xs text-gray-900 dark:text-gray-100 outline-none resize-none"
           placeholder="💬 Ask a question about this example..."
@@ -225,6 +226,15 @@ Please answer the user's question about this code in a clear and helpful way usi
       </div>
     </div>
   )
+}
+
+AITab.propTypes = {
+  code: PropTypes.string.isRequired,
+  example: PropTypes.shape({
+    name: PropTypes.string,
+    difficulty: PropTypes.string,
+  }).isRequired,
+  activeLanguage: PropTypes.oneOf(['Rust', 'JavaScript']).isRequired,
 }
 
 export default AITab

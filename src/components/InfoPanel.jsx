@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import ExplanationTab from './ExplanationTab'
 import AITab from './AITab'
 import FnTestingTab from './FnTestingTab'
@@ -78,6 +79,19 @@ function InfoPanel({
       </div>
     </div>
   )
+}
+
+InfoPanel.propTypes = {
+  example: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+  }).isRequired,
+  activeInfoTab: PropTypes.string.isRequired,
+  setActiveInfoTab: PropTypes.func.isRequired,
+  code: PropTypes.string.isRequired,
+  activeLanguage: PropTypes.oneOf(['Rust', 'JavaScript']).isRequired,
+  deployedContractId: PropTypes.string,
+  isDeploying: PropTypes.bool.isRequired,
 }
 
 export default InfoPanel

@@ -113,6 +113,8 @@ src/
 └── test/           # Test setup
 ```
 
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for wallet and backend integration details.
+
 ### Architecture Patterns
 
 | Pattern | Location | Purpose |
