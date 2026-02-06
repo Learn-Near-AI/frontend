@@ -1,80 +1,5 @@
 // NFT examples
 export const nftsCode = {
-  'nft-transfer': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, AccountId, require};
-use near_sdk::PanicOnDefault;
-
-#[derive(BorshDeserialize, BorshSerialize)]
-pub struct Token {
-    token_id: String,
-    owner_id: AccountId,
-}
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    tokens: UnorderedMap<String, Token>,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            tokens: UnorderedMap::new(b"t"),
-        }
-    }
-
-    pub fn transfer(&mut self, token_id: String, receiver_id: AccountId) {
-        let mut token = self.tokens.get(&token_id).expect("Token not found");
-        require!(
-            token.owner_id == env::predecessor_account_id(),
-            "Only owner can transfer"
-        );
-        token.owner_id = receiver_id.clone();
-        self.tokens.insert(&token_id, &token);
-        
-        env::log_str(&format!("Transferred token {} to {}", token_id, receiver_id));
-    }
-
-    pub fn get_token(&self, token_id: String) -> Option<(String, AccountId)> {
-        self.tokens.get(&token_id).map(|t| (t.token_id.clone(), t.owner_id.clone()))
-    }
-}`,
-    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ tokens } = { tokens: {} }) {
-    this.tokens = tokens || {};
-  }
-
-  @view({})
-  get_token({ token_id }) {
-    return this.tokens[token_id] || null;
-  }
-
-  @call({})
-  transfer({ token_id, receiver_id }) {
-    const token = this.tokens[token_id];
-    if (!token) {
-      near.panic("Token not found");
-    }
-    if (token.owner_id !== near.predecessorAccountId()) {
-      near.panic("Only owner can transfer");
-    }
-    token.owner_id = receiver_id;
-    this.tokens[token_id] = token;
-    
-    near.log(\`Transferred token \${token_id} to \${receiver_id}\`);
-  }
-}
-
-`,
-  },
   'nft-standard': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
@@ -646,6 +571,11 @@ class Contract {
 
   @call({})
   on_payment_sent({ seller_id, amount }) {
+    try {
+      near.promiseResultRaw(0);
+    } catch (_) {
+      near.panic("NFT transfer failed");
+    }
     return NearPromise.new(seller_id).transfer(BigInt(amount)).asReturn();
   }
 }

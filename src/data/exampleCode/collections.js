@@ -1,78 +1,6 @@
 // Collections and data structure examples
+// Note: storage-keys merged into collections-vector (basics.js)
 export const collectionsCode = {
-  'storage-keys': {
-    Rust: `// Storage keys: unique prefixes namespace each collection to avoid collisions
-use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::Vector;
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    items: Vector<String>,   // prefix b"i"
-    tags: Vector<String>,    // prefix b"t" - different key, no collision
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            items: Vector::new(b"i"),
-            tags: Vector::new(b"t"),
-        }
-    }
-
-    pub fn add_item(&mut self, item: String) {
-        self.items.push(&item);
-    }
-
-    pub fn add_tag(&mut self, tag: String) {
-        self.tags.push(&tag);
-    }
-
-    pub fn get_items(&self) -> Vec<String> {
-        self.items.iter().collect()
-    }
-
-    pub fn get_tags(&self) -> Vec<String> {
-        self.tags.iter().collect()
-    }
-}`,
-    JavaScript: `// Storage keys: unique prefixes namespace each collection
-import { NearBindgen, view, call } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ items, tags } = { items: [], tags: [] }) {
-    this.items = items || [];
-    this.tags = tags || [];
-  }
-
-  @view({})
-  get_items() {
-    return this.items;
-  }
-
-  @view({})
-  get_tags() {
-    return this.tags;
-  }
-
-  @call({})
-  add_item({ item }) {
-    this.items.push(item);
-  }
-
-  @call({})
-  add_tag({ tag }) {
-    this.tags.push(tag);
-  }
-}
-
-`,
-  },
   'todo-list': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
@@ -467,6 +395,12 @@ class Contract {
 
   @call({})
   on_payment_sent({ seller_id, amount }) {
+    // Only transfer if NFT transfer succeeded. promiseResultRaw throws on failed promise
+    try {
+      near.promiseResultRaw(0);
+    } catch (_) {
+      near.panic("NFT transfer failed");
+    }
     return NearPromise.new(seller_id).transfer(BigInt(amount)).asReturn();
   }
 }
@@ -474,10 +408,13 @@ class Contract {
 `,
   },
   'batch-operations': {
-    Rust: `use near_sdk::near;
+    Rust: `// Batch operations + gas optimization: process multiple items atomically with size limits
+use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
-use near_sdk::PanicOnDefault;
+use near_sdk::{require, PanicOnDefault};
+
+const MAX_BATCH: u32 = 100;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -494,7 +431,9 @@ impl Contract {
         }
     }
 
+    /// Gas optimization: batch inserts instead of many single-item calls
     pub fn add_many(&mut self, items: Vec<String>) {
+        require!(items.len() <= MAX_BATCH as usize, "Batch too large");
         for item in items {
             self.items.push(&item);
         }
@@ -503,8 +442,14 @@ impl Contract {
     pub fn get_all(&self) -> Vec<String> {
         self.items.iter().collect()
     }
+
+    pub fn len(&self) -> u64 {
+        self.items.len()
+    }
 }`,
-    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+const MAX_BATCH = 100;
 
 @NearBindgen({})
 class Contract {
@@ -517,8 +462,14 @@ class Contract {
     return this.items;
   }
 
+  @view({})
+  len() {
+    return this.items.length;
+  }
+
   @call({})
   add_many({ items }) {
+    if (items.length > MAX_BATCH) near.panic("Batch too large");
     for (const item of items) {
       this.items.push(item);
     }

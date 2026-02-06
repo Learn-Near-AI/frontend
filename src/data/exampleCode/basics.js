@@ -139,6 +139,10 @@ impl Contract {
         }
     }
 
+    pub fn get_greeting(&self) -> String {
+        self.greeting.clone()
+    }
+
     pub fn set_greeting(&mut self, greeting: String) {
         self.greeting = greeting;
     }
@@ -169,56 +173,6 @@ class Contract {
   @call({})
   append_suffix({ suffix }) {
     this.greeting = this.greeting + suffix;
-  }
-}
-
-`,
-  },
-  'storage-basics': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    message: String,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            message: "Hello, NEAR storage!".to_string(),
-        }
-    }
-
-    pub fn set_message(&mut self, message: String) {
-        self.message = message;
-    }
-
-    pub fn get_message(&self) -> String {
-        self.message.clone()
-    }
-}`,
-    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ message } = { message: "Hello, NEAR storage!" }) {
-    this.message = message;
-  }
-
-  @view({})
-  get_message() {
-    return this.message;
-  }
-
-  @call({})
-  set_message({ message }) {
-    near.log(\`Updating message to: \${message}\`);
-    this.message = message;
   }
 }
 
@@ -329,67 +283,10 @@ class Contract {
 
 `,
   },
-  'access-control': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, AccountId};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    owner_id: AccountId,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-        }
-    }
-
-    pub fn set_owner(&mut self, new_owner: AccountId) {
-        require!(
-            env::predecessor_account_id() == self.owner_id,
-            "Only owner can change owner"
-        );
-        self.owner_id = new_owner;
-    }
-
-    pub fn get_owner(&self) -> AccountId {
-        self.owner_id.clone()
-    }
-}`,
-    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ owner_id } = { owner_id: near.currentAccountId() }) {
-    this.owner_id = owner_id;
-  }
-
-  @view({})
-  get_owner() {
-    return this.owner_id;
-  }
-
-  @call({})
-  set_owner({ new_owner }) {
-    if (near.predecessorAccountId() !== this.owner_id) {
-      near.panic("Only owner can change owner");
-    }
-    this.owner_id = new_owner;
-  }
-}
-
-`,
-  },
   'error-handling': {
     Rust: `use near_sdk::near;
 use near_sdk::PanicOnDefault;
-use near_sdk::env;
+use near_sdk::{env, require};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -407,15 +304,26 @@ impl Contract {
         s.parse().ok()
     }
 
+    /// Returns None on division by zero instead of panicking
+    pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
+        if b == 0 { return None; }
+        Some(a / b)
+    }
+
     /// Uses unwrap_or for fallback when Option is None
     pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
         s.parse().unwrap_or(default)
     }
 
-    /// Panic for unrecoverable errors
+    /// Panic for unrecoverable errors - use require! for clear messages
     pub fn assert_positive(&self, value: i64) {
-        if value <= 0 {
-            env::panic_str("VALUE_MUST_BE_POSITIVE");
+        require!(value > 0, "Value must be positive");
+    }
+
+    /// Demonstrates env::panic_str for critical failures
+    pub fn strict_check(&self, value: u64) {
+        if value == 0 {
+            env::panic_str("ZERO_NOT_ALLOWED");
         }
     }
 }
@@ -429,6 +337,13 @@ mod tests {
         let contract = Contract::new();
         assert_eq!(contract.try_parse_number("42".to_string()), Some(42));
         assert_eq!(contract.try_parse_number("abc".to_string()), None);
+    }
+
+    #[test]
+    fn test_safe_divide() {
+        let contract = Contract::new();
+        assert_eq!(contract.safe_divide(10, 2), Some(5));
+        assert_eq!(contract.safe_divide(10, 0), None);
     }
 
     #[test]
@@ -449,15 +364,25 @@ class Contract {
   }
 
   @view({})
+  safe_divide({ a, b }) {
+    if (b === 0) return null;
+    return a / b;
+  }
+
+  @view({})
   parse_with_default({ s, default: d }) {
     const n = parseInt(s, 10);
     return isNaN(n) ? d : n;
   }
 
-  // @call: panic methods are change methods; views that panic can have different gas/revert behavior
   @call({})
   assert_positive({ value }) {
-    if (value <= 0) near.panic("VALUE_MUST_BE_POSITIVE");
+    if (value <= 0) near.panic("Value must be positive");
+  }
+
+  @call({})
+  strict_check({ value }) {
+    if (value === 0) near.panic("ZERO_NOT_ALLOWED");
   }
 }
 
@@ -521,7 +446,8 @@ class Contract {
 `,
   },
   'collections-vector': {
-    Rust: `use near_sdk::near;
+    Rust: `// Vector + storage keys: unique prefixes (b"i", b"t") namespace collections to avoid collisions
+use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
 use near_sdk::{require, PanicOnDefault};
@@ -529,7 +455,8 @@ use near_sdk::{require, PanicOnDefault};
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    items: Vector<String>,
+    items: Vector<String>,   // prefix b"i"
+    tags: Vector<String>,    // prefix b"t" - different key, no collision
 }
 
 #[near]
@@ -538,11 +465,16 @@ impl Contract {
     pub fn new() -> Self {
         Self {
             items: Vector::new(b"i"),
+            tags: Vector::new(b"t"),
         }
     }
 
     pub fn add_item(&mut self, item: String) {
         self.items.push(&item);
+    }
+
+    pub fn add_tag(&mut self, tag: String) {
+        self.tags.push(&tag);
     }
 
     pub fn remove_item(&mut self, index: u64) {
@@ -554,16 +486,21 @@ impl Contract {
         self.items.get(index)
     }
 
-    pub fn get_items_count(&self) -> u64 {
-        self.items.len()
+    pub fn get_items(&self) -> Vec<String> {
+        self.items.iter().collect()
+    }
+
+    pub fn get_tags(&self) -> Vec<String> {
+        self.tags.iter().collect()
     }
 }`,
-    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ items } = { items: [] }) {
+  constructor({ items, tags } = { items: [], tags: [] }) {
     this.items = items || [];
+    this.tags = tags || [];
   }
 
   @view({})
@@ -572,8 +509,13 @@ class Contract {
   }
 
   @view({})
-  get_items_count() {
-    return this.items.length;
+  get_items() {
+    return this.items;
+  }
+
+  @view({})
+  get_tags() {
+    return this.tags;
   }
 
   @call({})
@@ -582,8 +524,16 @@ class Contract {
   }
 
   @call({})
+  add_tag({ tag }) {
+    this.tags.push(tag);
+  }
+
+  @call({})
   remove_item({ index }) {
-    this.items.splice(index, 1);
+    if (index >= this.items.length) near.panic("Index out of bounds");
+    // swap_remove: swap with last, then pop (O(1) like Rust)
+    [this.items[index], this.items[this.items.length - 1]] = [this.items[this.items.length - 1], this.items[index]];
+    this.items.pop();
   }
 }
 

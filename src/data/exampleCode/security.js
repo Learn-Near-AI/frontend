@@ -311,21 +311,17 @@ impl Contract {
 
 @NearBindgen({})
 class Contract {
-  constructor({ signers, required_signatures, approvals, last_executed_action } = {
-    signers: [],
-    required_signatures: 2,
-    approvals: [],
-    last_executed_action: null
-  }) {
-    this.signers = signers || [];
+  constructor({ signers = [], required_signatures = 2, approvals = [], last_executed_action = null } = {}) {
+    this.signers = signers;
     this.required_signatures = required_signatures;
-    this.approvals = approvals || [];
+    this.approvals = approvals;
     this.last_executed_action = last_executed_action;
   }
 
   @view({})
-  can_execute() {
-    return this.approvals.length >= this.required_signatures;
+  can_execute({ action }) {
+    const count = this.signers.filter((s) => this.approvals.includes(\`\${action}:\${s}\`)).length;
+    return count >= this.required_signatures;
   }
 
   @call({})
@@ -337,17 +333,22 @@ class Contract {
   }
 
   @call({})
-  approve() {
+  approve({ action }) {
     const signer = near.predecessorAccountId();
     if (!this.signers.includes(signer)) near.panic("Not a signer");
-    if (!this.approvals.includes(signer)) this.approvals.push(signer);
+    const key = \`\${action}:\${signer}\`;
+    if (!this.approvals.includes(key)) this.approvals.push(key);
   }
 
   @call({})
   execute({ action }) {
-    if (!this.can_execute()) near.panic("Not enough approvals");
+    if (!this.can_execute({ action })) near.panic("Not enough approvals for this action");
+    for (const signer of this.signers) {
+      const key = \`\${action}:\${signer}\`;
+      const idx = this.approvals.indexOf(key);
+      if (idx >= 0) this.approvals.splice(idx, 1);
+    }
     this.last_executed_action = action;
-    this.approvals = [];
     near.log("Executed: " + action);
   }
 
@@ -360,11 +361,13 @@ class Contract {
 `,
   },
   'upgrade-pattern': {
-    Rust: `use near_sdk::near;
+    Rust: `// Upgrade pattern: init, PanicOnDefault, and migration for post-upgrade schema changes
+use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, require};
 use near_sdk::PanicOnDefault;
 
+/// PanicOnDefault: contract panics if deserialized without explicit init—prevents uninitialized state.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
@@ -386,7 +389,7 @@ impl Contract {
         self.version
     }
 
-    /// Migration hook: call after upgrade to bump version (owner only)
+    /// Migration hook: call after code upgrade. Owner-only; use for schema changes.
     pub fn migrate(&mut self) {
         require!(
             env::predecessor_account_id() == self.owner_id,

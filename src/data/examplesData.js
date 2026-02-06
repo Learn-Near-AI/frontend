@@ -6,10 +6,8 @@ export const examplesData = {
     { id: 'contract-structure', name: 'Contract Structure', difficulty: 'Beginner', language: 'Rust' },
     { id: 'view-methods', name: 'View Methods', difficulty: 'Beginner', language: 'Rust' },
     { id: 'change-methods', name: 'Change Methods', difficulty: 'Beginner', language: 'Rust' },
-    { id: 'storage-basics', name: 'Storage Basics', difficulty: 'Beginner', language: 'Rust' },
     { id: 'state-management', name: 'State Management', difficulty: 'Beginner', language: 'Rust' },
     { id: 'input-validation', name: 'Input Validation', difficulty: 'Beginner', language: 'Rust' },
-    { id: 'access-control', name: 'Access Control', difficulty: 'Beginner', language: 'Rust' },
     // Intermediate - Building on Basics
     { id: 'error-handling', name: 'Error Handling', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'events', name: 'Events', difficulty: 'Intermediate', language: 'Rust' },
@@ -27,7 +25,6 @@ export const examplesData = {
   ],
   'Collections & Data': [
     // Intermediate - Data Structures and Applications
-    { id: 'storage-keys', name: 'Storage Keys', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'todo-list', name: 'Todo List', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'user-profiles', name: 'User Profiles', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'voting-system', name: 'Voting System', difficulty: 'Intermediate', language: 'Rust' },
@@ -36,9 +33,7 @@ export const examplesData = {
     { id: 'batch-operations', name: 'Batch Operations', difficulty: 'Advanced', language: 'Rust' },
   ],
   NFTs: [
-    // Beginner - NFT Basics
-    { id: 'nft-transfer', name: 'NFT Transfer', difficulty: 'Beginner', language: 'Rust' },
-    // Intermediate - NFT Operations
+    // Intermediate - NFT Operations (NEP-171 transfer + standard methods)
     { id: 'nft-standard', name: 'NFT Standard', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'nft-metadata', name: 'NFT Metadata', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'nft-minting', name: 'NFT Minting', difficulty: 'Intermediate', language: 'Rust' },
@@ -51,14 +46,12 @@ export const examplesData = {
   'Cross-Contract': [
     // Beginner - Basic Cross-Contract Calls
     { id: 'simple-calls', name: 'Simple Calls', difficulty: 'Beginner', language: 'Rust' },
-    // Intermediate - Promise and Callback Patterns
+    // Intermediate - Callbacks and Token Calls
     { id: 'callbacks', name: 'Callbacks', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'cross-call-ft', name: 'Cross-Call FT', difficulty: 'Intermediate', language: 'Rust' },
     { id: 'cross-call-nft', name: 'Cross-Call NFT', difficulty: 'Intermediate', language: 'Rust' },
-    // Advanced - Complex Patterns
+    // Advanced - Chained Calls
     { id: 'batch-calls', name: 'Chained Calls', difficulty: 'Advanced', language: 'Rust' },
-    { id: 'promise-results', name: 'Promise Results', difficulty: 'Advanced', language: 'Rust' },
-    { id: 'async-patterns', name: 'Async Patterns', difficulty: 'Advanced', language: 'Rust' },
   ],
   'Chain Signatures': [
     // Intermediate - Chain Signatures Basics
@@ -71,18 +64,12 @@ export const examplesData = {
     { id: 'signature-callbacks', name: 'Signature Callbacks', difficulty: 'Advanced', language: 'Rust' },
   ],
   Indexing: [
-    // Contract side: NEP-297 event emission (indexer setup is off-chain)
-    { id: 'indexer-events', name: 'NEP-297 Events', difficulty: 'Intermediate', language: 'Rust' },
-    { id: 'indexer-data', name: 'State + Events', difficulty: 'Intermediate', language: 'Rust' },
+    // Contract side: NEP-297 events + state (indexer setup is off-chain)
+    { id: 'indexer-data', name: 'NEP-297 Events', difficulty: 'Intermediate', language: 'Rust' },
   ],
   'Advanced Patterns': [
     // Intermediate - Testing and Patterns
     { id: 'testing', name: 'Unit Testing', difficulty: 'Intermediate', language: 'Rust' },
-    { id: 'panic-handling', name: 'Panic Handling', difficulty: 'Intermediate', language: 'Rust' },
-    { id: 'initialization', name: 'Contract Initialization', difficulty: 'Intermediate', language: 'Rust' },
-    // Advanced - Optimization and Complete Examples
-    { id: 'gas-optimization', name: 'Gas Optimization', difficulty: 'Advanced', language: 'Rust' },
-    { id: 'complete-example', name: 'Complete Example', difficulty: 'Advanced', language: 'Rust' },
   ],
 }
 

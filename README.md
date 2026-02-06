@@ -37,13 +37,13 @@ NEAR by Example is a comprehensive, browser-based learning platform designed to 
 
 | Category | Examples | Focus |
 |----------|----------|-------|
-| **Basics** | 12 | Contract structure, view/change methods, storage, state management |
-| **Access Control & Security** | 6 | Owner patterns, RBAC, pausable contracts, upgrades |
-| **Collections & Data** | 6 | Todo lists, profiles, voting, marketplaces |
+| **Basics** | 10 | Contract structure, view/change methods, state management |
+| **Access Control & Security** | 5 | Owner patterns, RBAC, pausable contracts, upgrades |
+| **Collections & Data** | 5 | Todo lists, profiles, voting, marketplaces, batch operations |
 | **NFTs** | 10 | NEP-171, metadata, minting, royalties, marketplace |
 | **Fungible Tokens** | 10 | NEP-141, transfers, allowances, staking, vesting |
 | **Cross-Contract** | 8 | Callbacks, oracles, token swaps |
-| **Advanced Patterns** | 9 | Factory, proxy, pagination, DAO |
+| **Advanced Patterns** | 1 | Unit testing |
 
 ---
 

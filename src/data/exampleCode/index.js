@@ -9,50 +9,40 @@ import { chainSignaturesCode } from './chainSignatures.js'
 import { indexingCode } from './indexing.js'
 import { COMING_SOON_TEMPLATE } from '../constants.js'
 
-// List of example IDs that have working implementations (62 total → 60+ complete)
+// List of example IDs that have working implementations
 export const WORKING_EXAMPLES = [
-  // Basics (12)
+  // Basics (10)
   'hello-world',
   'contract-structure',
   'view-methods',
   'change-methods',
-  'storage-basics',
   'state-management',
   'input-validation',
-  'access-control',
   'error-handling',
   'events',
   'collections-vector',
   'collections-map',
-  // Security (6)
+  // Security (5)
   'owner-pattern',
   'role-based-access',
   'pausable-contract',
   'multi-signature',
   'upgrade-pattern',
-  // Collections (6)
-  'storage-keys',
+  // Collections (5)
   'todo-list',
   'user-profiles',
   'voting-system',
   'simple-marketplace',
   'batch-operations',
-  // Advanced (5)
+  // Advanced (1)
   'testing',
-  'panic-handling',
-  'initialization',
-  'gas-optimization',
-  'complete-example',
-  // Cross-Contract (7)
+  // Cross-Contract (5)
   'simple-calls',
   'callbacks',
   'cross-call-ft',
   'cross-call-nft',
   'batch-calls',
-  'promise-results',
-  'async-patterns',
-  // NFTs (8)
-  'nft-transfer',
+  // NFTs (7)
   'nft-standard',
   'nft-metadata',
   'nft-minting',
@@ -67,8 +57,7 @@ export const WORKING_EXAMPLES = [
   'multi-chain-signing',
   'cross-chain-auth',
   'signature-callbacks',
-  // Indexing (2)
-  'indexer-events',
+  // Indexing (1)
   'indexer-data',
 ]
 

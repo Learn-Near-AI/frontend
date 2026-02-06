@@ -100,7 +100,12 @@ class Contract {
     return Array.isArray(payload) && payload.length === 32;
   }
 
-  // Hashing for signing: use keccak256 off-chain or in Rust. MPC signs the 32-byte hash.
+  @view({})
+  hash_for_signing({ message }) {
+    // MPC signs the 32-byte hash; verification happens on the destination chain
+    const msg = message ? new Uint8Array(message) : new Uint8Array(0);
+    return Array.from(near.keccak256(msg));
+  }
 }`,
   },
   'signature-requests': {
@@ -418,10 +423,13 @@ class Contract {
   request_sign_and_store({ request_id, payload, path, key_version }) {
     const req = { payload, path: path || "ethereum-1", key_version: key_version ?? 0 };
     const account = near.currentAccountId();
-    return near.promiseBatchCreate("v1.signer-prod.testnet")
-      .then(near.promiseBatchActionFunctionCall("sign", JSON.stringify(req), BigInt("50000000000000000000000"), BigInt("250000000000000")))
-      .then(near.promiseBatchCreate(account))
-      .then(near.promiseBatchActionFunctionCall("on_signature_ready", JSON.stringify({ request_id }), 0, BigInt("50000000000000")));
+    const gas = BigInt("50000000000000");
+    const deposit = BigInt("50000000000000000000000");
+    const mpcGas = BigInt("250000000000000");
+    return NearPromise.new("v1.signer-prod.testnet")
+      .functionCall("sign", bytes(JSON.stringify(req)), deposit, mpcGas)
+      .then(NearPromise.new(account).functionCall("on_signature_ready", bytes(JSON.stringify({ request_id })), 0n, gas))
+      .asReturn();
   }
 
   @call({})

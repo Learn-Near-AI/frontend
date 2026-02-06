@@ -1,63 +1,14 @@
 // Indexing examples - Contract side: NEP-297 event emission
 // Indexer setup, QueryAPI, filters, aggregation are off-chain; see NEAR docs for indexer configuration.
 export const indexingCode = {
-  'indexer-events': {
-    Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, PanicOnDefault};
-
-/// NEP-297 event format: standard, version, event, data
-/// Indexers parse EVENT_JSON: prefix from logs.
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    /// Emit NEP-297 event. Indexers capture these from receipt logs.
-    pub fn record_action(&self, action: String, account_id: String, amount: u64) {
-        let json = format!(
-            r#"{{"standard":"example","version":"1.0.0","event":"{}","data":{{"account_id":"{}","amount":"{}"}}}}"#,
-            action.replace('"', "\\\""),
-            account_id.replace('"', "\\\""),
-            amount
-        );
-        env::log_str(&format!("EVENT_JSON:{}", json));
-    }
-}`,
-    JavaScript: `import { NearBindgen, call, near } from "near-sdk-js";
-
-// NEP-297 event format: standard, version, event, data
-// Indexers parse EVENT_JSON: prefix from receipt logs.
-@NearBindgen({})
-class Contract {
-  @call({})
-  record_action({ action, account_id, amount }) {
-    const event = {
-      standard: "example",
-      version: "1.0.0",
-      event: action,
-      data: { account_id, amount: String(amount) },
-    };
-    near.log("EVENT_JSON:" + JSON.stringify(event));
-  }
-}
-
-// Off-chain: NEAR Indexer / QueryAPI listens to receipts, indexes by block/account.
-// See docs.near.org for indexer setup and SQL queries.`,
-  },
   'indexer-data': {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::{env, PanicOnDefault};
 
-/// Contract with state + NEP-297 events. Indexers track both state changes and events.
+/// NEP-297 events: standard, version, event, data. Emit via EVENT_JSON: prefix.
+/// Indexers (NEAR Indexer, QueryAPI) parse logs off-chain.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {

@@ -39,13 +39,13 @@ export const languageIcons = {
 // Experimental: exploratory examples; may have edge cases or need verification
 export const AUDITED_EXAMPLES = [
   'hello-world', 'contract-structure', 'view-methods', 'change-methods',
-  'storage-basics', 'state-management', 'input-validation', 'access-control',
+  'state-management', 'input-validation',
   'owner-pattern', 'role-based-access', 'upgrade-pattern',
-  'storage-keys', 'user-profiles', 'voting-system', 'batch-operations',
-  'nft-transfer', 'nft-metadata', 'nft-minting', 'nft-approval', 'nft-enumeration',
-  'simple-calls', 'cross-call-ft', 'cross-call-nft', 'promise-results', 'async-patterns',
-  'gas-optimization', 'panic-handling',
-  'indexer-events', 'indexer-data',
+  'user-profiles', 'voting-system', 'batch-operations',
+  'nft-standard', 'nft-metadata', 'nft-minting', 'nft-approval', 'nft-enumeration',
+  'simple-calls', 'callbacks', 'cross-call-ft', 'cross-call-nft', 'batch-calls',
+  'error-handling',
+  'indexer-data',
   'chain-signatures-basics', 'signature-verification', 'signature-requests',
   'multi-chain-signing', 'cross-chain-auth',
 ]

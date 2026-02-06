@@ -58,6 +58,7 @@ impl Contract {
         Self {}
     }
 
+    /// Call external contract, then callback to process the result.
     pub fn call_then_callback(&self, contract_id: AccountId) -> Promise {
         Promise::new(contract_id.clone())
             .function_call(b"get_value", b"{}", 0, env::prepaid_gas() / 3)
@@ -67,7 +68,7 @@ impl Contract {
             )
     }
 
-    /// Callback: read result from promise_result(0), deserialize, and return
+    /// Callback: read promise_result(0), handle success/failure, return value.
     pub fn on_result(&self) -> u64 {
         match env::promise_result(0) {
             near_sdk::PromiseResult::Successful(data) => {
@@ -93,7 +94,16 @@ class Contract {
 
   @call({})
   on_result() {
-    return 1;
+    // Callback: read promise_result(0), handle success/failure like Rust
+    try {
+      const result = near.promiseResultRaw(0);
+      if (result && result.length >= 8) {
+        return Number(new DataView(result.buffer, result.byteOffset, 8).getBigUint64(0, true));
+      }
+    } catch (_) {
+      // promiseResultRaw throws on failed promise
+    }
+    return 0;
   }
 }
 
@@ -211,6 +221,8 @@ impl Contract {
         Self {}
     }
 
+    /// Chained calls: execute contract_a, then contract_b (when first completes).
+    /// Use and_then for sequential calls; use Promise::and for parallel.
     pub fn batch_call(&self, contract_a: AccountId, contract_b: AccountId) -> Promise {
         let gas_per_call = env::prepaid_gas() / 3;
         Promise::new(contract_a)
@@ -221,114 +233,17 @@ impl Contract {
             )
     }
 }`,
-    JavaScript: `import { NearBindgen, call, near } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, call, near, NearPromise, bytes } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
   @call({})
   batch_call({ contract_a, contract_b }) {
-    const gas = Math.floor(near.prepaidGas() / 3);
-    return near.promiseBatchCreate(contract_a)
-      .then(near.promiseBatchActionFunctionCall("get_value", "{}", 0, gas))
-      .then(near.promiseBatchCreate(contract_b))
-      .then(near.promiseBatchActionFunctionCall("get_value", "{}", 0, gas));
-  }
-}
-
-`,
-  },
-  'promise-results': {
-    Rust: `use near_sdk::near;
-use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId, Promise};
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn call_and_check(&self, contract_id: AccountId) -> Promise {
-        Promise::new(contract_id)
-            .function_call(b"get_value", b"{}", 0, env::prepaid_gas() / 2)
-            .then(
-                Promise::new(env::current_account_id())
-                    .function_call(b"handle_result", b"{}", 0, env::prepaid_gas() / 2),
-            )
-    }
-
-    pub fn handle_result(&self) -> bool {
-        match env::promise_result(0) {
-            near_sdk::PromiseResult::Successful(_) => true,
-            _ => false,
-        }
-    }
-}`,
-    JavaScript: `import { NearBindgen, call, near, NearPromise, bytes } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  call_and_check({ contract_id }) {
-    const gas = BigInt(Math.floor(Number(near.prepaidGas()) / 2));
+    const gas = BigInt(Math.floor(Number(near.prepaidGas()) / 3));
     const args = bytes(JSON.stringify({}));
-    return NearPromise.new(contract_id)
+    return NearPromise.new(contract_a)
       .functionCall("get_value", args, 0n, gas)
-      .then(NearPromise.new(near.currentAccountId()).functionCall("handle_result", args, 0n, gas))
-      .asReturn();
-  }
-
-  @call({})
-  handle_result() {
-    const result = near.promiseResult(0);
-    return result !== null && result !== undefined;
-  }
-}
-
-`,
-  },
-  'async-patterns': {
-    Rust: `use near_sdk::near;
-use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId, Promise};
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn chain_promises(&self, contract_id: AccountId) -> Promise {
-        let gas = env::prepaid_gas() / 4;
-        Promise::new(contract_id.clone())
-            .function_call(b"step1", b"{}", 0, gas)
-            .and_then(
-                Promise::new(contract_id)
-                    .function_call(b"step2", b"{}", 0, gas),
-            )
-    }
-}`,
-    JavaScript: `import { NearBindgen, call, near, NearPromise, bytes } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  @call({})
-  chain_promises({ contract_id }) {
-    const gas = BigInt(Math.floor(Number(near.prepaidGas()) / 4));
-    const args = bytes(JSON.stringify({}));
-    return NearPromise.new(contract_id)
-      .functionCall("step1", args, 0n, gas)
-      .then(NearPromise.new(contract_id).functionCall("step2", args, 0n, gas))
+      .then(NearPromise.new(contract_b).functionCall("get_value", args, 0n, gas))
       .asReturn();
   }
 }
