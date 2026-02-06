@@ -50,9 +50,8 @@ export const AUDITED_EXAMPLES = [
   'simple-calls', 'callbacks', 'cross-call-ft', 'cross-call-nft', 'batch-calls',
   // NFTs (6) — nft-royalties excluded: JS has owner-check bug
   'nft-standard', 'nft-metadata', 'nft-minting', 'nft-approval', 'nft-enumeration', 'nft-marketplace',
-  // Chain Signatures (6)
-  'chain-signatures-basics', 'signature-verification', 'signature-requests',
-  'multi-chain-signing', 'cross-chain-auth', 'signature-callbacks',
+  // Chain Signatures (1) — JS uses JSON; MPC may expect Borsh; cross-chain-auth has no access control
+  'signature-verification',
   // Indexing (1)
   'indexer-data',
   // Advanced (1)

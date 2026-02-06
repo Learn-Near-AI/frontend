@@ -66,12 +66,12 @@ export const contractExplanations = {
   
   'batch-calls': 'Chained calls execute cross-contract calls in sequence using and_then. Calls contract_a, then contract_b after the first completes. For parallel calls, use Promise::and. Use chaining when the second call depends on the first.',
   
-  'chain-signatures-basics': 'Chain signatures: call the MPC contract (v1.signer) to sign 32-byte payloads for other chains. Uses ext_contract and Promise. Path derives the target chain address (e.g. ethereum-1). Attach ~0.05 NEAR for MPC fee.',
+  'chain-signatures-basics': 'Chain signatures: call the MPC contract (v1.signer) to sign 32-byte payloads for other chains. Uses ext_contract and Promise. Path derives the target chain address (e.g. ethereum-1). Attach ~0.05 NEAR for MPC fee. JS examples use JSON serialization; verify the MPC contract expects this format (Rust uses Borsh).',
   'signature-verification': 'Validate payload format before MPC: must be 32 bytes (e.g. keccak256 hash). hash_for_signing produces the hash; actual signature verification happens on the destination chain.',
-  'signature-requests': 'Track signature requests: create_request stores payload and path, get_request retrieves, sign_request calls MPC. Demonstrates request lifecycle before and during signing.',
-  'multi-chain-signing': 'Different derivation paths per chain (ethereum-1, bitcoin-1, solana-1). set_chain_path maps chain_id to path; sign_for_chain uses the path when calling MPC.',
-  'cross-chain-auth': 'Whitelist of authorized external identities. authorize_cross_chain adds, revoke_cross_chain removes, require_authorized gates cross-chain actions. Use before allowing MPC sign requests.',
-  'signature-callbacks': 'Request MPC sign, then callback to store the result. Uses and_then to chain: MPC sign -> on_signature_ready. Callback reads promise_result(0) for the signature bytes.',
+  'signature-requests': 'Track signature requests: create_request stores payload and path, get_request retrieves, sign_request calls MPC. Demonstrates request lifecycle before and during signing. JS uses JSON; verify MPC expects this format.',
+  'multi-chain-signing': 'Different derivation paths per chain (ethereum-1, bitcoin-1, solana-1). set_chain_path maps chain_id to path; sign_for_chain uses the path when calling MPC. JS uses JSON; verify MPC expects this format.',
+  'cross-chain-auth': 'Whitelist of authorized external identities. authorize_cross_chain adds, revoke_cross_chain removes, require_authorized gates cross-chain actions. Call require_authorized from your own cross-chain methods before allowing MPC sign requests. In production, restrict authorize_cross_chain and revoke_cross_chain to owner-only.',
+  'signature-callbacks': 'Request MPC sign, then callback to store the result. Uses and_then to chain: MPC sign -> on_signature_ready. Callback reads promise_result(0) for the signature bytes. JS uses JSON; verify MPC expects this format.',
 
   'indexer-data': 'NEP-297 events: emit via EVENT_JSON: prefix (standard, version, event, data). This example has state (set_record, get_record) and emits record_updated on changes. Indexers (NEAR Indexer, QueryAPI) parse logs off-chain; setup and SQL are in NEAR docs.',
 }

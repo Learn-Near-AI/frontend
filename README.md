@@ -40,9 +40,10 @@ NEAR by Example is a comprehensive, browser-based learning platform designed to 
 | **Basics** | 10 | Contract structure, view/change methods, state management |
 | **Access Control & Security** | 5 | Owner patterns, RBAC, pausable contracts, upgrades |
 | **Collections & Data** | 5 | Todo lists, profiles, voting, marketplaces, batch operations |
-| **NFTs** | 10 | NEP-171, metadata, minting, royalties, marketplace |
-| **Fungible Tokens** | 10 | NEP-141, transfers, allowances, staking, vesting |
-| **Cross-Contract** | 8 | Callbacks, oracles, token swaps |
+| **NFTs** | 7 | NEP-171, metadata, minting, royalties, marketplace |
+| **Cross-Contract** | 5 | Simple calls, callbacks, FT/NFT cross-calls, chained calls |
+| **Chain Signatures** | 6 | MPC signing, verification, multi-chain, callbacks |
+| **Indexing** | 1 | NEP-297 events |
 | **Advanced Patterns** | 1 | Unit testing |
 
 ---

@@ -2,6 +2,7 @@
   "name": "near-by-example-frontend",
   "version": "1.0.0",
   "description": "Learn NEAR Protocol smart contract development through interactive, hands-on coding examples",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Learn-Near-AI/near-by-example.git"
