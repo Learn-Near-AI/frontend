@@ -38,16 +38,25 @@ export const languageIcons = {
 // Audited examples: production-safe, no known issues (from content audit)
 // Experimental: exploratory examples; may have edge cases or need verification
 export const AUDITED_EXAMPLES = [
+  // Basics (10)
   'hello-world', 'contract-structure', 'view-methods', 'change-methods',
-  'state-management', 'input-validation',
-  'owner-pattern', 'role-based-access', 'upgrade-pattern',
-  'user-profiles', 'voting-system', 'batch-operations',
-  'nft-standard', 'nft-metadata', 'nft-minting', 'nft-approval', 'nft-enumeration',
+  'state-management', 'input-validation', 'error-handling', 'events',
+  'collections-vector', 'collections-map',
+  // Access Control & Security (5)
+  'owner-pattern', 'role-based-access', 'pausable-contract', 'multi-signature', 'upgrade-pattern',
+  // Collections & Data (5)
+  'todo-list', 'user-profiles', 'voting-system', 'simple-marketplace', 'batch-operations',
+  // Cross-Contract (5)
   'simple-calls', 'callbacks', 'cross-call-ft', 'cross-call-nft', 'batch-calls',
-  'error-handling',
-  'indexer-data',
+  // NFTs (6) — nft-royalties excluded: JS has owner-check bug
+  'nft-standard', 'nft-metadata', 'nft-minting', 'nft-approval', 'nft-enumeration', 'nft-marketplace',
+  // Chain Signatures (6)
   'chain-signatures-basics', 'signature-verification', 'signature-requests',
-  'multi-chain-signing', 'cross-chain-auth',
+  'multi-chain-signing', 'cross-chain-auth', 'signature-callbacks',
+  // Indexing (1)
+  'indexer-data',
+  // Advanced (1)
+  'testing',
 ]
 
 export const isAuditedExample = (exampleId) =>

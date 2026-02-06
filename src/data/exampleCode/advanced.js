@@ -42,12 +42,30 @@ mod tests {
 
 @NearBindgen({})
 class Contract {
+  constructor() {}
+
   @view({})
   add({ a, b }) {
     return a + b;
-    }
+  }
 }
 
+// Unit test (run with: npm test or vitest)
+// For pure logic without near.* calls, test the class directly:
+//
+// import { describe, it, expect } from 'vitest';
+// import { Contract } from './contract';
+//
+// describe('Contract', () => {
+//   it('add returns sum', () => {
+//     const contract = new Contract();
+//     expect(contract.add({ a: 2, b: 3 })).toBe(5);
+//   });
+//   it('add zero', () => {
+//     const contract = new Contract();
+//     expect(contract.add({ a: 0, b: 0 })).toBe(0);
+//   });
+// });
 `,
   },
 }
