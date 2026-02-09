@@ -2,7 +2,6 @@
 export const securityCode = {
   'owner-pattern': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
@@ -151,7 +150,6 @@ class Contract {
   },
   'pausable-contract': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
@@ -264,7 +262,7 @@ impl Contract {
         Self {
             signers: UnorderedSet::new(b"s"),
             required_signatures: 2,
-            approvals: UnorderedSet::new(b"ap"),
+            approvals: UnorderedSet::new(b"a"),
             last_executed_action: None,
         }
     }
@@ -363,7 +361,6 @@ class Contract {
   'upgrade-pattern': {
     Rust: `// Upgrade pattern: init, PanicOnDefault, and migration for post-upgrade schema changes
 use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, require};
 use near_sdk::PanicOnDefault;
 

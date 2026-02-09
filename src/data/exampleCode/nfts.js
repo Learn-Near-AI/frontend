@@ -4,7 +4,7 @@ export const nftsCode = {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, AccountId, require};
+use near_sdk::{env, AccountId, require, NearToken};
 use near_sdk::PanicOnDefault;
 use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 
@@ -29,7 +29,7 @@ impl Contract {
     }
 
     pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String) {
-        require!(env::attached_deposit() == 1, "Requires exactly 1 yoctoNEAR (NEP-171)");
+        require!(env::attached_deposit() == NearToken::from_yoctonear(1), "Requires exactly 1 yoctoNEAR (NEP-171)");
         let mut token = self.tokens.get(&token_id).expect("Token not found");
         require!(token.owner_id == env::predecessor_account_id(), "Not owner");
         token.owner_id = receiver_id;
@@ -68,7 +68,6 @@ class Contract {
   },
   'nft-metadata': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::PanicOnDefault;
 use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
@@ -409,7 +408,6 @@ class Contract {
   },
   'nft-royalties': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -467,7 +465,7 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, AccountId, require};
+use near_sdk::{env, AccountId, require, NearToken, Gas};  // ✅ Add NearToken and Gas
 use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -475,7 +473,7 @@ pub struct Sale {
     token_id: String,
     seller_id: AccountId,
     nft_contract_id: AccountId,
-    price: u128,
+    price: NearToken,  // ✅ Changed from u128 to NearToken
 }
 
 #[near(contract_state)]
@@ -492,7 +490,7 @@ impl Contract {
     }
 
     /// Seller must approve this contract on the NFT contract before listing.
-    pub fn list(&mut self, nft_contract_id: AccountId, token_id: String, price: u128) {
+    pub fn list(&mut self, nft_contract_id: AccountId, token_id: String, price: NearToken) {  // ✅ Changed parameter type
         let listing_id = format!("{}:{}", env::predecessor_account_id(), token_id);
         self.sales.insert(&listing_id, &Sale {
             token_id,
@@ -506,21 +504,31 @@ impl Contract {
     pub fn buy(&mut self, listing_id: String) -> near_sdk::Promise {
         let sale = self.sales.get(&listing_id).expect("Sale not found");
         require!(env::attached_deposit() >= sale.price, "Insufficient payment");
+        
         let seller = sale.seller_id.clone();
         let nft_contract = sale.nft_contract_id.clone();
         let token_id = sale.token_id.clone();
         let price = sale.price;
         let buyer = env::predecessor_account_id();
+        
         self.sales.remove(&listing_id);
         env::log_str(&format!("NFT sale {} to {}", listing_id, buyer));
+        
         let args = format!(r#"{{"owner_id":"{}","receiver_id":"{}","token_id":"{}"}}"#, seller, buyer, token_id);
         let nft_promise = near_sdk::Promise::new(nft_contract)
-            .function_call(b"nft_transfer_from", args.into_bytes(), 1, env::prepaid_gas() / 2);
-        let transfer_promise = near_sdk::Promise::new(seller).transfer(price);
+            .function_call(
+                "nft_transfer_from".to_string(),      // ✅ Changed from b"..." to String
+                args.into_bytes(), 
+                NearToken::from_yoctonear(1),         // ✅ Changed from 1 to NearToken
+                Gas::from_tgas(5)                     // ✅ Changed from env::prepaid_gas() / 2
+            );
+        
+        let transfer_promise = near_sdk::Promise::new(seller).transfer(price);  // ✅ price is already NearToken
+        
         near_sdk::Promise::and(nft_promise, transfer_promise)
     }
 
-    pub fn get_sale(&self, listing_id: String) -> Option<(String, AccountId, AccountId, u128)> {
+    pub fn get_sale(&self, listing_id: String) -> Option<(String, AccountId, AccountId, NearToken)> {  // ✅ Changed return type
         self.sales.get(&listing_id).map(|s| (s.token_id.clone(), s.seller_id.clone(), s.nft_contract_id.clone(), s.price))
     }
 }`,

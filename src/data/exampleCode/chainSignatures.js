@@ -37,7 +37,7 @@ impl Contract {
     /// Request MPC to sign a 32-byte payload. Path derives the target chain address.
     /// Caller must attach ~0.05 NEAR for MPC fee. Returns a Promise that resolves to the signature.
     #[payable]
-    pub fn request_signature(&self, payload: [u8; 32], path: String, key_version: u32) -> Promise {
+    pub fn request_signature(&mut self, payload: [u8; 32], path: String, key_version: u32) -> Promise {
         let request = SignRequest { payload, path, key_version };
         mpc::ext(MPC_CONTRACT.parse().unwrap())
             .with_static_gas(GAS)
@@ -67,7 +67,6 @@ class Contract {
   },
   'signature-verification': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, PanicOnDefault};
 
 #[near(contract_state)]
@@ -112,7 +111,7 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::serde::Serialize;
+use near_sdk::serde::{Serialize, Deserialize};
 use near_sdk::{env, ext_contract, Gas, NearToken, PanicOnDefault, Promise};
 
 #[derive(Serialize, BorshSerialize)]
@@ -122,7 +121,7 @@ pub struct SignRequest {
     pub key_version: u32,
 }
 
-#[derive(BorshSerialize, BorshDeserialize)]
+#[near(serializers = [json, borsh])]
 pub struct RequestRecord {
     pub payload: [u8; 32],
     pub path: String,
@@ -160,7 +159,7 @@ impl Contract {
     }
 
     #[payable]
-    pub fn sign_request(&self, request_id: String, key_version: u32) -> Promise {
+    pub fn sign_request(&mut self, request_id: String, key_version: u32) -> Promise {
         let record = self.requests.get(&request_id).expect("Request not found");
         let req = SignRequest { payload: record.payload, path: record.path, key_version };
         mpc::ext("v1.signer-prod.testnet".parse().unwrap())
@@ -244,7 +243,7 @@ impl Contract {
     }
 
     #[payable]
-    pub fn sign_for_chain(&self, chain_id: String, payload: [u8; 32], key_version: u32) -> Promise {
+    pub fn sign_for_chain(&mut self, chain_id: String, payload: [u8; 32], key_version: u32) -> Promise {
         let path = self.chain_paths.get(&chain_id).unwrap_or_else(|| "ethereum-1".to_string());
         let req = SignRequest { payload, path, key_version };
         mpc::ext("v1.signer-prod.testnet".parse().unwrap())
@@ -283,7 +282,6 @@ class Contract {
   },
   'cross-chain-auth': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, PanicOnDefault};
 
@@ -381,17 +379,23 @@ impl Contract {
 
     /// Request sign, then callback to store the result. MPC returns signature bytes.
     #[payable]
-    pub fn request_sign_and_store(&self, request_id: String, payload: [u8; 32], path: String, key_version: u32) -> Promise {
+    pub fn request_sign_and_store(&mut self, request_id: String, payload: [u8; 32], path: String, key_version: u32) -> Promise {
         let req = SignRequest { payload, path, key_version };
         let account = env::current_account_id();
-        let args = format!(r#"{{"request_id":"{}"}}"#, request_id.replace('"', "\\\""));
+        let args = format!(r#"{{"request_id":"{}"}}"#, request_id.replace('"', "\\\""));  // ✅ Fixed escape
+        
         mpc::ext("v1.signer-prod.testnet".parse().unwrap())
             .with_static_gas(Gas::from_tgas(250))
             .with_attached_deposit(NearToken::from_yoctonear(50_000_000_000_000_000_000_000))
             .sign(req)
-            .and_then(
+            .then(  
                 Promise::new(account)
-                    .function_call(b"on_signature_ready", args.as_bytes(), 0, Gas::from_tgas(50)),
+                    .function_call(
+                        "on_signature_ready".to_string(),  
+                        args.as_bytes().to_vec(),          
+                        NearToken::from_yoctonear(0),      
+                        Gas::from_tgas(50)
+                    )
             )
     }
 

@@ -3,7 +3,7 @@ export const crossContractCode = {
   'simple-calls': {
     Rust: `use near_sdk::near;
 use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId, Promise};
+use near_sdk::{env, AccountId, Promise, NearToken, Gas};  // ✅ Add NearToken and Gas
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -19,10 +19,10 @@ impl Contract {
     pub fn call_other_contract(&self, contract_id: AccountId, method_name: String) -> Promise {
         Promise::new(contract_id)
             .function_call(
-                method_name.as_bytes(),
-                b"{}",
-                0,
-                env::prepaid_gas() / 2,
+                method_name,                          
+                b"{}".to_vec(),                       
+                NearToken::from_yoctonear(0),         
+                Gas::from_tgas(5),                    
             )
     }
 }`,
@@ -45,7 +45,7 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::BorshDeserialize;
 use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId, Promise};
+use near_sdk::{env, AccountId, Promise, NearToken, Gas};  
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -61,10 +61,20 @@ impl Contract {
     /// Call external contract, then callback to process the result.
     pub fn call_then_callback(&self, contract_id: AccountId) -> Promise {
         Promise::new(contract_id.clone())
-            .function_call(b"get_value", b"{}", 0, env::prepaid_gas() / 3)
-            .and_then(
+            .function_call(
+                "get_value".to_string(),           
+                b"{}".to_vec(),                    
+                NearToken::from_yoctonear(0),      
+                Gas::from_tgas(10)                 
+            )
+            .then(                                  
                 Promise::new(env::current_account_id())
-                    .function_call(b"on_result", b"{}", 0, env::prepaid_gas() / 3),
+                    .function_call(
+                        "on_result".to_string(),    
+                        b"{}".to_vec(),             
+                        NearToken::from_yoctonear(0), 
+                        Gas::from_tgas(10)          
+                    )
             )
     }
 
@@ -112,7 +122,7 @@ class Contract {
   'cross-call-ft': {
     Rust: `use near_sdk::near;
 use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId, Promise};
+use near_sdk::{env, AccountId, Promise, NearToken, Gas};  
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -130,10 +140,10 @@ impl Contract {
         let args = format!(r#"{{"receiver_id":"{}","amount":"{}","memo":null}}"#, receiver_id, amount);
         Promise::new(token_contract)
             .function_call(
-                b"ft_transfer",
+                "ft_transfer".to_string(),         
                 args.into_bytes(),
-                1,
-                env::prepaid_gas() / 2,
+                NearToken::from_yoctonear(1),      
+                Gas::from_tgas(10),                
             )
     }
 }`,
@@ -157,7 +167,7 @@ class Contract {
   'cross-call-nft': {
     Rust: `use near_sdk::near;
 use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId, Promise};
+use near_sdk::{env, AccountId, Promise, NearToken, Gas};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -177,10 +187,10 @@ impl Contract {
         );
         Promise::new(nft_contract)
             .function_call(
-                b"nft_transfer_call",
+                "nft_transfer_call".to_string(),    
                 args.into_bytes(),
-                1,
-                env::prepaid_gas() / 2,
+                NearToken::from_yoctonear(1),       
+                Gas::from_tgas(10),                 
             )
     }
 }`,
@@ -208,7 +218,7 @@ class Contract {
   'batch-calls': {
     Rust: `use near_sdk::near;
 use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId, Promise};
+use near_sdk::{env, AccountId, Promise, NearToken, Gas};  // ✅ Add NearToken and Gas
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -222,14 +232,25 @@ impl Contract {
     }
 
     /// Chained calls: execute contract_a, then contract_b (when first completes).
-    /// Use and_then for sequential calls; use Promise::and for parallel.
+    /// Use then for sequential calls; use Promise::and for parallel.
     pub fn batch_call(&self, contract_a: AccountId, contract_b: AccountId) -> Promise {
-        let gas_per_call = env::prepaid_gas() / 3;
+        let gas_per_call = Gas::from_tgas(10);  // ✅ Changed from env::prepaid_gas() / 3
+        
         Promise::new(contract_a)
-            .function_call(b"get_value", b"{}", 0, gas_per_call)
-            .and_then(
+            .function_call(
+                "get_value".to_string(),          // ✅ Changed from b"get_value"
+                b"{}".to_vec(),                   // ✅ Changed from b"{}" to Vec
+                NearToken::from_yoctonear(0),     // ✅ Changed from 0
+                gas_per_call
+            )
+            .then(                                 // ✅ Changed from and_then to then
                 Promise::new(contract_b)
-                    .function_call(b"get_value", b"{}", 0, gas_per_call),
+                    .function_call(
+                        "get_value".to_string(),   // ✅ Changed from b"get_value"
+                        b"{}".to_vec(),            // ✅ Changed from b"{}" to Vec
+                        NearToken::from_yoctonear(0), // ✅ Changed from 0
+                        gas_per_call
+                    )
             )
     }
 }`,

@@ -68,7 +68,7 @@ impl Contract {
         let todo = self.todos.get(&id).expect("Todo not found");
         require!(todo.owner == env::predecessor_account_id(), "Not owner");
         self.todos.remove(&id);
-        let idx = self.todo_ids.iter().position(|&i| i == id).expect("Todo id not in list") as u64;
+        let idx = self.todo_ids.iter().position(|i| i == id).expect("Todo id not in list") as u64;
         self.todo_ids.swap_remove(idx);
     }
 
@@ -203,7 +203,6 @@ class Contract {
   },
   'voting-system': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -288,14 +287,14 @@ class Contract {
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{env, AccountId, require};
+use near_sdk::{env, AccountId, require, NearToken, Gas};
 use near_sdk::PanicOnDefault;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Listing {
     seller_id: AccountId,
     nft_contract_id: AccountId,
-    price: u128,
+    price: NearToken,  // ✅ Changed from u128 to NearToken
     token_id: String,
 }
 
@@ -315,7 +314,7 @@ impl Contract {
     }
 
     /// Seller must approve this contract on the NFT contract before listing.
-    pub fn list_item(&mut self, listing_id: String, nft_contract_id: AccountId, token_id: String, price: u128) {
+    pub fn list_item(&mut self, listing_id: String, nft_contract_id: AccountId, token_id: String, price: NearToken) {
         let seller = env::predecessor_account_id();
         self.listings.insert(&listing_id, &Listing {
             seller_id: seller,
@@ -329,21 +328,31 @@ impl Contract {
     pub fn buy(&mut self, listing_id: String) -> near_sdk::Promise {
         let listing = self.listings.get(&listing_id).expect("Listing not found");
         require!(env::attached_deposit() >= listing.price, "Insufficient payment");
+        
         let seller = listing.seller_id.clone();
         let nft_contract = listing.nft_contract_id.clone();
         let token_id = listing.token_id.clone();
         let price = listing.price;
         let buyer = env::predecessor_account_id();
+        
         self.listings.remove(&listing_id);
         env::log_str(&format!("Sold {} to {}", listing_id, buyer));
+        
         let transfer_promise = near_sdk::Promise::new(seller.clone()).transfer(price);
+        
         let args = format!(r#"{{"owner_id":"{}","receiver_id":"{}","token_id":"{}"}}"#, seller, buyer, token_id);
         let nft_promise = near_sdk::Promise::new(nft_contract)
-            .function_call(b"nft_transfer_from", args.into_bytes(), 1, env::prepaid_gas() / 2);
+            .function_call(
+                "nft_transfer_from".to_string(),  // ✅ Changed from b"..." to String
+                args.into_bytes(), 
+                NearToken::from_yoctonear(1),     // ✅ Changed from 1 to NearToken
+                Gas::from_tgas(5)                 // ✅ Changed from env::prepaid_gas() / 2
+            );
+        
         near_sdk::Promise::and(transfer_promise, nft_promise)
     }
 
-    pub fn get_listing(&self, listing_id: String) -> Option<(AccountId, AccountId, u128, String)> {
+    pub fn get_listing(&self, listing_id: String) -> Option<(AccountId, AccountId, NearToken, String)> {
         self.listings.get(&listing_id).map(|l| (l.seller_id.clone(), l.nft_contract_id.clone(), l.price, l.token_id.clone()))
     }
 }`,
@@ -410,7 +419,6 @@ class Contract {
   'batch-operations': {
     Rust: `// Batch operations + gas optimization: process multiple items atomically with size limits
 use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
 use near_sdk::{require, PanicOnDefault};
 

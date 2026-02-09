@@ -33,7 +33,7 @@ class Contract {
   },
   'contract-structure': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::PanicOnDefault;
 use near_sdk::{env, AccountId};
 
 #[near(contract_state)]
@@ -180,7 +180,6 @@ class Contract {
   },
   'state-management': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::PanicOnDefault;
 
 #[near(contract_state)]
@@ -390,7 +389,6 @@ class Contract {
   },
   'events': {
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::env;
 use near_sdk::PanicOnDefault;
 
@@ -542,7 +540,6 @@ class Contract {
   'collections-map': {
     Rust: `use near_sdk::near;
 use near_sdk::AccountId;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::PanicOnDefault;
 
