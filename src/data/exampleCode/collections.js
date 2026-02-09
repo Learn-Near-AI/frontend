@@ -2,6 +2,95 @@
 // Note: storage-keys merged into collections-vector (basics.js)
 export const collectionsCode = {
   'todo-list': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::{UnorderedMap, Vector};
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Todo {
+    id: u64,
+    title: String,
+    completed: bool,
+    owner: AccountId,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    todos: UnorderedMap<u64, Todo>,
+    todo_ids: Vector<u64>,
+    next_id: u64,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            todos: UnorderedMap::new(b"t"),
+            todo_ids: Vector::new(b"i"),
+            next_id: 1,
+        }
+    }
+
+    pub fn add_todo(&mut self, title: String) {
+        // Require non-empty title; create a Todo for the predecessor, insert it, push id to todo_ids, increment next_id.
+        let _: u64 = ();
+    }
+
+    pub fn complete_todo(&mut self, id: u64) {
+        // Get the todo, require the caller is the owner, set completed to true, and save.
+        let _: u64 = ();
+    }
+
+    pub fn update_todo(&mut self, id: u64, title: String) {
+        // Require non-empty title; get the todo; require owner; update title and insert.
+        let _: u64 = ();
+    }
+
+    pub fn delete_todo(&mut self, id: u64) {
+        // Get the todo; require owner; remove from both todos and todo_ids.
+        let _: u64 = ();
+    }
+
+    pub fn get_todos(&self) -> Vec<(u64, String, bool, AccountId)> {
+        self.todo_ids.iter()
+            .filter_map(|id| self.todos.get(&id).map(|t| (t.id, t.title.clone(), t.completed, t.owner.clone())))
+            .collect()
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ todos, next_id } = { todos: [], next_id: 1 }) {
+    this.todos = todos || [];
+    this.next_id = next_id;
+  }
+
+  @view({})
+  get_todos() {
+    return this.todos;
+  }
+
+  @call({})
+  add_todo({ title }) {
+    // TODO: if (!title.length) near.panic("..."); push { id: this.next_id, title, completed: false, owner: near.predecessorAccountId() }; this.next_id++
+  }
+
+  @call({})
+  complete_todo({ id }) {
+    // TODO: find todo; require todo.owner === predecessor; set completed = true
+  }
+
+  @call({})
+  update_todo({ id, title }) { /* TODO: require owner; update title */ }
+  @call({})
+  delete_todo({ id }) { /* TODO: require owner; remove */ }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{UnorderedMap, Vector};
@@ -133,6 +222,61 @@ class Contract {
 `,
   },
   'user-profiles': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Profile {
+    name: String,
+    bio: String,
+    created_at: u64,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    profiles: UnorderedMap<AccountId, Profile>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { profiles: UnorderedMap::new(b"p") }
+    }
+
+    pub fn set_profile(&mut self, name: String, bio: String) {
+        // Store a Profile for the predecessor with name, bio, and created_at from block_timestamp.
+        let _: u64 = ();
+    }
+
+    pub fn get_profile(&self, account: AccountId) -> Option<(String, String, u64)> {
+        // Return the profile's (name, bio, created_at) if present.
+        ()
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ profiles } = { profiles: {} }) {
+    this.profiles = profiles || {};
+  }
+
+  @view({})
+  get_profile({ account }) {
+    return this.profiles[account] || null;
+  }
+
+  @call({})
+  set_profile({ name, bio }) {
+    // TODO: this.profiles[near.predecessorAccountId()] = { name, bio, created_at: near.blockTimestamp() };
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
@@ -202,6 +346,60 @@ class Contract {
 `,
   },
   'voting-system': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    votes_yes: u64,
+    votes_no: u64,
+    voters: UnorderedSet<AccountId>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            votes_yes: 0,
+            votes_no: 0,
+            voters: UnorderedSet::new(b"v"),
+        }
+    }
+
+    pub fn vote(&mut self, choice: bool) {
+        // Require the caller has not voted; record the voter; increment votes_yes or votes_no by choice.
+        let _: u64 = ();
+    }
+
+    pub fn get_results(&self) -> (u64, u64) {
+        (self.votes_yes, self.votes_no)
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ votes_yes, votes_no, voters } = { votes_yes: 0, votes_no: 0, voters: [] }) {
+    this.votes_yes = votes_yes;
+    this.votes_no = votes_no;
+    this.voters = voters || [];
+  }
+
+  @view({})
+  get_results() {
+    return [this.votes_yes, this.votes_no];
+  }
+
+  @call({})
+  vote({ choice }) {
+    // TODO: if (this.voters.includes(near.predecessorAccountId())) near.panic("Already voted"); push voter; increment votes_yes or votes_no
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
@@ -284,6 +482,72 @@ class Contract {
 `,
   },
   'simple-marketplace': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require, NearToken, Gas};
+use near_sdk::PanicOnDefault;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Listing {
+    seller_id: AccountId,
+    nft_contract_id: AccountId,
+    price: NearToken,
+    token_id: String,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    listings: UnorderedMap<String, Listing>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { listings: UnorderedMap::new(b"l") }
+    }
+
+    pub fn list_item(&mut self, listing_id: String, nft_contract_id: AccountId, token_id: String, price: NearToken) {
+        // Store a Listing with the predecessor as seller and the given nft_contract_id, price, token_id.
+        let _: u64 = ();
+    }
+
+    #[payable]
+    pub fn buy(&mut self, listing_id: String) -> near_sdk::Promise {
+        // Get the listing; require attached deposit >= price; remove listing; transfer price to seller and call nft_transfer_from.
+        ()
+    }
+
+    pub fn get_listing(&self, listing_id: String) -> Option<(AccountId, AccountId, NearToken, String)> {
+        self.listings.get(&listing_id).map(|l| (l.seller_id.clone(), l.nft_contract_id.clone(), l.price, l.token_id.clone()))
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near, NearPromise, bytes } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ listings } = { listings: {} }) {
+    this.listings = listings || {};
+  }
+
+  @view({})
+  get_listing({ listing_id }) {
+    return this.listings[listing_id] || null;
+  }
+
+  @call({})
+  list_item({ listing_id, nft_contract_id, token_id, price }) {
+    // TODO: this.listings[listing_id] = { seller_id: near.predecessorAccountId(), nft_contract_id, price, token_id };
+  }
+
+  @call({ payable: true })
+  buy({ listing_id }) {
+    // TODO: require listing exists and attachedDeposit >= price; delete listing; NearPromise nft_transfer_from + transfer to seller
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
@@ -417,6 +681,63 @@ class Contract {
 `,
   },
   'batch-operations': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::collections::Vector;
+use near_sdk::{require, PanicOnDefault};
+
+const MAX_BATCH: u32 = 100;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    items: Vector<String>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { items: Vector::new(b"i") }
+    }
+
+    pub fn add_many(&mut self, items: Vec<String>) {
+        // Require items.len() <= MAX_BATCH; then push each item onto self.items.
+        let _: u64 = ();
+    }
+
+    pub fn get_all(&self) -> Vec<String> {
+        self.items.iter().collect()
+    }
+
+    pub fn len(&self) -> u64 {
+        self.items.len()
+    }
+}`,
+    JavaScriptExercise: `const MAX_BATCH = 100;
+import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ items } = { items: [] }) {
+    this.items = items || [];
+  }
+
+  @view({})
+  get_all() {
+    return this.items;
+  }
+
+  @view({})
+  len() {
+    return this.items.length;
+  }
+
+  @call({})
+  add_many({ items }) {
+    // TODO: if (items.length > MAX_BATCH) near.panic("Batch too large"); items.forEach(i => this.items.push(i));
+  }
+}
+`,
     Rust: `// Batch operations + gas optimization: process multiple items atomically with size limits
 use near_sdk::near;
 use near_sdk::collections::Vector;

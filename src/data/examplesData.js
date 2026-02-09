@@ -1,6 +1,8 @@
 // Examples metadata - organized from basic to advanced
 export const examplesData = {
   Basics: [
+    // Learning path intro (no code; recommended order)
+    { id: 'intro', name: 'Intro', difficulty: 'Beginner', language: 'Intro' },
     // Beginner - Foundation
     { id: 'hello-world', name: 'Hello World', difficulty: 'Beginner', language: 'Rust' },
     { id: 'contract-structure', name: 'Contract Structure', difficulty: 'Beginner', language: 'Rust' },

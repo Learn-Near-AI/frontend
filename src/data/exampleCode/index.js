@@ -9,9 +9,10 @@ import { chainSignaturesCode } from './chainSignatures.js'
 import { indexingCode } from './indexing.js'
 import { COMING_SOON_TEMPLATE } from '../constants.js'
 
-// List of example IDs that have working implementations
+// List of example IDs that have working implementations (full learning UI, incl. Intro path)
 export const WORKING_EXAMPLES = [
-  // Basics (10)
+  // Basics — Intro = structured learning path; rest = runnable contracts
+  'intro',
   'hello-world',
   'contract-structure',
   'view-methods',

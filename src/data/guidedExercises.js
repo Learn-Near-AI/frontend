@@ -1,0 +1,347 @@
+// Guided exercises (Starklings / CryptoZombies style): ~50% code completion, hints, "Put it to the test"
+// Basics (10) + Access Control & Security (5) + Collections & Data (5) + NFTs (7). Fails if instructions not followed.
+
+export const BASIC_GUIDED_EXAMPLES = [
+  // Basics
+  'hello-world',
+  'contract-structure',
+  'view-methods',
+  'change-methods',
+  'state-management',
+  'input-validation',
+  'error-handling',
+  'events',
+  'collections-vector',
+  'collections-map',
+  // Access Control & Security
+  'owner-pattern',
+  'role-based-access',
+  'pausable-contract',
+  'multi-signature',
+  'upgrade-pattern',
+  // Collections & Data
+  'todo-list',
+  'user-profiles',
+  'voting-system',
+  'simple-marketplace',
+  'batch-operations',
+  // NFTs
+  'nft-standard',
+  'nft-metadata',
+  'nft-minting',
+  'nft-approval',
+  'nft-enumeration',
+  'nft-royalties',
+  'nft-marketplace',
+];
+
+export const isGuidedExample = (exampleId) =>
+  BASIC_GUIDED_EXAMPLES.includes(exampleId);
+
+// "Put it to the test" section content (markdown) for ExplanationTab
+export const putItToTheTest = {
+  'hello-world': `### Put it to the test
+
+- Complete the **\`hello_world\`** method so it returns the string **"Hello, NEAR!"**.
+- Run the contract; it should compile and the view method should return that greeting.`,
+
+  'contract-structure': `### Put it to the test
+
+- Add the **\`owner_id\`** state field (type \`AccountId\`) to the contract struct.
+- In **\`new\`**, set \`owner_id\` to **\`env::current_account_id()\`**.
+- Implement **\`get_owner\`** to return the stored \`owner_id\`.
+- Run to verify it compiles and returns the current account.`,
+
+  'view-methods': `### Put it to the test
+
+- Add a **\`get_greeting_length\`** view method that returns the length of \`greeting\` (e.g. \`u64\` in Rust, \`number\` in JS).
+- Keep **\`get_greeting\`** returning the string. Run and call both; both should succeed.`,
+
+  'change-methods': `### Put it to the test
+
+- Implement **\`set_greeting\`** so it updates the contract's \`greeting\` state with the given string.
+- Implement **\`append_suffix\`** so it appends the given suffix to the current \`greeting\`.
+- Run to compile; deploy to test state changes.`,
+
+  'state-management': `### Put it to the test
+
+- Add a **\`counter\`** state field (e.g. \`u64\` / number), initialized to **0** in \`new\`.
+- Implement **\`increment\`** to add 1 to \`counter\`.
+- Implement **\`get_counter\`** to return the current \`counter\`.
+- Run and verify; after increment, get_counter should return the new value.`,
+
+  'input-validation': `### Put it to the test
+
+- In **\`set_message\`**, add **\`require!\`** (Rust) or **\`near.panic\`** (JS): message must be **non-empty** and **max 100** characters.
+- Run to compile; calling set_message with empty or too-long string should fail with your message.`,
+
+  'error-handling': `### Put it to the test
+
+- Implement **\`try_parse_number\`** to return \`Option<u64>\` / \`number | null\`: \`Some(n)\` if the string parses, else \`None\`.
+- Implement **\`safe_divide(a, b)\`** to return \`Option\`: result if \`b != 0\`, else \`None\`.
+- Run (and run tests in Rust) so the contract compiles and tests pass.`,
+
+  'events': `### Put it to the test
+
+- In **\`set_message\`**, after updating state, emit an **NEP-297** event: log a string starting with **\`EVENT_JSON:\`** followed by JSON with \`standard\`, \`version\`, \`event\`, and \`data\` (e.g. \`MessageUpdated\` with \`new_message\`).
+- Run to compile; calling set_message should update state and emit the event.`,
+
+  'collections-vector': `### Put it to the test
+
+- Add a **\`Vector<String>\`** (or array in JS) with a **unique storage prefix** (e.g. \`b"i"\` / \`"i"\`).
+- Implement **\`add_item\`**, **\`get_item(index)\`**, and **\`get_items\`** (return all). Optionally **\`remove_item(index)\`** (swap-remove for O(1) in Rust).
+- Run to compile and verify add/get behavior.`,
+
+  'collections-map': `### Put it to the test
+
+- Add a **map** from \`AccountId\` to \`u64\` (or account → number in JS) with a unique prefix.
+- Implement **\`set_balance(account, amount)\`**, **\`get_balance(account)\`**, and **\`remove_balance(account)\`**.
+- Run to compile and verify get/set/remove.`,
+
+  // Access Control & Security
+  'owner-pattern': `### Put it to the test
+
+- Implement **\`assert_owner\`**: require that \`env::predecessor_account_id() == self.owner_id\` (Rust) or \`near.predecessorAccountId() === this.owner_id\` (JS); otherwise panic with "Only owner can call this method".
+- In **\`set_value\`**, call \`assert_owner\` before updating \`value\`. Run; only the owner account should be able to set_value.`,
+
+  'role-based-access': `### Put it to the test
+
+- In **\`add_admin\`**, require that the caller is either \`owner_id\` or already in \`admins\`; then insert the new account into \`admins\`.
+- In **\`admin_only_action\`**, require that \`env::predecessor_account_id()\` (or predecessor) is in \`admins\`. Run; non-admins must not be able to call admin_only_action.`,
+
+  'pausable-contract': `### Put it to the test
+
+- Implement **\`pause\`** and **\`unpause\`** so only \`owner_id\` can call them; set \`paused\` to \`true\` / \`false\`.
+- In **\`action\`**, require \`!self.paused\` (or \`!this.paused\`) or panic "Contract is paused". Run; when paused, action must fail.`,
+
+  'multi-signature': `### Put it to the test
+
+- In **\`approve\`**, require the caller is in \`signers\`; then insert a key like \`action:signer\` into \`approvals\`.
+- In **\`can_execute\`**, count how many signers have approved this action; return true if count >= \`required_signatures\`.
+- In **\`execute\`**, require \`can_execute\`; then clear those approvals and set \`last_executed_action\`. Run; execute must fail until enough approvals.`,
+
+  'upgrade-pattern': `### Put it to the test
+
+- Store **\`owner_id\`** and **\`version\`** in state; set in \`new()\`.
+- **\`migrate\`**: require caller is owner; increment \`version\` and log. Run; only owner should be able to call migrate.`,
+
+  // Collections & Data
+  'todo-list': `### Put it to the test
+
+- **\`add_todo\`**: validate non-empty title; create a todo with \`next_id\`, \`owner = predecessor\`, push to storage and \`todo_ids\`; increment \`next_id\`.
+- **\`complete_todo\`** / **\`update_todo\`** / **\`delete_todo\`**: require the todo exists and \`todo.owner == predecessor\`; then update or remove. Run; only the owner of a todo can complete/update/delete it.`,
+
+  'user-profiles': `### Put it to the test
+
+- **\`set_profile(name, bio)\`**: set \`profiles[predecessor] = { name, bio, created_at: block_timestamp }\`.
+- **\`get_profile(account)\`**: return the profile for that account or None. Run; get_profile must return what was set.`,
+
+  'voting-system': `### Put it to the test
+
+- **\`vote(choice)\`**: require the predecessor has not voted (not in \`voters\`); insert into \`voters\`; increment \`votes_yes\` or \`votes_no\` by choice.
+- **\`get_results\`**: return \`(votes_yes, votes_no)\`. Run; double-voting must fail; get_results must match votes cast.`,
+
+  'simple-marketplace': `### Put it to the test
+
+- **\`list_item\`**: store a listing (seller, nft_contract_id, token_id, price) keyed by \`listing_id\`.
+- **\`buy\`**: require listing exists and attached deposit >= price; remove listing; transfer payment to seller and call NFT \`nft_transfer_from\` (use callback to send payment only if NFT transfer succeeds). Run; buy must fail if payment too low.`,
+
+  'batch-operations': `### Put it to the test
+
+- **\`add_many(items)\`**: require \`items.len() <= MAX_BATCH\` (e.g. 100); push each item to storage.
+- **\`get_all\`** / **\`len\`**: return all items and length. Run; add_many with > MAX_BATCH must fail.`,
+
+  // NFTs
+  'nft-standard': `### Put it to the test
+
+- **\`nft_transfer\`**: require attached deposit == 1 yoctoNEAR; require token exists and \`token.owner_id == predecessor\`; set \`token.owner_id = receiver_id\` and save.
+- **\`nft_token(token_id)\`**: return (token_id, owner_id, metadata) or None. Run; transfer must fail without 1 yoctoNEAR and if not owner.`,
+
+  'nft-metadata': `### Put it to the test
+
+- **\`set_metadata(token_id, title, description, media)\`**: build a \`TokenMetadata\` and insert into \`metadata\` map.
+- **\`get_metadata(token_id)\`**: return the metadata or None. Run; get_metadata must return what was set.`,
+
+  'nft-minting': `### Put it to the test
+
+- **\`mint(receiver_id)\`**: require caller is \`owner_id\`; create a new token with \`next_id\`, assign \`owner_id = receiver_id\`; increment \`next_id\`; return token_id.
+- **\`get_token\`**: return token_id and owner. Run; only owner can mint; get_token must return correct owner.`,
+
+  'nft-approval': `### Put it to the test
+
+- **\`approve(token_id, account_id)\`**: require token exists and \`token.owner_id == predecessor\`; set \`approved_account_id = Some(account_id)\`.
+- **\`transfer_from\`**: require owner or approved account is predecessor; move token to receiver and clear approval. Run; transfer_from must fail if not owner or approved.`,
+
+  'nft-enumeration': `### Put it to the test
+
+- **\`mint(receiver_id)\`**: owner-only; insert token into \`tokens\` and push \`token_id\` to \`token_ids\`; increment \`next_id\`.
+- **\`nft_tokens(from_index, limit)\`**: return a page of (token_id, owner_id) from \`token_ids\`. **\`nft_total_supply\`**: return \`token_ids.len()\`. Run; supply and list must match mints.`,
+
+  'nft-royalties': `### Put it to the test
+
+- **\`set_royalty(token_id, percent_basis_points)\`**: require caller is owner; require percent_basis_points <= 10000; insert into \`royalties\`.
+- **\`get_royalty(token_id)\`**: return the value or None. Run; only owner can set_royalty; get_royalty must return set value.`,
+
+  'nft-marketplace': `### Put it to the test
+
+- **\`list\`**: store a sale (token_id, seller, nft_contract_id, price) with a unique listing_id.
+- **\`buy\`**: require sale exists and attached deposit >= price; remove sale; call NFT \`nft_transfer_from\` and on success send payment to seller (callback pattern). Run; buy must fail if underpaid.`,
+};
+
+// Hints per example (by language). Shown in order; "Show solution" reveals full code.
+export const exerciseHints = {
+  'hello-world': {
+    Rust: [
+      'The method should return a String. In Rust use `.to_string()` on a string literal.',
+      'The exact string to return is "Hello, NEAR!" (with the comma and exclamation mark).',
+    ],
+    JavaScript: [
+      'Use a view method (no state change). Return a string from the method.',
+      'The exact string to return is "Hello, NEAR!"',
+    ],
+  },
+  'contract-structure': {
+    Rust: [
+      'Add `owner_id: AccountId` to the struct. Derive or use #[near(contract_state)] so it is serialized.',
+      'In `new()`, set `owner_id: env::current_account_id()`. Implement `get_owner` to return `self.owner_id.clone()`.',
+    ],
+    JavaScript: [
+      'Store owner_id in the constructor using near.currentAccountId(). Add a @view get_owner that returns it.',
+    ],
+  },
+  'view-methods': {
+    Rust: [
+      'Add a method that returns u64. Use `self.greeting.len() as u64`.',
+    ],
+    JavaScript: [
+      'Add a @view method that returns this.greeting.length.',
+    ],
+  },
+  'change-methods': {
+    Rust: [
+      'set_greeting: take a String, assign to self.greeting. append_suffix: use greeting.push_str(&suffix).',
+    ],
+    JavaScript: [
+      'Use @call for methods that change state. set_greeting: this.greeting = greeting. append_suffix: this.greeting += suffix.',
+    ],
+  },
+  'state-management': {
+    Rust: [
+      'Add counter: u64 to the struct. In new() set counter: 0. increment: self.counter += 1. get_counter: return self.counter.',
+    ],
+    JavaScript: [
+      'Store counter in constructor (default 0). increment: this.counter += 1. get_counter: return this.counter.',
+    ],
+  },
+  'input-validation': {
+    Rust: [
+      'Use require!(condition, "message"). Check message.len() > 0 and message.len() <= 100.',
+    ],
+    JavaScript: [
+      'Use near.panic("message") when invalid. Check message.length === 0 and message.length > 100.',
+    ],
+  },
+  'error-handling': {
+    Rust: [
+      'try_parse_number: s.parse().ok(). safe_divide: if b == 0 { return None; } else { Some(a / b) }.',
+    ],
+    JavaScript: [
+      'Return null for invalid parse or division by zero. Use parseInt and isNaN, or check b === 0.',
+    ],
+  },
+  'events': {
+    Rust: [
+      'Use env::log_str with a string that starts with "EVENT_JSON:" then JSON. format! and r#"..."# for the JSON.',
+    ],
+    JavaScript: [
+      'Use near.log("EVENT_JSON:" + JSON.stringify({ standard, version, event, data })).',
+    ],
+  },
+  'collections-vector': {
+    Rust: [
+      'Use Vector::new(b"i") for the prefix. push, get(index), iter().collect() for get_items. swap_remove for remove.',
+    ],
+    JavaScript: [
+      'Use an array in state. push for add_item, [index] for get_item, spread or slice for get_items.',
+    ],
+  },
+  'collections-map': {
+    Rust: [
+      'Use UnorderedMap::new(b"b"). insert(&account, &amount), get(&account), remove(&account).',
+    ],
+    JavaScript: [
+      'Use an object: this.balances[account] = amount, this.balances[account], delete this.balances[account].',
+    ],
+  },
+  // Access Control & Security
+  'owner-pattern': {
+    Rust: ['assert_owner: require!(env::predecessor_account_id() == self.owner_id, "Only owner..."). set_value: call self.assert_owner() then self.value = value.'],
+    JavaScript: ['assert_owner: if (near.predecessorAccountId() !== this.owner_id) near.panic("..."). set_value: call this.assert_owner() then set this.value.'],
+  },
+  'role-based-access': {
+    Rust: ['add_admin: require!(pred == owner_id || admins.contains(&pred)). admins.insert(&account). admin_only_action: require!(is_admin(env::predecessor_account_id())).'],
+    JavaScript: ['add_admin: check pred === owner_id || admins.includes(pred); then push account. admin_only_action: require is_admin(predecessor).'],
+  },
+  'pausable-contract': {
+    Rust: ['pause/unpause: require predecessor == owner_id; set self.paused = true/false. action: require!(!self.paused, "Contract is paused").'],
+    JavaScript: ['pause/unpause: check owner; set this.paused. action: if (this.paused) near.panic("Contract is paused").'],
+  },
+  'multi-signature': {
+    Rust: ['approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: count approvals for action, return count >= required.'],
+    JavaScript: ['approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count matching approvals >= required_signatures.'],
+  },
+  'upgrade-pattern': {
+    Rust: ['new: set owner_id and version. migrate: require!(predecessor == owner_id); self.version += 1; env::log_str(...).'],
+    JavaScript: ['Store owner_id, version. migrate: if (predecessor !== owner_id) near.panic(...); this.version += 1.'],
+  },
+  // Collections & Data
+  'todo-list': {
+    Rust: ['add_todo: require! title; create Todo { id: next_id, owner: env::predecessor_account_id() }; insert and push; next_id += 1. complete_todo: get todo, require todo.owner == predecessor, set completed = true, insert.'],
+    JavaScript: ['add_todo: push { id, title, completed, owner: predecessor }; next_id++. complete_todo: find todo, require owner, set completed = true.'],
+  },
+  'user-profiles': {
+    Rust: ['set_profile: profiles.insert(&env::predecessor_account_id(), &Profile { name, bio, created_at: env::block_timestamp() }). get_profile: profiles.get(&account).'],
+    JavaScript: ['set_profile: this.profiles[predecessor] = { name, bio, created_at: near.blockTimestamp() }. get_profile: return this.profiles[account].'],
+  },
+  'voting-system': {
+    Rust: ['vote: require!(!voters.contains(&voter)); voters.insert(&voter); if choice { votes_yes += 1 } else { votes_no += 1 }. get_results: (votes_yes, votes_no).'],
+    JavaScript: ['vote: if (voters.includes(voter)) panic; push voter; increment votes_yes or votes_no. get_results: [votes_yes, votes_no].'],
+  },
+  'simple-marketplace': {
+    Rust: ['list_item: insert Listing { seller, nft_contract_id, token_id, price }. buy: require deposit >= price; remove listing; Promise::new(seller).transfer(price) and function_call nft_transfer_from.'],
+    JavaScript: ['list_item: this.listings[id] = { seller_id, nft_contract_id, token_id, price }. buy: check deposit; delete listing; NearPromise.functionCall nft_transfer_from, then transfer.'],
+  },
+  'batch-operations': {
+    Rust: ['add_many: require!(items.len() <= MAX_BATCH); for item in items { self.items.push(&item) }. get_all: self.items.iter().collect().'],
+    JavaScript: ['add_many: if (items.length > MAX_BATCH) panic; items.forEach(i => this.items.push(i)). get_all: return this.items.'],
+  },
+  // NFTs
+  'nft-standard': {
+    Rust: ['nft_transfer: require!(env::attached_deposit() == 1); get token, require token.owner_id == predecessor; token.owner_id = receiver_id; insert. nft_token: tokens.get(&token_id).'],
+    JavaScript: ['nft_transfer: if (near.attachedDeposit() !== 1n) panic; get token, check owner; set token.owner_id = receiver_id. nft_token: return this.tokens[token_id].'],
+  },
+  'nft-metadata': {
+    Rust: ['set_metadata: TokenMetadata { title: Some(title), description, media, ... }; metadata.insert(&token_id, &meta). get_metadata: metadata.get(&token_id).'],
+    JavaScript: ['set_metadata: this.metadata[token_id] = { title, description, media, ... }. get_metadata: return this.metadata[token_id].'],
+  },
+  'nft-minting': {
+    Rust: ['mint: require!(env::predecessor_account_id() == self.owner_id); token_id = next_id.to_string(); insert Token { token_id, owner_id: receiver_id }; next_id += 1; return token_id.'],
+    JavaScript: ['mint: if (predecessor !== this.owner_id) panic; token_id = String(next_id); this.tokens[token_id] = { token_id, owner_id: receiver_id }; next_id++; return token_id.'],
+  },
+  'nft-approval': {
+    Rust: ['approve: get token, require token.owner_id == predecessor; token.approved_account_id = Some(account_id); insert. transfer_from: require owner or approved == predecessor; update owner, clear approval.'],
+    JavaScript: ['approve: require token.owner_id === predecessor; token.approved_account_id = account_id. transfer_from: require owner or approved; update owner, clear approval.'],
+  },
+  'nft-enumeration': {
+    Rust: ['mint: owner check; insert token; token_ids.push(&token_id); next_id += 1. nft_tokens: token_ids.iter().skip(from_index).take(limit).filter_map(|id| tokens.get(id)). nft_total_supply: token_ids.len().'],
+    JavaScript: ['mint: push to token_ids. nft_tokens: token_ids.slice(from_index, from_index + limit).map(id => tokens[id]). nft_total_supply: token_ids.length.'],
+  },
+  'nft-royalties': {
+    Rust: ['set_royalty: require predecessor == owner_id; require percent_basis_points <= 10000; royalties.insert(&token_id, &percent). get_royalty: royalties.get(&token_id).'],
+    JavaScript: ['set_royalty: check owner (add if missing); require percent <= 10000; this.royalties[token_id] = percent. get_royalty: return this.royalties[token_id].'],
+  },
+  'nft-marketplace': {
+    Rust: ['list: insert Sale { token_id, seller_id, nft_contract_id, price }. buy: require deposit >= price; remove sale; Promise nft_transfer_from + transfer to seller; use callback to send payment after NFT transfer.'],
+    JavaScript: ['list: sales[listing_id] = { token_id, seller_id, nft_contract_id, price }. buy: require deposit; delete sale; NearPromise nft_transfer_from then on_payment_sent to transfer.'],
+  },
+};

@@ -1,6 +1,61 @@
 // NFT examples
 export const nftsCode = {
   'nft-standard': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require, NearToken};
+use near_sdk::PanicOnDefault;
+use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Token {
+    pub token_id: String,
+    pub owner_id: AccountId,
+    pub metadata: Option<TokenMetadata>,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    tokens: UnorderedMap<String, Token>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { tokens: UnorderedMap::new(b"t") }
+    }
+
+    pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String) {
+        // Require exactly 1 yoctoNEAR deposit; get the token; require caller is owner; set owner to receiver and save.
+        let _: u64 = ();
+    }
+
+    pub fn nft_token(&self, token_id: String) -> Option<(String, AccountId, Option<TokenMetadata>)> {
+        self.tokens.get(&token_id).map(|t| (t.token_id.clone(), t.owner_id.clone(), t.metadata.clone()))
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ tokens } = { tokens: {} }) {
+    this.tokens = tokens || {};
+  }
+
+  @view({})
+  nft_token({ token_id }) {
+    return this.tokens[token_id] || null;
+  }
+
+  @call({})
+  nft_transfer({ receiver_id, token_id }) {
+    // TODO: if (near.attachedDeposit() !== 1n) near.panic("Requires 1 yoctoNEAR"); get token; require owner; set owner_id = receiver_id
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
@@ -67,6 +122,52 @@ class Contract {
 `,
   },
   'nft-metadata': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::collections::UnorderedMap;
+use near_sdk::PanicOnDefault;
+use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    metadata: UnorderedMap<String, TokenMetadata>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { metadata: UnorderedMap::new(b"m") }
+    }
+
+    pub fn set_metadata(&mut self, token_id: String, title: String, description: String, media: String) {
+        // Build TokenMetadata (title, description, media; other fields optional) and insert for token_id.
+        let _: u64 = ();
+    }
+
+    pub fn get_metadata(&self, token_id: String) -> Option<TokenMetadata> {
+        self.metadata.get(&token_id)
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ metadata } = { metadata: {} }) {
+    this.metadata = metadata || {};
+  }
+
+  @view({})
+  get_metadata({ token_id }) {
+    return this.metadata[token_id] || null;
+  }
+
+  @call({})
+  set_metadata({ token_id, title, description, media }) {
+    // TODO: this.metadata[token_id] = { title, description, media, ... };
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::collections::UnorderedMap;
 use near_sdk::PanicOnDefault;
@@ -142,6 +243,68 @@ class Contract {
 `,
   },
   'nft-minting': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Token {
+    token_id: String,
+    owner_id: AccountId,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    tokens: UnorderedMap<String, Token>,
+    next_id: u64,
+    owner_id: AccountId,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            tokens: UnorderedMap::new(b"t"),
+            next_id: 1,
+            owner_id: env::current_account_id(),
+        }
+    }
+
+    pub fn mint(&mut self, receiver_id: AccountId) -> String {
+        // Require caller is owner; create token with next_id, insert, push to token list, increment next_id; return token_id.
+        ()
+    }
+
+    pub fn get_token(&self, token_id: String) -> Option<(String, AccountId)> {
+        self.tokens.get(&token_id).map(|t| (t.token_id.clone(), t.owner_id.clone()))
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ tokens, next_id, owner_id } = { tokens: {}, next_id: 1, owner_id: near.currentAccountId() }) {
+    this.tokens = tokens || {};
+    this.next_id = next_id;
+    this.owner_id = owner_id;
+  }
+
+  @view({})
+  get_token({ token_id }) {
+    return this.tokens[token_id] || null;
+  }
+
+  @call({})
+  mint({ receiver_id }) {
+    // TODO: require predecessor === this.owner_id; token_id = String(this.next_id); this.tokens[token_id] = { token_id, owner_id: receiver_id }; this.next_id++; return token_id
+    return "";
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
@@ -220,6 +383,69 @@ class Contract {
 `,
   },
   'nft-approval': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Token {
+    owner_id: AccountId,
+    approved_account_id: Option<AccountId>,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    tokens: UnorderedMap<String, Token>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { tokens: UnorderedMap::new(b"t") }
+    }
+
+    pub fn approve(&mut self, token_id: String, account_id: AccountId) {
+        // Get the token; require the caller is the owner; set approved_account_id and save.
+        let _: u64 = ();
+    }
+
+    pub fn transfer_from(&mut self, owner_id: AccountId, receiver_id: AccountId, token_id: String) {
+        // Get the token; require caller is owner or approved; set owner to receiver, clear approval, save.
+        let _: u64 = ();
+    }
+
+    pub fn get_approved(&self, token_id: String) -> Option<AccountId> {
+        self.tokens.get(&token_id).and_then(|t| t.approved_account_id.clone())
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ tokens } = { tokens: {} }) {
+    this.tokens = tokens || {};
+  }
+
+  @view({})
+  get_approved({ token_id }) {
+    return this.tokens[token_id]?.approved_account_id ?? null;
+  }
+
+  @call({})
+  approve({ token_id, account_id }) {
+    // TODO: require token.owner_id === predecessor; set approved_account_id
+  }
+
+  @call({})
+  transfer_from({ owner_id, receiver_id, token_id }) {
+    // TODO: require owner or approved; update owner; clear approval
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
@@ -306,6 +532,81 @@ class Contract {
 `,
   },
   'nft-enumeration': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::{UnorderedMap, Vector};
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Token {
+    token_id: String,
+    owner_id: AccountId,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    tokens: UnorderedMap<String, Token>,
+    token_ids: Vector<String>,
+    next_id: u64,
+    owner_id: AccountId,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            tokens: UnorderedMap::new(b"t"),
+            token_ids: Vector::new(b"i"),
+            next_id: 1,
+            owner_id: env::current_account_id(),
+        }
+    }
+
+    pub fn mint(&mut self, receiver_id: AccountId) -> String {
+        // Require caller is owner; assign token_id from next_id, insert token, push to token_ids, increment next_id; return token_id.
+        ()
+    }
+
+    pub fn nft_total_supply(&self) -> u64 {
+        self.token_ids.len()
+    }
+
+    pub fn nft_tokens(&self, from_index: Option<u64>, limit: Option<u64>) -> Vec<(String, AccountId)> {
+        // Return a paginated slice of tokens (from_index, limit) from token_ids.
+        ()
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ tokens, token_ids, next_id, owner_id } = { tokens: {}, token_ids: [], next_id: 1, owner_id: near.currentAccountId() }) {
+    this.tokens = tokens || {};
+    this.token_ids = token_ids || [];
+    this.next_id = next_id ?? 1;
+    this.owner_id = owner_id || near.currentAccountId();
+  }
+
+  @call({})
+  mint({ receiver_id }) {
+    // TODO: require owner; token_id = String(next_id); insert; token_ids.push(token_id); next_id++; return token_id
+  }
+
+  @view({})
+  nft_total_supply() {
+    return this.token_ids.length;
+  }
+
+  @view({})
+  nft_tokens({ from_index, limit }) {
+    // TODO: return token_ids.slice(from_index, from_index + limit).map(id => tokens[id])
+    return [];
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{UnorderedMap, Vector};
@@ -407,6 +708,57 @@ class Contract {
 `,
   },
   'nft-royalties': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    royalties: UnorderedMap<String, u16>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            royalties: UnorderedMap::new(b"r"),
+        }
+    }
+
+    pub fn set_royalty(&mut self, token_id: String, percent_basis_points: u16) {
+        // Require caller is owner and percent_basis_points <= 10000; then store the royalty.
+        let _: u64 = ();
+    }
+
+    pub fn get_royalty(&self, token_id: String) -> Option<u16> {
+        self.royalties.get(&token_id)
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, royalties } = { owner_id: null, royalties: {} }) {
+    this.owner_id = owner_id ?? null;
+    this.royalties = royalties || {};
+  }
+
+  @view({})
+  get_royalty({ token_id }) {
+    return this.royalties[token_id] ?? null;
+  }
+
+  @call({})
+  set_royalty({ token_id, percent_basis_points }) {
+    // TODO: require this.owner_id === near.predecessorAccountId(); require percent_basis_points <= 10000; this.royalties[token_id] = percent_basis_points
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::collections::UnorderedMap;
 use near_sdk::{env, AccountId, require};
@@ -462,6 +814,72 @@ class Contract {
 `,
   },
   'nft-marketplace': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId, require, NearToken, Gas};
+use near_sdk::PanicOnDefault;
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct Sale {
+    token_id: String,
+    seller_id: AccountId,
+    nft_contract_id: AccountId,
+    price: NearToken,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    sales: UnorderedMap<String, Sale>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { sales: UnorderedMap::new(b"s") }
+    }
+
+    pub fn list(&mut self, nft_contract_id: AccountId, token_id: String, price: NearToken) {
+        // Build a unique listing_id (e.g. predecessor:token_id); insert a Sale with seller, nft_contract_id, price.
+        let _: u64 = ();
+    }
+
+    #[payable]
+    pub fn buy(&mut self, listing_id: String) -> near_sdk::Promise {
+        // Get the sale; require attached deposit >= price; remove sale; return Promise for nft_transfer_from and transfer to seller.
+        ()
+    }
+
+    pub fn get_sale(&self, listing_id: String) -> Option<(String, AccountId, AccountId, NearToken)> {
+        self.sales.get(&listing_id).map(|s| (s.token_id.clone(), s.seller_id.clone(), s.nft_contract_id.clone(), s.price))
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near, NearPromise, bytes } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ sales } = { sales: {} }) {
+    this.sales = sales || {};
+  }
+
+  @view({})
+  get_sale({ listing_id }) {
+    return this.sales[listing_id] || null;
+  }
+
+  @call({})
+  list({ nft_contract_id, token_id, price }) {
+    // TODO: listing_id = predecessor + ":" + token_id; this.sales[listing_id] = { token_id, seller_id, nft_contract_id, price }
+  }
+
+  @call({ payable: true })
+  buy({ listing_id }) {
+    // TODO: require sale exists and attachedDeposit >= price; delete sale; NearPromise nft_transfer_from then transfer to seller
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;

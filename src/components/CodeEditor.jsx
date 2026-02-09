@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { Play, Rocket, TimerResetIcon, CopyIcon, Loader2, Check } from 'lucide-react'
+import { Play, Rocket, TimerResetIcon, CopyIcon, Loader2, Check, Lightbulb, ChevronDown, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -33,13 +33,32 @@ function CodeEditor({
   onCopy,
   onReset,
   backendCLIConfigured,
+  isIntroExample = false,
+  isGuidedExample = false,
+  exerciseHints = [],
+  showingSolution = false,
+  onShowSolution,
+  onBackToExercise,
 }) {
   const [copied, setCopied] = useState(false)
   const [reset, setReset] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
+  const [hintOpen, setHintOpen] = useState(false)
+  const hintPanelRef = useRef(null)
   const deploymentMethod = 'CLI' // Both languages use CLI deployment
+  const runDeployDisabledForSolution = isGuidedExample && showingSolution
   const editorRef = useRef(null)
   const viewRef = useRef(null)
+
+  // Close hint panel when clicking outside
+  useEffect(() => {
+    if (!hintOpen) return
+    const close = (e) => {
+      if (hintPanelRef.current && !hintPanelRef.current.contains(e.target)) setHintOpen(false)
+    }
+    document.addEventListener('click', close)
+    return () => document.removeEventListener('click', close)
+  }, [hintOpen])
 
   const handleCopy = () => {
     onCopy()
@@ -78,14 +97,19 @@ function CodeEditor({
   useEffect(() => {
     if (!editorRef.current) return
 
-    // Get language extension based on active language
-    const languageExtension = activeLanguage === 'JavaScript' ? javascript() : rust()
+    // Get language extension based on active language (Intro = plain text, no syntax)
+    const languageExtension = activeLanguage === 'Intro'
+      ? []
+      : activeLanguage === 'JavaScript'
+        ? javascript()
+        : rust()
 
     // Create editor state with all extensions
     const state = EditorState.create({
       doc: code,
       extensions: [
-        // Basic editor functionality
+        // Basic editor functionality — lineWrapping so long lines/comments wrap instead of expanding width
+        EditorView.lineWrapping,
         lineNumbers(),
         highlightActiveLineGutter(),
         highlightSpecialChars(),
@@ -116,7 +140,7 @@ function CodeEditor({
         ]),
         
         // Language support and theme
-        languageExtension,
+        ...(Array.isArray(languageExtension) ? languageExtension : [languageExtension]),
         oneDark,
         
         // Update listener
@@ -174,32 +198,40 @@ function CodeEditor({
   }, [code])
 
   return (
-    <div className="lg:basis-3/5 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
+    <div className="lg:basis-3/5 min-w-0 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
       {/* Top toolbar */}
       <div className="border-b border-gray-200 dark:border-[#3e3e42] px-3 md:px-4 py-2.5 md:py-3 flex flex-wrap items-center gap-2">
-        {/* Language tabs: Rust | JavaScript (Rust default, selection persisted) */}
+        {/* Language tabs: Intro (path only) | Rust | JavaScript */}
         <div className="inline-flex rounded-lg border border-gray-200 dark:border-[#3e3e42] bg-gray-50 dark:bg-[#111216] overflow-hidden text-[0.65rem] md:text-xs">
-          <button
-            className={`px-3 py-1.5 font-semibold ${
-              activeLanguage === 'Rust'
-                ? 'bg-near-primary text-near-darker'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
-            }`}
-            onClick={() => setActiveLanguage('Rust')}
-          >
-            Rust
-          </button>
-          <button
-            className={`px-3 py-1.5 ${
-              activeLanguage === 'JavaScript'
-                ? 'bg-near-primary text-near-darker font-semibold'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
-            }`}
-            onClick={() => setActiveLanguage('JavaScript')}
-          >
-            <span className="md:hidden">JS</span>
-            <span className="hidden md:inline">JavaScript</span>
-          </button>
+          {isIntroExample ? (
+            <span className="px-3 py-1.5 font-semibold bg-near-primary/20 text-near-primary border-r border-gray-200 dark:border-[#3e3e42]">
+              Intro
+            </span>
+          ) : (
+            <>
+              <button
+                className={`px-3 py-1.5 font-semibold ${
+                  activeLanguage === 'Rust'
+                    ? 'bg-near-primary text-near-darker'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
+                }`}
+                onClick={() => setActiveLanguage('Rust')}
+              >
+                Rust
+              </button>
+              <button
+                className={`px-3 py-1.5 ${
+                  activeLanguage === 'JavaScript'
+                    ? 'bg-near-primary text-near-darker font-semibold'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
+                }`}
+                onClick={() => setActiveLanguage('JavaScript')}
+              >
+                <span className="md:hidden">JS</span>
+                <span className="hidden md:inline">JavaScript</span>
+              </button>
+            </>
+          )}
         </div>
 
         <div className="flex-1" />
@@ -258,58 +290,120 @@ function CodeEditor({
             <CopyIcon className="h-4 w-4" />
           )}
         </button>
-        <button
-          onClick={onRun}
-          disabled={isRunning || isDeploying}
-          className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs bg-near-primary hover:bg-[#00D689] text-near-darker font-semibold rounded-lg inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
-          title="Run code"
-        >
-          {isRunning ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="hidden md:inline">Compiling...</span>
-            </>
-          ) : (
-            <>
-              <Play className="h-4 w-4" />
-              <span className="hidden md:inline">Run</span>
-            </>
-          )}
-        </button>
-        <button
-          onClick={onDeploy}
-          disabled={isRunning || isDeploying || backendCLIConfigured === false}
-          className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
-          title={backendCLIConfigured === false ? 'Backend CLI not configured' : `Deploy via ${deploymentMethod}`}
-        >
-          {isDeploying ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="hidden md:inline">Deploying...</span>
-            </>
-          ) : (
-            <>
-              <Rocket className="h-4 w-4" />
-              <span className="hidden md:inline">Deploy ({deploymentMethod})</span>
-            </>
-          )}
-        </button>
+        {!isIntroExample && (
+          <>
+            <button
+              onClick={onRun}
+              disabled={isRunning || isDeploying || runDeployDisabledForSolution}
+              className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs bg-near-primary hover:bg-[#00D689] text-near-darker font-semibold rounded-lg inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
+              title={runDeployDisabledForSolution ? 'Switch back to exercise to run' : 'Run code'}
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="hidden md:inline">Compiling...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4" />
+                  <span className="hidden md:inline">Run</span>
+                </>
+              )}
+            </button>
+            <button
+              onClick={onDeploy}
+              disabled={isRunning || isDeploying || backendCLIConfigured === false || runDeployDisabledForSolution}
+              className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
+              title={runDeployDisabledForSolution ? 'Switch back to exercise to deploy' : backendCLIConfigured === false ? 'Backend CLI not configured' : `Deploy via ${deploymentMethod}`}
+            >
+              {isDeploying ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="hidden md:inline">Deploying...</span>
+                </>
+              ) : (
+                <>
+                  <Rocket className="h-4 w-4" />
+                  <span className="hidden md:inline">Deploy ({deploymentMethod})</span>
+                </>
+              )}
+            </button>
+          </>
+        )}
         </div>
       </div>
 
       {/* Code editor area */}
       <div className="flex-1 bg-[#0d0f14] text-gray-500 font-mono text-xs md:text-sm overflow-hidden flex flex-col">
         <div className="flex items-center justify-between text-[0.65rem] text-gray-400 px-4 pt-4 pb-2">
-          <span>Code Editor • {activeLanguage}</span>
-          <span>NEAR SDK</span>
+          <span>Code Editor • {activeLanguage === 'Intro' ? 'Learning path' : activeLanguage}</span>
+          <span>{activeLanguage === 'Intro' ? '' : 'NEAR SDK'}</span>
         </div>
         <div ref={editorRef} className="flex-1 overflow-auto" />
       </div>
 
       {/* Bottom status bar */}
-      <div className="border-t border-gray-200 dark:border-[#3e3e42] bg-gray-50 dark:bg-[#0d0f14] px-3 md:px-4 py-1.5 md:py-2 text-[0.7rem] text-gray-500 dark:text-gray-400 flex items-center justify-between">
-        <span>Lines: 10 • Chars: 180 (approx)</span>
-        <span>{activeLanguage} • Ready to run ✓</span>
+      <div className="border-t border-gray-200 dark:border-[#3e3e42] bg-gray-50 dark:bg-[#0d0f14] flex flex-col">
+        <div className="px-3 md:px-4 py-1.5 md:py-2 text-[0.7rem] text-gray-500 dark:text-gray-400 flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span>
+              Lines: {code.split('\n').length} • Chars: {code.length}
+            </span>
+            {isGuidedExample && activeLanguage !== 'Intro' && (
+              <div className="relative flex items-center gap-1" ref={hintPanelRef}>
+                <button
+                  type="button"
+                  onClick={() => setHintOpen((o) => !o)}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded border border-gray-300 dark:border-[#3e3e42] hover:bg-gray-100 dark:hover:bg-[#1a1b1f] text-gray-700 dark:text-gray-300 transition-colors"
+                  title="Hints"
+                >
+                  <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Hint</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${hintOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {showingSolution ? (
+                  <button
+                    type="button"
+                    onClick={onBackToExercise}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded border border-near-primary/50 bg-near-primary/10 text-near-primary hover:bg-near-primary/20 transition-colors"
+                    title="Back to exercise"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" />
+                    <span>Back to exercise</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onShowSolution}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded border border-gray-300 dark:border-[#3e3e42] hover:bg-gray-100 dark:hover:bg-[#1a1b1f] text-gray-700 dark:text-gray-300 transition-colors"
+                    title="Show full solution"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" />
+                    <span>Show solution</span>
+                  </button>
+                )}
+                {hintOpen && exerciseHints.length > 0 && (
+                  <div className="absolute left-0 bottom-full mb-1 w-72 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 p-3 text-left">
+                    <p className="text-[0.65rem] uppercase tracking-wide text-gray-400 mb-2 font-semibold">Hints</p>
+                    <ul className="space-y-2 text-gray-700 dark:text-gray-300 text-[0.7rem] list-decimal list-inside">
+                      {exerciseHints.map((h, i) => (
+                        <li key={i} className="leading-snug">{h}</li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      onClick={() => { onShowSolution(); setHintOpen(false); }}
+                      className="mt-3 w-full py-1.5 text-[0.7rem] rounded border border-near-primary/50 text-near-primary hover:bg-near-primary/10 transition-colors"
+                    >
+                      Show full solution
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <span>{activeLanguage === 'Intro' ? 'Learning path' : `${activeLanguage} • Ready to run ✓`}</span>
+        </div>
       </div>
     </div>
   )
@@ -318,7 +412,7 @@ function CodeEditor({
 CodeEditor.propTypes = {
   code: PropTypes.string.isRequired,
   setCode: PropTypes.func.isRequired,
-  activeLanguage: PropTypes.oneOf(['Rust', 'JavaScript']).isRequired,
+  activeLanguage: PropTypes.oneOf(['Rust', 'JavaScript', 'Intro']).isRequired,
   setActiveLanguage: PropTypes.func.isRequired,
   isRunning: PropTypes.bool.isRequired,
   isDeploying: PropTypes.bool.isRequired,
@@ -327,6 +421,12 @@ CodeEditor.propTypes = {
   onCopy: PropTypes.func.isRequired,
   onReset: PropTypes.func.isRequired,
   backendCLIConfigured: PropTypes.bool,
+  isIntroExample: PropTypes.bool,
+  isGuidedExample: PropTypes.bool,
+  exerciseHints: PropTypes.arrayOf(PropTypes.string),
+  showingSolution: PropTypes.bool,
+  onShowSolution: PropTypes.func,
+  onBackToExercise: PropTypes.func,
 }
 
 export default CodeEditor

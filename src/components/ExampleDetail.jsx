@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { X } from "lucide-react";
 import { exampleCode } from "../data/examples";
+import { isGuidedExample, exerciseHints } from "../data/guidedExercises";
 import { TOUR_AUTO_START_DELAY_MS, CONSOLE_ERROR_LINES_MAX } from "../lib/appConstants";
 import {
   Dialog,
@@ -33,13 +34,28 @@ function getStoredLanguage() {
 }
 
 function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }) {
+  const isIntroExample = example.id === 'intro';
+  const guidedExample = isGuidedExample(example.id);
   const [activeLanguage, setActiveLanguageState] = useState(getStoredLanguage);
   const setActiveLanguage = (lang) => {
+    if (isIntroExample) return;
     setActiveLanguageState(lang);
     try {
       localStorage.setItem(PREFERRED_LANGUAGE_KEY, lang);
     } catch (_) {}
   };
+  const effectiveLanguage = isIntroExample ? 'Intro' : activeLanguage;
+
+  const codeForExample = exampleCode[example.id] || {};
+  const exerciseKey = effectiveLanguage + 'Exercise';
+  const exerciseCode = guidedExample ? (codeForExample[exerciseKey] ?? codeForExample[effectiveLanguage]) : null;
+  const solutionCode = guidedExample ? codeForExample[effectiveLanguage] : null;
+  const initialCode = isIntroExample
+    ? (codeForExample.Intro ?? '')
+    : (guidedExample ? (codeForExample[exerciseKey] ?? codeForExample[effectiveLanguage]) : codeForExample[effectiveLanguage])
+    || (isIntroExample ? '' : `// No ${effectiveLanguage} code sample is available yet for "${example.name}".
+// Try switching language tabs, or pick another example from the sidebar.`);
+
   const [activeInfoTab, setActiveInfoTab] = useState("explanation");
   const [code, setCode] = useState("");
   const [consoleOutput, setConsoleOutput] = useState("");
@@ -50,11 +66,16 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   const [backendCLIConfigured, setBackendCLIConfigured] = useState(null);
   const [isWarningClosed, setIsWarningClosed] = useState(false);
   const [runTour, setRunTour] = useState(false);
+  const [showingSolution, setShowingSolution] = useState(false);
 
-  const initialCode =
-    exampleCode[example.id]?.[activeLanguage] ||
-    `// No ${activeLanguage} code sample is available yet for "${example.name}".
-// Try switching language tabs, or pick another example from the sidebar.`;
+  const handleShowSolution = () => {
+    if (solutionCode) setCode(solutionCode);
+    setShowingSolution(true);
+  };
+  const handleBackToExercise = () => {
+    if (exerciseCode) setCode(exerciseCode);
+    setShowingSolution(false);
+  };
 
   const addConsoleOutput = (message) => {
     setConsoleOutput((prev) => prev + message + "\n");
@@ -62,7 +83,8 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
   useEffect(() => {
     setCode(initialCode);
-  }, [example.id, activeLanguage, initialCode]);
+    setShowingSolution(false);
+  }, [example.id, activeLanguage, effectiveLanguage, initialCode]);
 
   // Reset deploying state on mount (in case user navigated away and came back)
   useEffect(() => {
@@ -105,7 +127,12 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   };
 
   const handleRun = async () => {
-    if (!code.trim()) {
+    // For guided examples, always compile the exercise (learner's code to fix), not the solution
+    const codeToCompile =
+      guidedExample && showingSolution && exerciseCode
+        ? exerciseCode
+        : code;
+    if (!codeToCompile.trim()) {
       addConsoleOutput("❌ Error: No code to run");
       return;
     }
@@ -118,12 +145,12 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     try {
       const compileApiUrl = getCompileApiUrl(activeLanguage);
       logger.debug(`[FRONTEND] Sending compile request to: ${compileApiUrl}/api/compile`);
-      logger.debug(`[FRONTEND] Language: ${activeLanguage}, Code length: ${code.length}`);
+      logger.debug(`[FRONTEND] Language: ${activeLanguage}, Code length: ${codeToCompile.length}`);
 
       const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language: activeLanguage }),
+        body: JSON.stringify({ code: codeToCompile, language: activeLanguage }),
       });
 
       logger.debug(`[FRONTEND] Response status: ${compileResponse.status} ${compileResponse.statusText}`);
@@ -215,15 +242,19 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   };
 
   const handleDeploy = async () => {
-    if (!code.trim()) {
+    const codeToDeploy =
+      guidedExample && showingSolution && exerciseCode
+        ? exerciseCode
+        : code;
+    if (!codeToDeploy.trim()) {
       addConsoleOutput("❌ Error: No code to deploy");
       return;
     }
-    await handleCLIDeploy();
+    await handleCLIDeploy(codeToDeploy);
   };
 
   // CLI deployment for both Rust and JavaScript contracts
-  const handleCLIDeploy = async () => {
+  const handleCLIDeploy = async (codeToCompile) => {
     setIsDeploying(true);
     clearConsole();
     addConsoleOutput(`▶ Starting CLI deployment (${activeLanguage} contract)...`);
@@ -233,12 +264,12 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     const compileStartCLI = Date.now();
 
     try {
-      // Step 1: Compile the contract
+      // Step 1: Compile the contract (exercise for guided when solution is shown)
       const compileApiUrl = getCompileApiUrl(activeLanguage);
       const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language: activeLanguage }),
+        body: JSON.stringify({ code: codeToCompile, language: activeLanguage }),
       });
 
       if (!compileResponse.ok) {
@@ -386,7 +417,9 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   };
 
   const handleResetCode = () => {
-    setCode(initialCode);
+    const toCode = guidedExample ? exerciseCode : initialCode;
+    if (toCode) setCode(toCode);
+    setShowingSolution(false);
     clearConsole();
   };
 
@@ -405,7 +438,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       
       {/* Floating Help Button */}
       <TourButton onStartTour={handleStartTour} />
-      <ExampleHeader example={example} activeLanguage={activeLanguage} />
+      <ExampleHeader example={example} activeLanguage={effectiveLanguage} />
 
       {/* Backend CLI Status Warning */}
       {backendCLIConfigured === false && (
@@ -450,7 +483,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         <CodeEditor
           code={code}
           setCode={setCode}
-          activeLanguage={activeLanguage}
+          activeLanguage={effectiveLanguage}
           setActiveLanguage={setActiveLanguage}
           isRunning={isRunning}
           isDeploying={isDeploying}
@@ -459,6 +492,14 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           onCopy={handleCopyCode}
           onReset={handleResetCode}
           backendCLIConfigured={backendCLIConfigured}
+          isIntroExample={isIntroExample}
+          isGuidedExample={guidedExample}
+          exerciseHints={exerciseHints[example.id]?.[effectiveLanguage] ?? []}
+          solutionCode={solutionCode}
+          showingSolution={showingSolution}
+          onShowSolution={handleShowSolution}
+          onBackToExercise={handleBackToExercise}
+          exerciseCode={exerciseCode}
         />
 
         <InfoPanel
@@ -466,7 +507,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           activeInfoTab={activeInfoTab}
           setActiveInfoTab={setActiveInfoTab}
           code={code}
-          activeLanguage={activeLanguage}
+          activeLanguage={effectiveLanguage}
           deployedContractId={deployedContractId}
           isDeploying={isDeploying}
         />

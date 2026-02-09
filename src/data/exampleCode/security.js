@@ -1,6 +1,66 @@
 // Security and access control examples
 export const securityCode = {
   'owner-pattern': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    value: u64,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            value: 0,
+        }
+    }
+
+    fn assert_owner(&self) {
+        // Require that the caller is the owner; otherwise panic with a clear message.
+        let _: u64 = ();
+    }
+
+    pub fn set_value(&mut self, value: u64) {
+        // Call assert_owner, then update self.value.
+        let _: u64 = ();
+    }
+
+    pub fn get_value(&self) -> u64 {
+        self.value
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, value } = { owner_id: near.currentAccountId(), value: 0 }) {
+    this.owner_id = owner_id;
+    this.value = value;
+  }
+
+  assert_owner() {
+    // TODO: if (near.predecessorAccountId() !== this.owner_id) near.panic("Only owner can call this method");
+  }
+
+  @view({})
+  get_value() {
+    return this.value;
+  }
+
+  @call({})
+  set_value({ value }) {
+    // TODO: call this.assert_owner() before updating
+    this.value = value;
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -71,6 +131,69 @@ class Contract {
 `,
   },
   'role-based-access': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    admins: UnorderedSet<AccountId>,
+    owner_id: AccountId,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            admins: UnorderedSet::new(b"a"),
+            owner_id: env::current_account_id(),
+        }
+    }
+
+    pub fn add_admin(&mut self, account: AccountId) {
+        // Require that the caller is the owner or an existing admin, then insert the account.
+        let _: u64 = ();
+    }
+
+    pub fn is_admin(&self, account: AccountId) -> bool {
+        self.admins.contains(&account)
+    }
+
+    pub fn admin_only_action(&mut self) {
+        // Require that the caller is an admin; otherwise panic.
+        let _: u64 = ();
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ admins, owner_id } = { admins: [], owner_id: near.currentAccountId() }) {
+    this.admins = admins || [];
+    this.owner_id = owner_id || near.currentAccountId();
+  }
+
+  @view({})
+  is_admin({ account }) {
+    return this.admins.includes(account);
+  }
+
+  @call({})
+  add_admin({ account }) {
+    // TODO: require predecessor is owner or in admins
+    if (!this.admins.includes(account)) this.admins.push(account);
+  }
+
+  @call({})
+  admin_only_action() {
+    // TODO: if (!this.is_admin({ account: near.predecessorAccountId() })) near.panic("Only admins...");
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
@@ -149,6 +272,78 @@ class Contract {
 `,
   },
   'pausable-contract': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    paused: bool,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            paused: false,
+        }
+    }
+
+    pub fn pause(&mut self) {
+        // Require that the caller is the owner, then set paused to true.
+        let _: u64 = ();
+    }
+
+    pub fn unpause(&mut self) {
+        // Require that the caller is the owner, then set paused to false.
+        let _: u64 = ();
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused
+    }
+
+    pub fn action(&mut self) {
+        // Require that the contract is not paused; otherwise panic.
+        let _: u64 = ();
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, paused } = { owner_id: near.currentAccountId(), paused: false }) {
+    this.owner_id = owner_id;
+    this.paused = paused;
+  }
+
+  @view({})
+  is_paused() {
+    return this.paused;
+  }
+
+  @call({})
+  pause() {
+    // TODO: if (near.predecessorAccountId() !== this.owner_id) near.panic("Only owner can pause");
+    this.paused = true;
+  }
+
+  @call({})
+  unpause() {
+    // TODO: require owner
+    this.paused = false;
+  }
+
+  @call({})
+  action() {
+    // TODO: if (this.paused) near.panic("Contract is paused");
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -239,6 +434,102 @@ class Contract {
 `,
   },
   'multi-signature': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    signers: UnorderedSet<AccountId>,
+    required_signatures: u32,
+    approvals: UnorderedSet<String>,
+    last_executed_action: Option<String>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            signers: UnorderedSet::new(b"s"),
+            required_signatures: 2,
+            approvals: UnorderedSet::new(b"a"),
+            last_executed_action: None,
+        }
+    }
+
+    pub fn add_signer(&mut self, account: AccountId) {
+        let pred = env::predecessor_account_id();
+        require!(
+            (self.signers.is_empty() && pred == env::current_account_id()) || self.signers.contains(&pred),
+            "Only deployer (when empty) or signers can add"
+        );
+        self.signers.insert(&account);
+    }
+
+    pub fn approve(&mut self, action: String) {
+        // Require that the caller is a signer; record an approval for this action (e.g. action:signer key).
+        let _: u64 = ();
+    }
+
+    pub fn can_execute(&self, action: &String) -> bool {
+        // Return true if at least required_signatures signers have approved this action.
+        ()
+    }
+
+    pub fn execute(&mut self, action: String) {
+        // Require can_execute for this action; then clear approvals for it and set last_executed_action.
+        let _: u64 = ();
+    }
+
+    pub fn get_last_action(&self) -> Option<String> {
+        self.last_executed_action.clone()
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ signers = [], required_signatures = 2, approvals = [], last_executed_action = null } = {}) {
+    this.signers = signers;
+    this.required_signatures = required_signatures;
+    this.approvals = approvals;
+    this.last_executed_action = last_executed_action;
+  }
+
+  @view({})
+  can_execute({ action }) {
+    // TODO: count this.signers where approvals includes action:signer; return count >= required_signatures
+    return false;
+  }
+
+  @call({})
+  add_signer({ account }) {
+    const pred = near.predecessorAccountId();
+    const ok = (this.signers.length === 0 && pred === near.currentAccountId()) || this.signers.includes(pred);
+    if (!ok) near.panic("Only deployer (when empty) or signers can add");
+    if (!this.signers.includes(account)) this.signers.push(account);
+  }
+
+  @call({})
+  approve({ action }) {
+    // TODO: require signer; push action:signer to approvals
+  }
+
+  @call({})
+  execute({ action }) {
+    // TODO: require can_execute; remove approvals for action; set last_executed_action
+  }
+
+  @view({})
+  get_last_action() {
+    return this.last_executed_action;
+  }
+}
+`,
     Rust: `use near_sdk::near;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
@@ -359,6 +650,57 @@ class Contract {
 `,
   },
   'upgrade-pattern': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::{env, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: near_sdk::AccountId,
+    version: u32,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            version: 1,
+        }
+    }
+
+    pub fn get_version(&self) -> u32 {
+        self.version
+    }
+
+    pub fn migrate(&mut self) {
+        // Require that the caller is the owner; increment version and log the upgrade.
+        let _: u64 = ();
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, version } = { owner_id: near.currentAccountId(), version: 1 }) {
+    this.owner_id = owner_id;
+    this.version = version;
+  }
+
+  @view({})
+  get_version() {
+    return this.version;
+  }
+
+  @call({})
+  migrate() {
+    // TODO: if (near.predecessorAccountId() !== this.owner_id) near.panic("Only owner can migrate");
+    // TODO: this.version += 1; near.log("Upgraded to version " + this.version);
+  }
+}
+`,
     Rust: `// Upgrade pattern: init, PanicOnDefault, and migration for post-upgrade schema changes
 use near_sdk::near;
 use near_sdk::{env, require};

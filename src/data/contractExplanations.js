@@ -1,84 +1,90 @@
-// Contract explanations - concise explanations for each contract (under 100 words)
+// Contract explanations - concise explanations for each contract (markdown formatted)
 export const contractExplanations = {
-  'hello-world': 'This is the simplest NEAR smart contract and serves as the perfect entry point for learning NEAR development. It demonstrates the fundamental structure: a contract struct with #[near(contract_state)] and #[near] on the impl block, which generates the boilerplate for serialization and the contract interface. The example features a single view method that returns a greeting string. View methods are read-only, don\'t modify state, and are free to call—no transactions or gas fees. Understanding this basic pattern is crucial, as every NEAR contract follows a similar structure.',
-  
-  'contract-structure': 'This contract provides a comprehensive overview of the fundamental structure that every NEAR smart contract must follow. It demonstrates the essential components: a contract struct that holds state variables (like owner_id), #[near(contract_state)] which handles serialization automatically—do not manually derive BorshDeserialize or BorshSerialize for contract state—and PanicOnDefault, the recommended additional derive, which panics if the contract is ever deserialized without explicit initialization, preventing accidental use of uninitialized state. The example shows how state is stored within the contract struct, which persists across all contract calls and transactions. The #[init] function explicitly initializes the contract with required values. This contract also demonstrates how to store and retrieve account information, a pattern that forms the foundation for access control mechanisms. Understanding this structure is essential because all NEAR contracts build upon these core principles.',
-  
-  'view-methods': 'View methods are read-only functions that provide a way to query contract state without modifying it. These methods are completely free to call - they don\'t require transactions, gas fees, or wallet signatures, making them ideal for retrieving information from contracts. This example demonstrates multiple view methods with different return types: one returns a simple string, while another performs calculations and returns a numeric value. View methods can perform any computation as long as they don\'t modify state, and they can return any serializable data type including strings, numbers, structs, vectors, and maps. This makes them perfect for building user interfaces that need to display contract data, checking balances, querying ownership, or retrieving any stored information. The example shows how view methods are defined using the #[view] attribute or by simply not marking them as change methods. Understanding view methods is crucial because they represent the primary way users and applications interact with contract data, and they\'re used extensively in every NEAR application for reading contract state.',
-  
-  'change-methods': 'Change methods modify contract state and require a signed transaction with gas fees. This example demonstrates storing and updating a string in contract state—the foundation for all data persistence on NEAR. Storage is persistent: data remains across transactions until explicitly modified. The NEAR runtime handles Borsh serialization automatically. Change methods are marked with #[call] and represent the primary mechanism for updating state, handling user actions, and implementing business logic.',
-  
-  'state-management': 'State management is one of the most crucial aspects of smart contract development, and this example demonstrates the fundamental patterns for managing mutable state in NEAR contracts. The contract implements a simple counter that can be incremented, showing how to maintain and update state variables that persist across transactions. When you increment the counter, the new value is stored in the contract\'s state and remains available for all future calls until modified again. This example illustrates the complete lifecycle of state management: initialization (setting an initial value), reading state (through view methods), and updating state (through change methods). The counter pattern is deceptively simple but represents the core pattern used in countless real-world applications - from tracking votes and balances to managing token supplies and user data. Understanding state management is essential because every meaningful application needs to maintain some form of mutable state. The example also demonstrates how state changes are atomic - either the entire transaction succeeds and state is updated, or it fails and state remains unchanged, ensuring data consistency and reliability.',
-  
-  'input-validation': 'Input validation is a critical security practice that prevents invalid or malicious data from corrupting contract state. This example uses require! to check conditions before processing: message length (non-empty, max 100 chars). Failed validation panics with a clear message. These patterns—checking bounds, formats, and business logic—prevent common vulnerabilities. Use require! for invariants that must never be violated.',
-  
-  'error-handling': 'Error handling shows when to use Option/Result vs panic. try_parse_number and safe_divide return Option for expected failures (invalid input, division by zero). parse_with_default uses unwrap_or for fallbacks. assert_positive and strict_check demonstrate require! and env::panic_str for unrecoverable errors. Use Option/Result for recoverable cases; panic for invariants that must never be violated.',
-  
-  'events': 'Events are a powerful mechanism that allows contracts to emit structured logs that can be indexed, queried, and monitored by external systems. This example demonstrates how to define and emit events using NEAR\'s event system, which follows the NEP-297 standard for event formatting. Events are stored on-chain as part of transaction receipts and can be retrieved by indexers, making them perfect for tracking contract activity, state changes, and building analytics dashboards. The example shows how to define event structs with relevant data fields, emit events at appropriate points in contract execution, and structure events to be easily queryable. Events provide a way to track important contract activities without requiring external systems to poll contract state or parse transaction data manually. They\'re particularly useful for tracking token transfers, ownership changes, votes, and any other significant state transitions. The example demonstrates best practices for event design: including all relevant context, using clear naming conventions, and structuring data for efficient indexing. Understanding events is crucial because they enable the rich ecosystem of tools, dashboards, and analytics that make blockchain applications usable - from wallet transaction histories to DeFi analytics platforms, events power the user-facing features that make blockchain applications accessible.',
-  
-  'collections-vector': 'Vectors are dynamic arrays; use unique prefixes (b"i", b"t") to namespace multiple collections and prevent collisions. This example has items and tags with different storage keys. Demonstrates add, swap_remove (O(1) remove by swapping with last), iterate, and the pattern for multiple collections in one contract.',
-  
-  'collections-map': 'Maps store key-value pairs for efficient lookups. This example demonstrates using LookupMap or UnorderedMap from near_sdk::collections. Maps are ideal for storing data indexed by unique keys, like user profiles or token balances. This contract shows basic map operations: insert, get, and remove.',
-  
-  'owner-pattern': 'Owner pattern: restrict privileged operations (e.g. set_value) to the contract owner. Uses env::predecessor_account_id() to identify the caller; assert_owner() guards sensitive calls. Owner is set at init.',
-  
-  'role-based-access': 'Role-based access: owner plus admins (UnorderedSet). Owner or admins can add_admin; admin_only_action requires admin. More flexible than owner-only. Use is_admin to gate privileged operations.',
-  
-  'pausable-contract': 'Pausable contracts can temporarily halt operations in emergencies. This example demonstrates a pause/unpause mechanism controlled by an owner. When paused, critical functions revert. This pattern is useful for responding to bugs or security issues without redeploying the contract.',
-  
-  'multi-signature': 'Multi-signature requires multiple approvals before executing actions. This example demonstrates collecting signatures from multiple accounts and executing only when threshold is met. It\'s essential for high-security operations where no single account should have full control.',
-  
-  'todo-list': 'A todo list demonstrates CRUD operations with collections. This example shows creating, reading, updating, and deleting todo items stored in a vector or map. It demonstrates practical state management patterns for applications that need to maintain lists of user data.',
-  
-  'user-profiles': 'User profiles store account-specific data in a map. This example demonstrates mapping account IDs to profile structs containing user information. It shows how to create, update, and retrieve user data. This pattern is common in social or identity applications on NEAR.',
-  
-  'voting-system': 'A voting system demonstrates tallying votes and tracking participation. Uses vote counters (votes_yes, votes_no) and UnorderedSet for voters to prevent double-voting. get_results returns the tally. Practical governance pattern for binary (yes/no) proposals.',
-  
-  'testing': 'Unit testing verifies contract logic. Rust: #[cfg(test)] mod tests with assert_eq!; run cargo test. JavaScript: for pure logic (no near.*), test the class directly with vitest; for full contract tests use near-workspaces. Both examples test add(2,3)==5.',
-  
-  'simple-calls': 'Simple cross-contract calls invoke methods on other contracts. This example demonstrates using Promise to call external contracts with a configurable method name. It shows the basic pattern for contract-to-contract communication, which is essential for building composable DeFi applications.',
-  
-  'upgrade-pattern': 'Upgrade pattern: init, PanicOnDefault (prevents uninitialized deserialization), and migration for post-upgrade schema changes. Migration functions upgrade contract code while preserving data. Owner-only migrate() handles versioning and backward compatibility.',
-  
-  'simple-marketplace': 'A simple marketplace enables buying and selling NFTs. list_item creates listings; buy pays the seller and transfers the NFT via nft_transfer_from. The on_payment_sent callback checks promise_result before transferring payment—essential for safe cross-contract flows.',
-  
-  'batch-operations': 'Batch operations process multiple items atomically in one transaction. Gas optimization: use size limits (MAX_BATCH) to prevent runaway costs. Reduces gas vs many single-item calls; all operations succeed or fail together.',
-  
-  'nft-standard': 'NEP-171 NFT core: nft_transfer (1 yoctoNEAR proof) and nft_token view. Demonstrates ownership checks, standard method names, and 1 yoctoNEAR deposit for transfer. For approval/transfer_from, see nft-approval.',
-  
-  'nft-metadata': 'NFT metadata stores token information like name, description, and media. This example demonstrates storing and retrieving metadata following NEP-177 standards. It shows how to structure token metadata for display in wallets and marketplaces.',
-  
-  'nft-minting': 'NFT minting creates new tokens. Owner-only mint generates unique token IDs and assigns ownership. Demonstrates owner check, next_id counter, and inserting into tokens map. For metadata, see nft-metadata.',
-  
-  'nft-approval': 'NFT approval allows others to transfer tokens on your behalf. This example demonstrates the approval system: granting permissions, checking approvals, and revoking access. It enables marketplace functionality where contracts can transfer tokens.',
-  
-  'nft-enumeration': 'NFT enumeration lists tokens owned by accounts. This example demonstrates pagination and querying token lists. It shows how to efficiently retrieve token IDs and metadata for display in user interfaces.',
-  
-  'nft-royalties': 'NFT royalties store royalty percentages per token (basis points, max 10000=100%). Owner-only set_royalty and get_royalty. Distribution logic is typically in the marketplace when a sale occurs. Note: JS implementation may need owner check alignment with Rust.',
-  
-  'nft-marketplace': 'An NFT marketplace enables trading NFTs. list creates listings; buy pays the seller and transfers the NFT. Uses nft_transfer_from with callback that checks promise_result before transferring payment. Marketplace patterns: escrow, payment flow, and safe cross-contract handling.',
-  
-  'callbacks': 'Callbacks process results from cross-contract calls. Uses and_then to chain a call with a callback. The callback reads promise_result(0) or promiseResultRaw(0) to handle success (parse return value) or failure (return default). Essential for any async cross-contract flow.',
-  
-  'cross-call-ft': 'Cross-contract FT: call ft_transfer on a NEP-141 token contract. Amount must be string in smallest unit. Attach 1 yoctoNEAR. Shows the basic pattern for integrating with NEAR standard FT contracts.',
-  
-  'cross-call-nft': 'Cross-contract NFT: call nft_transfer_call on a NEP-171 NFT contract. Pass receiver_id, token_id, memo, msg. Attach 1 yoctoNEAR. Shows the basic pattern for integrating with existing NFT contracts.',
-  
-  'batch-calls': 'Chained calls execute cross-contract calls in sequence using and_then. Calls contract_a, then contract_b after the first completes. For parallel calls, use Promise::and. Use chaining when the second call depends on the first.',
-  
-  'chain-signatures-basics': 'Chain signatures: call the MPC contract (v1.signer) to sign 32-byte payloads for other chains. Uses ext_contract and Promise. Path derives the target chain address (e.g. ethereum-1). Attach ~0.05 NEAR for MPC fee. JS examples use JSON serialization; verify the MPC contract expects this format (Rust uses Borsh).',
-  'signature-verification': 'Validate payload format before MPC: must be 32 bytes (e.g. keccak256 hash). hash_for_signing produces the hash; actual signature verification happens on the destination chain.',
-  'signature-requests': 'Track signature requests: create_request stores payload and path, get_request retrieves, sign_request calls MPC. Demonstrates request lifecycle before and during signing. JS uses JSON; verify MPC expects this format.',
-  'multi-chain-signing': 'Different derivation paths per chain (ethereum-1, bitcoin-1, solana-1). set_chain_path maps chain_id to path; sign_for_chain uses the path when calling MPC. JS uses JSON; verify MPC expects this format.',
-  'cross-chain-auth': 'Whitelist of authorized external identities. authorize_cross_chain adds, revoke_cross_chain removes, require_authorized gates cross-chain actions. Call require_authorized from your own cross-chain methods before allowing MPC sign requests. In production, restrict authorize_cross_chain and revoke_cross_chain to owner-only.',
-  'signature-callbacks': 'Request MPC sign, then callback to store the result. Uses and_then to chain: MPC sign -> on_signature_ready. Callback reads promise_result(0) for the signature bytes. JS uses JSON; verify MPC expects this format.',
+  intro: 'This is your **recommended learning path**. Start with **Hello World** to see a minimal contract and a view method. Then **Contract Structure** introduces state and initialization. **View Methods** and **Change Methods** cover read-only vs state-changing calls. **State Management** and **Input Validation** build persistence and safety. **Error Handling** and **Events** round out the basics. After that, explore **Collections**, **Security**, **Cross-Contract**, and **NFTs** in the sidebar. Each example has Rust and JavaScript; use the Explanation tab here for details. Follow the order in the editor for a smooth, CryptoZombies-style progression.',
 
-  'indexer-data': 'NEP-297 events: emit via EVENT_JSON: prefix (standard, version, event, data). This example has state (set_record, get_record) and emits record_updated on changes. Indexers (NEAR Indexer, QueryAPI) parse logs off-chain; setup and SQL are in NEAR docs.',
+  'hello-world': 'This is the simplest NEAR smart contract and serves as the perfect entry point for learning NEAR development.\n\n- **Structure:** A contract struct with `#[near(contract_state)]` and `#[near]` on the impl block (generates serialization and contract interface boilerplate).\n- **View method:** Returns a greeting string. View methods are *read-only*, don\'t modify state, and are **free to call**—no transactions or gas fees.\n\nUnderstanding this basic pattern is crucial; every NEAR contract follows a similar structure.',
+
+  'contract-structure': 'Overview of the **fundamental structure** every NEAR smart contract must follow.\n\n- **Contract struct** — Holds state (e.g. `owner_id`). Use `#[near(contract_state)]` for serialization; *do not* manually derive `BorshDeserialize`/`BorshSerialize` for contract state.\n- **PanicOnDefault** — Recommended derive; panics if the contract is deserialized without explicit init.\n- **`#[init]`** — Explicitly initializes the contract with required values.\n\nState in the contract struct persists across all calls and transactions. Storing/retrieving account info here is the foundation for access control.',
+
+  'view-methods': '**View methods** are read-only functions that query contract state without modifying it.\n\n- **Free to call** — No transactions, gas fees, or wallet signatures.\n- **Return types** — This example shows a string and a numeric value; view methods can return any serializable type (strings, numbers, structs, vectors, maps).\n- **Definition** — Use the `#[view]` attribute or omit change-method marking.\n\nUse view methods for UIs, balances, ownership checks, and any read-only contract data. They are the primary way applications read contract state.',
+
+  'change-methods': '**Change methods** modify contract state and require a signed transaction with gas.\n\n- **This example:** Stores and updates a string in contract state—the foundation for all data persistence on NEAR.\n- **Storage** is persistent; data remains across transactions until explicitly modified.\n- **Marking:** Use `#[call]` for change methods.\n\nThe NEAR runtime handles Borsh serialization automatically. Change methods are the main mechanism for updating state and implementing business logic.',
+
+  'state-management': '**State management** is central to smart contracts. This example uses a **counter** that can be incremented.\n\n- **Lifecycle:** Initialization → reading state (view methods) → updating state (change methods).\n- **Persistence:** The new value stays in contract state for all future calls until modified.\n- **Atomicity:** Either the whole transaction succeeds and state updates, or it fails and state is unchanged.\n\nThe counter pattern is the core of votes, balances, token supplies, and user data in real applications.',
+
+  'input-validation': '**Input validation** prevents invalid or malicious data from corrupting contract state.\n\n- This example uses **`require!`** to check message length (non-empty, max 100 chars).\n- Failed validation panics with a clear message.\n- Use these patterns for bounds, formats, and business logic to prevent common vulnerabilities.\n\nUse `require!` for invariants that must never be violated.',
+
+  'error-handling': '**When to use Option/Result vs panic:**\n\n- **Recoverable:** `try_parse_number`, `safe_divide` return `Option` (e.g. invalid input, division by zero). `parse_with_default` uses `unwrap_or` for fallbacks.\n- **Unrecoverable:** `assert_positive` and `strict_check` use `require!` and `env::panic_str` for invariants.\n\nUse **Option/Result** for recoverable cases; **panic** for invariants that must never be violated.',
+
+  'events': '**Events** let contracts emit structured logs that indexers and external systems can query.\n\n- **NEP-297** — NEAR\'s standard for event formatting. Events are stored on-chain in transaction receipts.\n- **Use cases:** Tracking contract activity, state changes, analytics; token transfers, ownership changes, votes.\n- **Best practices:** Define event structs with relevant data, emit at key execution points, use clear names and structure for indexing.\n\nEvents power wallet histories, DeFi analytics, and other user-facing blockchain features.',
+
+  'collections-vector': '**Vectors** are dynamic arrays. Use **unique prefixes** (e.g. `b"i"`, `b"t"`) to namespace multiple collections and avoid key collisions.\n\n- This example has *items* and *tags* with different storage keys.\n- **Operations:** `add`, `swap_remove` (O(1) remove by swapping with last), iterate.\n\nPattern for multiple collections in one contract.',
+
+  'collections-map': '**Maps** store key-value pairs for efficient lookups.\n\n- Use **`LookupMap`** or **`UnorderedMap`** from `near_sdk::collections`.\n- Ideal for data indexed by unique keys: user profiles, token balances.\n- **Operations:** insert, get, remove.',
+
+  'owner-pattern': '**Owner pattern** — Restrict privileged operations (e.g. `set_value`) to the contract owner.\n\n- **`env::predecessor_account_id()`** — Identifies the caller.\n- **`assert_owner()`** — Guards sensitive calls.\n- Owner is set at **init**.',
+
+  'role-based-access': '**Role-based access:** owner plus admins (stored in an **`UnorderedSet`**).\n\n- Owner or admins can call **`add_admin`**.\n- **`admin_only_action`** requires admin.\n- Use **`is_admin`** to gate privileged operations. More flexible than owner-only.',
+
+  'pausable-contract': '**Pausable contracts** can temporarily halt operations in emergencies.\n\n- Pause/unpause is controlled by the owner.\n- When paused, critical functions revert.\n- Useful for responding to bugs or security issues without redeploying.',
+
+  'multi-signature': '**Multi-signature** requires multiple approvals before executing actions.\n\n- This example collects signatures from multiple accounts and executes only when the **threshold** is met.\n- Essential for high-security operations where no single account should have full control.',
+
+  'todo-list': '**Todo list** demonstrates **CRUD** with collections.\n\n- Create, read, update, and delete todo items in a vector or map.\n- Practical state management for apps that maintain lists of user data.',
+
+  'user-profiles': '**User profiles** store account-specific data in a map.\n\n- Map **account IDs** to profile structs with user information.\n- Create, update, and retrieve user data.\n- Common in social or identity applications on NEAR.',
+
+  'voting-system': '**Voting system** — Tally votes and track participation.\n\n- **Vote counters:** e.g. `votes_yes`, `votes_no`.\n- **`UnorderedSet`** for voters to prevent double-voting.\n- **`get_results`** returns the tally. Practical governance pattern for binary (yes/no) proposals.',
+
+  'testing': '**Unit testing** verifies contract logic.\n\n- **Rust:** `#[cfg(test)]` `mod tests` with `assert_eq!`; run `cargo test`.\n- **JavaScript:** For pure logic (no `near.*`), test the class with vitest; for full contract tests use *near-workspaces*.\n- Both examples test `add(2,3)==5`.',
+
+  'simple-calls': '**Simple cross-contract calls** invoke methods on other contracts.\n\n- Uses **`Promise`** to call external contracts with a configurable method name.\n- Basic pattern for contract-to-contract communication, essential for composable DeFi.',
+
+  'upgrade-pattern': '**Upgrade pattern:**\n\n- **init**, **PanicOnDefault** (prevents uninitialized deserialization), and **migration** for post-upgrade schema changes.\n- Migration functions upgrade contract code while preserving data.\n- Owner-only **`migrate()`** handles versioning and backward compatibility.',
+
+  'simple-marketplace': '**Simple marketplace** — Buy and sell NFTs.\n\n- **`list_item`** creates listings; **`buy`** pays the seller and transfers the NFT via **`nft_transfer_from`**.\n- **`on_payment_sent`** callback checks **`promise_result`** before transferring payment—essential for safe cross-contract flows.',
+
+  'batch-operations': '**Batch operations** process multiple items **atomically** in one transaction.\n\n- **Gas:** Use size limits (e.g. `MAX_BATCH`) to prevent runaway costs.\n- Reduces gas vs many single-item calls; all operations succeed or fail together.',
+
+  'nft-standard': '**NEP-171** NFT core:\n\n- **`nft_transfer`** — 1 yoctoNEAR proof; **`nft_token`** view.\n- Ownership checks, standard method names, 1 yoctoNEAR deposit for transfer.\n- For approval / transfer_from, see **nft-approval**.',
+
+  'nft-metadata': '**NFT metadata** — Token info (name, description, media).\n\n- Store and retrieve metadata following **NEP-177**.\n- Structure token metadata for display in wallets and marketplaces.',
+
+  'nft-minting': '**NFT minting** creates new tokens.\n\n- Owner-only **`mint`** generates unique token IDs and assigns ownership.\n- Demonstrates owner check, **`next_id`** counter, and inserting into the tokens map. For metadata, see **nft-metadata**.',
+
+  'nft-approval': '**NFT approval** lets others transfer tokens on your behalf.\n\n- Grant permissions, check approvals, revoke access.\n- Enables marketplace functionality where contracts can transfer tokens.',
+
+  'nft-enumeration': '**NFT enumeration** — List tokens owned by accounts.\n\n- Pagination and querying token lists.\n- Efficiently retrieve token IDs and metadata for UIs.',
+
+  'nft-royalties': '**NFT royalties** — Royalty percentages per token (basis points; max 10000 = 100%).\n\n- Owner-only **`set_royalty`** and **`get_royalty`**.\n- Distribution logic is typically in the marketplace on sale. *Note:* JS implementation may need owner-check alignment with Rust.',
+
+  'nft-marketplace': '**NFT marketplace** — Trade NFTs.\n\n- **`list`** creates listings; **`buy`** pays the seller and transfers the NFT.\n- Uses **`nft_transfer_from`** with a callback that checks **`promise_result`** before transferring payment. Patterns: escrow, payment flow, safe cross-contract handling.',
+
+  'callbacks': '**Callbacks** process results from cross-contract calls.\n\n- Use **`and_then`** to chain a call with a callback.\n- Callback reads **`promise_result(0)`** or **`promiseResultRaw(0)`** to handle success (parse return) or failure (return default).\n- Essential for any async cross-contract flow.',
+
+  'cross-call-ft': '**Cross-contract FT:** Call **`ft_transfer`** on a **NEP-141** token contract.\n\n- Amount as **string** in smallest unit. Attach **1 yoctoNEAR**.\n- Basic pattern for integrating with NEAR standard FT contracts.',
+
+  'cross-call-nft': '**Cross-contract NFT:** Call **`nft_transfer_call`** on a **NEP-171** NFT contract.\n\n- Pass `receiver_id`, `token_id`, `memo`, `msg`. Attach **1 yoctoNEAR**.\n- Basic pattern for integrating with existing NFT contracts.',
+
+  'batch-calls': '**Chained calls** — Execute cross-contract calls in sequence with **`and_then`**.\n\n- Call `contract_a`, then `contract_b` after the first completes.\n- For parallel calls use **`Promise::and`**. Use chaining when the second call depends on the first.',
+
+  'chain-signatures-basics': '**Chain signatures:** Call the MPC contract (**v1.signer**) to sign 32-byte payloads for other chains.\n\n- Uses **`ext_contract`** and **`Promise`**. Path derives the target chain address (e.g. `ethereum-1`).\n- Attach **~0.05 NEAR** for MPC fee. *JS uses JSON; verify MPC expects this format (Rust uses Borsh).*',
+
+  'signature-verification': '**Validate payload format** before MPC: must be **32 bytes** (e.g. keccak256 hash).\n\n- **`hash_for_signing`** produces the hash; actual signature verification happens on the destination chain.',
+
+  'signature-requests': '**Track signature requests:**\n\n- **`create_request`** — stores payload and path; **`get_request`** retrieves; **`sign_request`** calls MPC.\n- Request lifecycle before and during signing. *JS uses JSON; verify MPC expects this format.*',
+
+  'multi-chain-signing': '**Different derivation paths** per chain (`ethereum-1`, `bitcoin-1`, `solana-1`).\n\n- **`set_chain_path`** maps `chain_id` to path; **`sign_for_chain`** uses the path when calling MPC.\n- *JS uses JSON; verify MPC expects this format.*',
+
+  'cross-chain-auth': '**Whitelist** of authorized external identities.\n\n- **`authorize_cross_chain`** adds; **`revoke_cross_chain`** removes; **`require_authorized`** gates cross-chain actions.\n- Call **`require_authorized`** from your cross-chain methods before allowing MPC sign requests. *In production,* restrict authorize/revoke to **owner-only**.',
+
+  'signature-callbacks': 'Request MPC sign, then **callback** to store the result.\n\n- **`and_then`** chain: MPC sign → **`on_signature_ready`**.\n- Callback reads **`promise_result(0)`** for the signature bytes. *JS uses JSON; verify MPC expects this format.*',
+
+  'indexer-data': '**NEP-297 events** — Emit via **`EVENT_JSON:`** prefix (standard, version, event, data).\n\n- This example has state (**`set_record`**, **`get_record`**) and emits **`record_updated`** on changes.\n- Indexers (NEAR Indexer, QueryAPI) parse logs off-chain; setup and SQL are in NEAR docs.',
 }
 
 // Default explanation for contracts without specific explanations
 export const getContractExplanation = (exampleId) => {
-  return contractExplanations[exampleId] || 
-    `This ${exampleId.replace(/-/g, ' ')} contract demonstrates key NEAR smart contract concepts. Explore the code to understand how it implements ${exampleId.includes('nft') ? 'NFT' : exampleId.includes('cross') ? 'cross-contract' : 'smart contract'} functionality on the NEAR blockchain.`
+  return contractExplanations[exampleId] ||
+    `This **${exampleId.replace(/-/g, ' ')}** contract demonstrates key NEAR smart contract concepts. Explore the code to understand how it implements ${exampleId.includes('nft') ? '**NFT**' : exampleId.includes('cross') ? '**cross-contract**' : '**smart contract**'} functionality on the NEAR blockchain.`
 }
-

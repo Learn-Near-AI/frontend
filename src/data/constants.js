@@ -33,6 +33,7 @@ export const languageIcons = {
   'Rust': '📜',
   'JS': '📜',
   'JavaScript': '📜',
+  'Intro': '📖',
 }
 
 // Audited examples: production-safe, no known issues (from content audit)
