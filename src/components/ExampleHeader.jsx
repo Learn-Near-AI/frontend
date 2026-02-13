@@ -1,22 +1,22 @@
-import React from 'react'
-import { difficultyColors, categoryIcons } from '../data/examples'
+import React from 'react';
+import { difficultyColors, categoryIcons } from '../data/examples';
 
-const AUTHOR_NAME = 'Wisdom Chris'
-const DONATE_ACCOUNT = 'grandrobe7970.near'
-const EXPLORER_URL = 'https://nearblocks.io'
+const AUTHOR_NAME = 'Dev Team';
+const DONATE_ACCOUNT = 'grandrobe7970.near';
+const EXPLORER_URL = 'https://nearblocks.io';
 
 function ExampleHeader({ example, activeLanguage }) {
-  const difficultyClass = difficultyColors[example.difficulty] || difficultyColors['Beginner']
-  const categoryIcon = categoryIcons[example.category] || '📁'
+  const difficultyClass = difficultyColors[example.difficulty] || difficultyColors['Beginner'];
+  const categoryIcon = categoryIcons[example.category] || '📁';
 
   return (
     <div className="bg-white dark:bg-[#111216] rounded-xl p-5 md:p-6 border border-gray-200 dark:border-[#3e3e42]">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           {categoryIcon.startsWith('/') ? (
-            <img 
-              src={categoryIcon} 
-              alt={example.category} 
+            <img
+              src={categoryIcon}
+              alt={example.category}
               className="w-8 h-8 md:w-12 md:h-12 object-contain flex-shrink-0"
             />
           ) : (
@@ -55,8 +55,7 @@ function ExampleHeader({ example, activeLanguage }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default ExampleHeader
-
+export default ExampleHeader;

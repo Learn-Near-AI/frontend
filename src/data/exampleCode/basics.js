@@ -19,7 +19,6 @@ export const basicsCode = {
  12. NFTs / Chain Sig   — When you need them.
 
 Pick "Hello World" from the sidebar to write your first contract.
-Use the Explanation tab (right) for details on each example.
 `,
   },
   'hello-world': {
@@ -751,7 +750,7 @@ class Contract {
 
 `,
   },
-  'events': {
+  events: {
     RustExercise: `use near_sdk::near;
 use near_sdk::env;
 use near_sdk::PanicOnDefault;
@@ -1131,5 +1130,4 @@ class Contract {
 
 `,
   },
-}
-
+};

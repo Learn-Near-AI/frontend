@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
-import { X } from "lucide-react";
-import { exampleCode } from "../data/examples";
-import { isGuidedExample, exerciseHints } from "../data/guidedExercises";
-import { TOUR_AUTO_START_DELAY_MS, CONSOLE_ERROR_LINES_MAX } from "../lib/appConstants";
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { X } from 'lucide-react';
+import { exampleCode } from '../data/examples';
+import { isGuidedExample, exerciseHints } from '../data/guidedExercises';
+import { TOUR_AUTO_START_DELAY_MS, CONSOLE_ERROR_LINES_MAX } from '../lib/appConstants';
 import {
   Dialog,
   DialogContent,
@@ -11,25 +11,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { getActiveAccountId } from "../near/near";
-import { config, getCompileApiUrl } from "../config";
-import { logger } from "../lib/logger";
-import ExampleHeader from "./ExampleHeader";
-import CodeEditor from "./CodeEditor";
-import InfoPanel from "./InfoPanel";
-import ConsolePanel from "./ConsolePanel";
-import OnboardingTour from "./OnboardingTour";
-import TourButton from "./TourButton";
+} from './ui/dialog';
+import { getActiveAccountId } from '../near/near';
+import { config, getCompileApiUrl } from '../config';
+import { logger } from '../lib/logger';
+import ExampleHeader from './ExampleHeader';
+import CodeEditor from './CodeEditor';
+import InfoPanel from './InfoPanel';
+import ConsolePanel from './ConsolePanel';
+import OnboardingTour from './OnboardingTour';
+import TourButton from './TourButton';
 
 const PREFERRED_LANGUAGE_KEY = 'near_examples_preferred_language';
 
 function getStoredLanguage() {
   try {
     const stored = localStorage.getItem(PREFERRED_LANGUAGE_KEY);
-    return stored === "JavaScript" || stored === "Rust" ? stored : "Rust";
+    return stored === 'JavaScript' || stored === 'Rust' ? stored : 'Rust';
   } catch {
-    return "Rust";
+    return 'Rust';
   }
 }
 
@@ -48,17 +48,23 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
   const codeForExample = exampleCode[example.id] || {};
   const exerciseKey = effectiveLanguage + 'Exercise';
-  const exerciseCode = guidedExample ? (codeForExample[exerciseKey] ?? codeForExample[effectiveLanguage]) : null;
+  const exerciseCode = guidedExample
+    ? (codeForExample[exerciseKey] ?? codeForExample[effectiveLanguage])
+    : null;
   const solutionCode = guidedExample ? codeForExample[effectiveLanguage] : null;
   const initialCode = isIntroExample
     ? (codeForExample.Intro ?? '')
-    : (guidedExample ? (codeForExample[exerciseKey] ?? codeForExample[effectiveLanguage]) : codeForExample[effectiveLanguage])
-    || (isIntroExample ? '' : `// No ${effectiveLanguage} code sample is available yet for "${example.name}".
+    : (guidedExample
+        ? (codeForExample[exerciseKey] ?? codeForExample[effectiveLanguage])
+        : codeForExample[effectiveLanguage]) ||
+      (isIntroExample
+        ? ''
+        : `// No ${effectiveLanguage} code sample is available yet for "${example.name}".
 // Try switching language tabs, or pick another example from the sidebar.`);
 
-  const [activeInfoTab, setActiveInfoTab] = useState("explanation");
-  const [code, setCode] = useState("");
-  const [consoleOutput, setConsoleOutput] = useState("");
+  const [activeInfoTab, setActiveInfoTab] = useState('explanation');
+  const [code, setCode] = useState('');
+  const [consoleOutput, setConsoleOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployedContractId, setDeployedContractId] = useState(null);
@@ -78,7 +84,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   };
 
   const addConsoleOutput = (message) => {
-    setConsoleOutput((prev) => prev + message + "\n");
+    setConsoleOutput((prev) => prev + message + '\n');
   };
 
   useEffect(() => {
@@ -111,10 +117,10 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         if (response.ok) {
           const status = await response.json();
           setBackendCLIConfigured(status.configured);
-          logger.debug("Backend CLI configured:", status.configured);
+          logger.debug('Backend CLI configured:', status.configured);
         }
       } catch (error) {
-        logger.warn("Could not check backend CLI status:", error);
+        logger.warn('Could not check backend CLI status:', error);
         setBackendCLIConfigured(false);
       }
     };
@@ -123,23 +129,20 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   }, []);
 
   const clearConsole = () => {
-    setConsoleOutput("");
+    setConsoleOutput('');
   };
 
   const handleRun = async () => {
     // For guided examples, always compile the exercise (learner's code to fix), not the solution
-    const codeToCompile =
-      guidedExample && showingSolution && exerciseCode
-        ? exerciseCode
-        : code;
+    const codeToCompile = guidedExample && showingSolution && exerciseCode ? exerciseCode : code;
     if (!codeToCompile.trim()) {
-      addConsoleOutput("❌ Error: No code to run");
+      addConsoleOutput('❌ Error: No code to run');
       return;
     }
 
     setIsRunning(true);
     clearConsole();
-    addConsoleOutput("▶ Compiling contract...");
+    addConsoleOutput('▶ Compiling contract...');
     const compileStartRun = Date.now();
 
     try {
@@ -148,18 +151,18 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       logger.debug(`[FRONTEND] Language: ${activeLanguage}, Code length: ${codeToCompile.length}`);
 
       const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: codeToCompile, language: activeLanguage }),
       });
 
-      logger.debug(`[FRONTEND] Response status: ${compileResponse.status} ${compileResponse.statusText}`);
+      logger.debug(
+        `[FRONTEND] Response status: ${compileResponse.status} ${compileResponse.statusText}`
+      );
 
       if (!compileResponse.ok) {
-        const errorData = await compileResponse
-          .json()
-          .catch(() => ({ error: "Unknown error" }));
-        logger.error("[FRONTEND] Error response:", errorData);
+        const errorData = await compileResponse.json().catch(() => ({ error: 'Unknown error' }));
+        logger.error('[FRONTEND] Error response:', errorData);
         const errorMsg =
           errorData.stderr ||
           errorData.error ||
@@ -170,7 +173,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       }
 
       const compileResult = await compileResponse.json();
-      logger.debug("[FRONTEND] Compile result:", {
+      logger.debug('[FRONTEND] Compile result:', {
         success: compileResult.success,
         hasWasm: !!compileResult.wasm,
         size: compileResult.size,
@@ -182,7 +185,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           compileResult.stderr ||
           compileResult.error ||
           compileResult.message ||
-          "Compilation failed";
+          'Compilation failed';
 
         // If stderr is very long, extract the most relevant part
         if (errorMsg.length > 1000) {
@@ -195,59 +198,56 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
             errorMsg = errorMatch[1].trim();
           } else {
             // Take last 1000 chars
-            errorMsg = "..." + errorMsg.slice(-1000);
+            errorMsg = '...' + errorMsg.slice(-1000);
           }
         }
 
-        logger.error("[FRONTEND] Compilation failed:", errorMsg);
+        logger.error('[FRONTEND] Compilation failed:', errorMsg);
         addConsoleOutput(`❌ Compilation Error:`);
-        const errorLines = errorMsg.split("\n").slice(0, CONSOLE_ERROR_LINES_MAX);
+        const errorLines = errorMsg.split('\n').slice(0, CONSOLE_ERROR_LINES_MAX);
         errorLines.forEach((line) => {
           if (line.trim()) {
             addConsoleOutput(`   ${line.trim()}`);
           }
         });
-        if (errorMsg.split("\n").length > CONSOLE_ERROR_LINES_MAX) {
+        if (errorMsg.split('\n').length > CONSOLE_ERROR_LINES_MAX) {
           addConsoleOutput(`   ... (see browser console for full error)`);
         }
         return; // Don't throw, just show the error and return
       }
 
       const compileTimeRun = ((Date.now() - compileStartRun) / 1000).toFixed(2);
-      addConsoleOutput("✓ Contract compiled successfully");
+      addConsoleOutput('✓ Contract compiled successfully');
+      addConsoleOutput(`✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`);
       addConsoleOutput(
-        `✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`
+        JSON.stringify({
+          text: `✓ Compilation Time: ${compileTimeRun}s`,
+          color: 'green',
+          bold: true,
+        })
       );
-      addConsoleOutput(JSON.stringify({ text: `✓ Compilation Time: ${compileTimeRun}s`, color: "green", bold: true }));
-      addConsoleOutput("\n💡 Note: Full execution requires deployment.");
-      addConsoleOutput(
-        '   Click "Deploy" to deploy and test your contract on TestNet.'
-      );
+      addConsoleOutput('\n💡 Note: Full execution requires deployment.');
+      addConsoleOutput('   Click "Deploy" to deploy and test your contract on TestNet.');
     } catch (error) {
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
         const compileApiUrl = getCompileApiUrl(activeLanguage);
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
         addConsoleOutput(`   Backend URL: ${compileApiUrl}`);
-        addConsoleOutput(
-          `   Please check if the backend is running and accessible.`
-        );
+        addConsoleOutput(`   Please check if the backend is running and accessible.`);
         addConsoleOutput(`   Error details: ${error.message}`);
       } else {
         addConsoleOutput(`❌ Error: ${error.message}`);
       }
-      logger.error("Run error:", error);
+      logger.error('Run error:', error);
     } finally {
       setIsRunning(false);
     }
   };
 
   const handleDeploy = async () => {
-    const codeToDeploy =
-      guidedExample && showingSolution && exerciseCode
-        ? exerciseCode
-        : code;
+    const codeToDeploy = guidedExample && showingSolution && exerciseCode ? exerciseCode : code;
     if (!codeToDeploy.trim()) {
-      addConsoleOutput("❌ Error: No code to deploy");
+      addConsoleOutput('❌ Error: No code to deploy');
       return;
     }
     await handleCLIDeploy(codeToDeploy);
@@ -258,52 +258,49 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     setIsDeploying(true);
     clearConsole();
     addConsoleOutput(`▶ Starting CLI deployment (${activeLanguage} contract)...`);
-    addConsoleOutput("📋 Deployment Method: NEAR CLI (Backend)");
-    addConsoleOutput("   No wallet connection required\n");
-    addConsoleOutput("▶ Compiling contract...");
+    addConsoleOutput('📋 Deployment Method: NEAR CLI (Backend)');
+    addConsoleOutput('   No wallet connection required\n');
+    addConsoleOutput('▶ Compiling contract...');
     const compileStartCLI = Date.now();
 
     try {
       // Step 1: Compile the contract (exercise for guided when solution is shown)
       const compileApiUrl = getCompileApiUrl(activeLanguage);
       const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: codeToCompile, language: activeLanguage }),
       });
 
       if (!compileResponse.ok) {
-        const errorData = await compileResponse
-          .json()
-          .catch(() => ({ error: "Unknown error" }));
-        throw new Error(
-          errorData.error ||
-            errorData.message ||
-            `HTTP ${compileResponse.status}`
-        );
+        const errorData = await compileResponse.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || errorData.message || `HTTP ${compileResponse.status}`);
       }
 
       const compileResult = await compileResponse.json();
 
       if (!compileResult.success) {
-        throw new Error(
-          compileResult.stderr || compileResult.error || "Compilation failed"
-        );
+        throw new Error(compileResult.stderr || compileResult.error || 'Compilation failed');
       }
 
-      const compileTimeCLI = compileResult.compilation_time != null
-        ? Number(compileResult.compilation_time).toFixed(2)
-        : ((Date.now() - compileStartCLI) / 1000).toFixed(2);
-      addConsoleOutput("✓ Contract compiled successfully");
+      const compileTimeCLI =
+        compileResult.compilation_time != null
+          ? Number(compileResult.compilation_time).toFixed(2)
+          : ((Date.now() - compileStartCLI) / 1000).toFixed(2);
+      addConsoleOutput('✓ Contract compiled successfully');
+      addConsoleOutput(`✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`);
       addConsoleOutput(
-        `✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`
+        JSON.stringify({
+          text: `✓ Compilation Time: ${compileTimeCLI}s`,
+          color: 'green',
+          bold: true,
+        })
       );
-      addConsoleOutput(JSON.stringify({ text: `✓ Compilation Time: ${compileTimeCLI}s`, color: "green", bold: true }));
 
       // Step 2: Deploy using backend NEAR CLI
-      addConsoleOutput(JSON.stringify({ text: "— Deploying now", color: "red" }));
-      addConsoleOutput("\n▶ Deploying via NEAR CLI...");
-      addConsoleOutput("   (Using backend deployment account)");
+      addConsoleOutput(JSON.stringify({ text: '— Deploying now', color: 'red' }));
+      addConsoleOutput('\n▶ Deploying via NEAR CLI...');
+      addConsoleOutput('   (Using backend deployment account)');
 
       // Get user identifier for deployment
       const accountId = await getActiveAccountId();
@@ -311,45 +308,39 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       const projectId = example.id || 'near-example';
 
       const deployResponse = await fetch(`${config.backend.deploy}/api/deploy`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           wasmBase64: compileResult.wasm,
           useSubaccount: true,
           userId: userId,
           projectId: projectId,
-          initMethod: "new",
+          initMethod: 'new',
           initArgs: {},
         }),
       });
 
       if (!deployResponse.ok) {
-        const errorData = await deployResponse
-          .json()
-          .catch(() => ({ error: "Deployment failed" }));
+        const errorData = await deployResponse.json().catch(() => ({ error: 'Deployment failed' }));
 
         // Check if CLI is not configured
         if (deployResponse.status === 503) {
-          addConsoleOutput("❌ Backend NEAR CLI not configured");
-          addConsoleOutput(
-            "   The backend needs NEAR_ACCOUNT_ID and NEAR_PRIVATE_KEY"
-          );
-          addConsoleOutput(
-            "   Contact the administrator to enable CLI deployments"
-          );
-          throw new Error("Backend NEAR CLI not configured");
+          addConsoleOutput('❌ Backend NEAR CLI not configured');
+          addConsoleOutput('   The backend needs NEAR_ACCOUNT_ID and NEAR_PRIVATE_KEY');
+          addConsoleOutput('   Contact the administrator to enable CLI deployments');
+          throw new Error('Backend NEAR CLI not configured');
         }
 
-        throw new Error(errorData.error || "Deployment failed");
+        throw new Error(errorData.error || 'Deployment failed');
       }
 
       const deployResult = await deployResponse.json();
 
       if (!deployResult.success) {
-        throw new Error(deployResult.error || "Deployment failed");
+        throw new Error(deployResult.error || 'Deployment failed');
       }
 
-      addConsoleOutput("✓ Contract deployed successfully!");
+      addConsoleOutput('✓ Contract deployed successfully!');
       addConsoleOutput(`✓ Contract ID: ${deployResult.contractId}`);
       addConsoleOutput(`✓ Transaction hash: ${deployResult.transactionHash}`);
       addConsoleOutput(`✓ Network: ${deployResult.network}`);
@@ -370,14 +361,14 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       setDeploymentTxHash(deployResult.transactionHash);
 
       // Optional: Test the deployed contract
-      addConsoleOutput("\n▶ Testing deployed contract...");
+      addConsoleOutput('\n▶ Testing deployed contract...');
       try {
         const testResponse = await fetch(`${config.backend.deploy}/api/contract/view`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contractAccountId: deployResult.contractId,
-            methodName: "hello_world",
+            methodName: 'hello_world',
             args: {},
           }),
         });
@@ -385,28 +376,24 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         if (testResponse.ok) {
           const testResult = await testResponse.json();
           if (testResult.success) {
-            addConsoleOutput(
-              `✓ Test call successful: ${JSON.stringify(testResult.result)}`
-            );
+            addConsoleOutput(`✓ Test call successful: ${JSON.stringify(testResult.result)}`);
           }
         }
       } catch (testError) {
-        logger.warn("Test call failed:", testError);
+        logger.warn('Test call failed:', testError);
       }
 
       // Contract deployed successfully!
-      addConsoleOutput("\n🎉 Deployment complete!");
+      addConsoleOutput('\n🎉 Deployment complete!');
     } catch (error) {
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
         addConsoleOutput(`   Backend URL: ${config.backend.deploy}`);
-        addConsoleOutput(
-          `   Please check if the backend is running and accessible.`
-        );
+        addConsoleOutput(`   Please check if the backend is running and accessible.`);
       } else {
         addConsoleOutput(`❌ Error: ${error.message}`);
       }
-      logger.error("CLI Deploy error:", error);
+      logger.error('CLI Deploy error:', error);
     } finally {
       setIsDeploying(false);
     }
@@ -435,7 +422,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     <div className="pl-4 py-6 md:py-4 max-w-5xl mx-auto space-y-6">
       {/* Onboarding Tour */}
       <OnboardingTour run={runTour} onFinish={handleTourFinish} />
-      
+
       {/* Floating Help Button */}
       <TourButton onStartTour={handleStartTour} />
       <ExampleHeader example={example} activeLanguage={effectiveLanguage} />
@@ -450,10 +437,9 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
                 Backend CLI Deployment Not Configured
               </h3>
               <p className="text-sm text-yellow-400">
-                Contracts require backend deployment via NEAR CLI. The
-                backend is not currently configured with deployment credentials.
-                You can still compile and test the code, but deployment is
-                disabled.
+                Contracts require backend deployment via NEAR CLI. The backend is not currently
+                configured with deployment credentials. You can still compile and test the code, but
+                deployment is disabled.
               </p>
             </div>
           </div>
@@ -465,8 +451,8 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           <div className="flex items-start gap-2">
             <span className="text-blue-600 dark:text-blue-400 text-lg">ℹ️</span>
             <p className="text-sm text-blue-800 dark:text-blue-300 flex-1">
-              <strong>Contracts</strong> will be deployed via backend NEAR
-              CLI. No wallet connection required.
+              <strong>Contracts</strong> will be deployed via backend NEAR CLI. No wallet connection
+              required.
             </p>
             <button
               onClick={() => setIsWarningClosed(true)}
@@ -479,38 +465,42 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <CodeEditor
-          code={code}
-          setCode={setCode}
-          activeLanguage={effectiveLanguage}
-          setActiveLanguage={setActiveLanguage}
-          isRunning={isRunning}
-          isDeploying={isDeploying}
-          onRun={handleRun}
-          onDeploy={handleDeploy}
-          onCopy={handleCopyCode}
-          onReset={handleResetCode}
-          backendCLIConfigured={backendCLIConfigured}
-          isIntroExample={isIntroExample}
-          isGuidedExample={guidedExample}
-          exerciseHints={exerciseHints[example.id]?.[effectiveLanguage] ?? []}
-          solutionCode={solutionCode}
-          showingSolution={showingSolution}
-          onShowSolution={handleShowSolution}
-          onBackToExercise={handleBackToExercise}
-          exerciseCode={exerciseCode}
-        />
+      <div className={`flex flex-col lg:flex-row gap-6 ${isIntroExample ? 'lg:block' : ''}`}>
+        <div className={isIntroExample ? 'w-full' : ''}>
+          <CodeEditor
+            code={code}
+            setCode={setCode}
+            activeLanguage={effectiveLanguage}
+            setActiveLanguage={setActiveLanguage}
+            isRunning={isRunning}
+            isDeploying={isDeploying}
+            onRun={handleRun}
+            onDeploy={handleDeploy}
+            onCopy={handleCopyCode}
+            onReset={handleResetCode}
+            backendCLIConfigured={backendCLIConfigured}
+            isIntroExample={isIntroExample}
+            isGuidedExample={guidedExample}
+            exerciseHints={exerciseHints[example.id]?.[effectiveLanguage] ?? []}
+            solutionCode={solutionCode}
+            showingSolution={showingSolution}
+            onShowSolution={handleShowSolution}
+            onBackToExercise={handleBackToExercise}
+            exerciseCode={exerciseCode}
+          />
+        </div>
 
-        <InfoPanel
-          example={example}
-          activeInfoTab={activeInfoTab}
-          setActiveInfoTab={setActiveInfoTab}
-          code={code}
-          activeLanguage={effectiveLanguage}
-          deployedContractId={deployedContractId}
-          isDeploying={isDeploying}
-        />
+        {!isIntroExample && (
+          <InfoPanel
+            example={example}
+            activeInfoTab={activeInfoTab}
+            setActiveInfoTab={setActiveInfoTab}
+            code={code}
+            activeLanguage={effectiveLanguage}
+            deployedContractId={deployedContractId}
+            isDeploying={isDeploying}
+          />
+        )}
       </div>
 
       <ConsolePanel

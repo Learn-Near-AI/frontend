@@ -1,7 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react'
-import PropTypes from 'prop-types'
-import { Play, Rocket, TimerResetIcon, CopyIcon, Loader2, Check, Lightbulb, ChevronDown, BookOpen } from 'lucide-react'
-import { toast } from 'sonner'
+import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
+import {
+  Play,
+  Rocket,
+  TimerResetIcon,
+  CopyIcon,
+  Loader2,
+  Check,
+  Lightbulb,
+  ChevronDown,
+  BookOpen,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -9,17 +19,40 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog'
-import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view'
-import { EditorState } from '@codemirror/state'
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
-import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
-import { foldGutter, indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldKeymap } from '@codemirror/language'
-import { lintKeymap } from '@codemirror/lint'
-import { javascript } from '@codemirror/lang-javascript'
-import { rust } from '@codemirror/lang-rust'
-import { oneDark } from '@codemirror/theme-one-dark'
+} from './ui/dialog';
+import {
+  EditorView,
+  keymap,
+  lineNumbers,
+  highlightActiveLineGutter,
+  highlightSpecialChars,
+  drawSelection,
+  dropCursor,
+  rectangularSelection,
+  crosshairCursor,
+  highlightActiveLine,
+} from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import {
+  autocompletion,
+  completionKeymap,
+  closeBrackets,
+  closeBracketsKeymap,
+} from '@codemirror/autocomplete';
+import {
+  foldGutter,
+  indentOnInput,
+  syntaxHighlighting,
+  defaultHighlightStyle,
+  bracketMatching,
+  foldKeymap,
+} from '@codemirror/language';
+import { lintKeymap } from '@codemirror/lint';
+import { javascript } from '@codemirror/lang-javascript';
+import { rust } from '@codemirror/lang-rust';
+import { oneDark } from '@codemirror/theme-one-dark';
 
 function CodeEditor({
   code,
@@ -40,69 +73,66 @@ function CodeEditor({
   onShowSolution,
   onBackToExercise,
 }) {
-  const [copied, setCopied] = useState(false)
-  const [reset, setReset] = useState(false)
-  const [showResetDialog, setShowResetDialog] = useState(false)
-  const [hintOpen, setHintOpen] = useState(false)
-  const hintPanelRef = useRef(null)
-  const deploymentMethod = 'CLI' // Both languages use CLI deployment
-  const runDeployDisabledForSolution = isGuidedExample && showingSolution
-  const editorRef = useRef(null)
-  const viewRef = useRef(null)
+  const [copied, setCopied] = useState(false);
+  const [reset, setReset] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [hintOpen, setHintOpen] = useState(false);
+  const hintPanelRef = useRef(null);
+  const deploymentMethod = 'CLI'; // Both languages use CLI deployment
+  const runDeployDisabledForSolution = isGuidedExample && showingSolution;
+  const editorRef = useRef(null);
+  const viewRef = useRef(null);
 
   // Close hint panel when clicking outside
   useEffect(() => {
-    if (!hintOpen) return
+    if (!hintOpen) return;
     const close = (e) => {
-      if (hintPanelRef.current && !hintPanelRef.current.contains(e.target)) setHintOpen(false)
-    }
-    document.addEventListener('click', close)
-    return () => document.removeEventListener('click', close)
-  }, [hintOpen])
+      if (hintPanelRef.current && !hintPanelRef.current.contains(e.target)) setHintOpen(false);
+    };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [hintOpen]);
 
   const handleCopy = () => {
-    onCopy()
-    setCopied(true)
-  }
+    onCopy();
+    setCopied(true);
+  };
 
   const handleResetClick = () => {
-    setShowResetDialog(true)
-  }
+    setShowResetDialog(true);
+  };
 
   const handleResetConfirm = () => {
-    onReset()
-    setReset(true)
-    setShowResetDialog(false)
+    onReset();
+    setReset(true);
+    setShowResetDialog(false);
     toast.success('Code reset to original', {
       description: 'Your code has been reset to the default example.',
       duration: 3000,
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     if (copied) {
-      const timer = setTimeout(() => setCopied(false), 2000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timer);
     }
-  }, [copied])
+  }, [copied]);
 
   useEffect(() => {
     if (reset) {
-      const timer = setTimeout(() => setReset(false), 1000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setReset(false), 1000);
+      return () => clearTimeout(timer);
     }
-  }, [reset])
+  }, [reset]);
 
   // Initialize CodeMirror
   useEffect(() => {
-    if (!editorRef.current) return
+    if (!editorRef.current) return;
 
     // Get language extension based on active language (Intro = plain text, no syntax)
-    const languageExtension = activeLanguage === 'Intro'
-      ? []
-      : activeLanguage === 'JavaScript'
-        ? javascript()
-        : rust()
+    const languageExtension =
+      activeLanguage === 'Intro' ? [] : activeLanguage === 'JavaScript' ? javascript() : rust();
 
     // Create editor state with all extensions
     const state = EditorState.create({
@@ -127,7 +157,7 @@ function CodeEditor({
         crosshairCursor(),
         highlightActiveLine(),
         highlightSelectionMatches(),
-        
+
         // Keymaps
         keymap.of([
           ...closeBracketsKeymap,
@@ -138,18 +168,18 @@ function CodeEditor({
           ...completionKeymap,
           ...lintKeymap,
         ]),
-        
+
         // Language support and theme
         ...(Array.isArray(languageExtension) ? languageExtension : [languageExtension]),
         oneDark,
-        
+
         // Update listener
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
-            setCode(update.state.doc.toString())
+            setCode(update.state.doc.toString());
           }
         }),
-        
+
         // Custom theme
         EditorView.theme({
           '&': {
@@ -165,26 +195,26 @@ function CodeEditor({
           },
         }),
       ],
-    })
+    });
 
     // Create editor view
     const view = new EditorView({
       state,
       parent: editorRef.current,
-    })
+    });
 
-    viewRef.current = view
+    viewRef.current = view;
 
     return () => {
-      view.destroy()
-      viewRef.current = null
-    }
-  }, [activeLanguage])
+      view.destroy();
+      viewRef.current = null;
+    };
+  }, [activeLanguage]);
 
   // Update code when it changes externally (e.g., reset)
   useEffect(() => {
     if (viewRef.current) {
-      const currentCode = viewRef.current.state.doc.toString()
+      const currentCode = viewRef.current.state.doc.toString();
       if (currentCode !== code) {
         viewRef.current.dispatch({
           changes: {
@@ -192,10 +222,10 @@ function CodeEditor({
             to: currentCode.length,
             insert: code,
           },
-        })
+        });
       }
     }
-  }, [code])
+  }, [code]);
 
   return (
     <div className="lg:basis-3/5 min-w-0 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
@@ -238,98 +268,108 @@ function CodeEditor({
 
         {/* Action buttons */}
         <div className="tour-run-deploy flex items-center gap-2">
-        <button
-          onClick={handleResetClick}
-          className={`px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-1 ${
-            reset
-              ? 'border-near-primary bg-near-primary/10 text-near-primary'
-              : 'border-[#3e3e42] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
-          }`}
-          title={reset ? 'Reset!' : 'Reset code'}
-        >
-          <TimerResetIcon className="h-4 w-4" />
-        </button>
+          <button
+            onClick={handleResetClick}
+            className={`px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-1 ${
+              reset
+                ? 'border-near-primary bg-near-primary/10 text-near-primary'
+                : 'border-[#3e3e42] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
+            }`}
+            title={reset ? 'Reset!' : 'Reset code'}
+          >
+            <TimerResetIcon className="h-4 w-4" />
+          </button>
 
-        {/* Reset Confirmation Dialog */}
-        <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-          <DialogContent className="max-w-sm p-4 mx-4 sm:mx-0">
-            <DialogHeader>
-              <DialogTitle>Reset Code</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to reset the code to the original example? All your changes will be lost.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="gap-2">
+          {/* Reset Confirmation Dialog */}
+          <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+            <DialogContent className="max-w-sm p-4 mx-4 sm:mx-0">
+              <DialogHeader>
+                <DialogTitle>Reset Code</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to reset the code to the original example? All your changes
+                  will be lost.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2">
+                <button
+                  onClick={() => setShowResetDialog(false)}
+                  className="px-4 py-2 text-sm border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleResetConfirm}
+                  className="px-4 py-2 text-sm bg-near-primary text-near-darker font-semibold rounded-lg hover:bg-[#00D689] transition-colors"
+                >
+                  Reset
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <button
+            onClick={handleCopy}
+            className={`px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-1 ${
+              copied
+                ? 'border-near-primary bg-near-primary/10 text-near-primary'
+                : 'border-[#3e3e42] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
+            }`}
+            title={copied ? 'Copied!' : 'Copy code'}
+          >
+            {copied ? <Check className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+          </button>
+          {!isIntroExample && (
+            <>
               <button
-                onClick={() => setShowResetDialog(false)}
-                className="px-4 py-2 text-sm border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors"
+                onClick={onRun}
+                disabled={isRunning || isDeploying || runDeployDisabledForSolution}
+                className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
+                title={
+                  runDeployDisabledForSolution ? 'Switch back to exercise to run' : 'compile code'
+                }
               >
-                Cancel
+                {isRunning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="hidden md:inline">Compiling...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4" />
+                    <span className="hidden md:inline">Compile</span>
+                  </>
+                )}
               </button>
               <button
-                onClick={handleResetConfirm}
-                className="px-4 py-2 text-sm bg-near-primary text-near-darker font-semibold rounded-lg hover:bg-[#00D689] transition-colors"
+                onClick={onDeploy}
+                disabled={
+                  isRunning ||
+                  isDeploying ||
+                  backendCLIConfigured === false ||
+                  runDeployDisabledForSolution
+                }
+                className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs bg-near-primary hover:bg-[#00D689] text-near-darker font-semibold rounded-lg inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
+                title={
+                  runDeployDisabledForSolution
+                    ? 'Switch back to exercise to deploy'
+                    : backendCLIConfigured === false
+                      ? 'Backend CLI not configured'
+                      : `Deploy via ${deploymentMethod}`
+                }
               >
-                Reset
+                {isDeploying ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="hidden md:inline">Deploying...</span>
+                  </>
+                ) : (
+                  <>
+                    <Rocket className="h-4 w-4" />
+                    <span className="hidden md:inline">Deploy ({deploymentMethod})</span>
+                  </>
+                )}
               </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <button
-          onClick={handleCopy}
-          className={`px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border rounded-lg transition-all duration-200 inline-flex items-center justify-center gap-1 ${
-            copied
-              ? 'border-near-primary bg-near-primary/10 text-near-primary'
-              : 'border-[#3e3e42] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
-          }`}
-          title={copied ? 'Copied!' : 'Copy code'}
-        >
-          {copied ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <CopyIcon className="h-4 w-4" />
+            </>
           )}
-        </button>
-        {!isIntroExample && (
-          <>
-            <button
-              onClick={onRun}
-              disabled={isRunning || isDeploying || runDeployDisabledForSolution}
-              className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs bg-near-primary hover:bg-[#00D689] text-near-darker font-semibold rounded-lg inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
-              title={runDeployDisabledForSolution ? 'Switch back to exercise to run' : 'Run code'}
-            >
-              {isRunning ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="hidden md:inline">Compiling...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4" />
-                  <span className="hidden md:inline">Run</span>
-                </>
-              )}
-            </button>
-            <button
-              onClick={onDeploy}
-              disabled={isRunning || isDeploying || backendCLIConfigured === false || runDeployDisabledForSolution}
-              className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
-              title={runDeployDisabledForSolution ? 'Switch back to exercise to deploy' : backendCLIConfigured === false ? 'Backend CLI not configured' : `Deploy via ${deploymentMethod}`}
-            >
-              {isDeploying ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="hidden md:inline">Deploying...</span>
-                </>
-              ) : (
-                <>
-                  <Rocket className="h-4 w-4" />
-                  <span className="hidden md:inline">Deploy ({deploymentMethod})</span>
-                </>
-              )}
-            </button>
-          </>
-        )}
         </div>
       </div>
 
@@ -359,7 +399,9 @@ function CodeEditor({
                 >
                   <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
                   <span>Hint</span>
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${hintOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform ${hintOpen ? 'rotate-180' : ''}`}
+                  />
                 </button>
                 {showingSolution ? (
                   <button
@@ -384,15 +426,22 @@ function CodeEditor({
                 )}
                 {hintOpen && exerciseHints.length > 0 && (
                   <div className="absolute left-0 bottom-full mb-1 w-72 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 p-3 text-left">
-                    <p className="text-[0.65rem] uppercase tracking-wide text-gray-400 mb-2 font-semibold">Hints</p>
+                    <p className="text-[0.65rem] uppercase tracking-wide text-gray-400 mb-2 font-semibold">
+                      Hints
+                    </p>
                     <ul className="space-y-2 text-gray-700 dark:text-gray-300 text-[0.7rem] list-decimal list-inside">
                       {exerciseHints.map((h, i) => (
-                        <li key={i} className="leading-snug">{h}</li>
+                        <li key={i} className="leading-snug">
+                          {h}
+                        </li>
                       ))}
                     </ul>
                     <button
                       type="button"
-                      onClick={() => { onShowSolution(); setHintOpen(false); }}
+                      onClick={() => {
+                        onShowSolution();
+                        setHintOpen(false);
+                      }}
                       className="mt-3 w-full py-1.5 text-[0.7rem] rounded border border-near-primary/50 text-near-primary hover:bg-near-primary/10 transition-colors"
                     >
                       Show full solution
@@ -402,11 +451,13 @@ function CodeEditor({
               </div>
             )}
           </div>
-          <span>{activeLanguage === 'Intro' ? 'Learning path' : `${activeLanguage} • Ready to run ✓`}</span>
+          <span>
+            {activeLanguage === 'Intro' ? 'Learning path' : `${activeLanguage} • Ready to run ✓`}
+          </span>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 CodeEditor.propTypes = {
@@ -427,7 +478,6 @@ CodeEditor.propTypes = {
   showingSolution: PropTypes.bool,
   onShowSolution: PropTypes.func,
   onBackToExercise: PropTypes.func,
-}
+};
 
-export default CodeEditor
-
+export default CodeEditor;
