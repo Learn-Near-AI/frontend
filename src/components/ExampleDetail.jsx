@@ -465,8 +465,8 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         </div>
       )}
 
-      <div className={`flex flex-col lg:flex-row gap-6 ${isIntroExample ? 'lg:block' : ''}`}>
-        <div className={isIntroExample ? 'w-full' : ''}>
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className={isIntroExample ? 'w-full' : 'lg:basis-3/5'}>
           <CodeEditor
             code={code}
             setCode={setCode}
@@ -491,15 +491,17 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         </div>
 
         {!isIntroExample && (
-          <InfoPanel
-            example={example}
-            activeInfoTab={activeInfoTab}
-            setActiveInfoTab={setActiveInfoTab}
-            code={code}
-            activeLanguage={effectiveLanguage}
-            deployedContractId={deployedContractId}
-            isDeploying={isDeploying}
-          />
+          <div className="lg:basis-2/5">
+            <InfoPanel
+              example={example}
+              activeInfoTab={activeInfoTab}
+              setActiveInfoTab={setActiveInfoTab}
+              code={code}
+              activeLanguage={effectiveLanguage}
+              deployedContractId={deployedContractId}
+              isDeploying={isDeploying}
+            />
+          </div>
         )}
       </div>
 
