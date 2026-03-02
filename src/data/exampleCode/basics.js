@@ -2,23 +2,46 @@
 export const basicsCode = {
   intro: {
     Intro: `═══════════════════════════════════════════════════════════════
-  RECOMMENDED LEARNING PATH (start here, then follow in order)
-═══════════════════════════════════════════════════════════════
+  WELCOME TO NEAR DEV — Let's Learn Together!
+  ═══════════════════════════════════════════════════════════════
 
-  1. Hello World        — Your first contract; view method, no state.
-  2. Contract Structure — State, #[near(contract_state)], init.
-  3. View Methods       — Read-only calls; free, no gas.
-  4. Change Methods     — State-changing calls; gas and signer.
-  5. State Management   — Counter pattern; persist data.
-  6. Input Validation   — require! and safety.
-  7. Error Handling     — Option, Result, panic.
-  8. Events             — NEP-297; indexable logs.
-  9. Collections        — Vector, Map; then Todo, Profiles, Voting.
- 10. Security           — Owner, roles, pausable.
- 11. Cross-Contract     — Simple calls → Callbacks → FT/NFT.
- 12. NFTs / Chain Sig   — When you need them.
+  We're building something a bit different here. Most tutorials and
+  docs out there assume you already know things. We don't think that's
+  fair. So we made this to help you actually get it — step by step.
 
-Pick "Hello World" from the sidebar to write your first contract.
+  Right now, 15 examples are ready to go. The rest? We're working on
+  them. Hope to have more out soon.
+
+  Here's the path we recommend:
+
+  BASICS (start here!)
+    1. Hello World        — See how a contract looks and works
+    2. Contract Structure — Learn about state and setup
+    3. View Methods       — Read data without paying gas
+    4. Change Methods     — Write data to the blockchain
+    5. State Management   — Keep data around between calls
+    6. Input Validation   — Check that people's input is safe
+    7. Error Handling     — What to do when things go wrong
+    8. Events             — Tell the outside world stuff happened
+
+  COLLECTIONS
+    9. Collections: Vector — Lists of things
+   10. Collections: Map     — Key-value pairs
+
+  ACCESS CONTROL
+   11. Owner Pattern       — One person controls stuff
+   12. Role-Based Access   — Different people, different powers
+   13. Pausable Contract  — Hit the big red button if things go wrong
+   14. Multi-Signature    — Need multiple people to agree
+
+   15. Upgrade Pattern    — Change code without losing data
+
+  Pick "Hello World" from the sidebar to get started. Each example
+  has both Rust and JavaScript versions. Try the code, break it,
+  fix it — that's how you learn.
+
+  We're not going to pretend this is the only way to learn NEAR.
+  But we hope it helps. Happy coding!
 `,
   },
   'hello-world': {

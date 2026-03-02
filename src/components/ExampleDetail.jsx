@@ -69,6 +69,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployedContractId, setDeployedContractId] = useState(null);
   const [deploymentTxHash, setDeploymentTxHash] = useState(null);
+  const [wasmSize, setWasmSize] = useState(null);
   const [backendCLIConfigured, setBackendCLIConfigured] = useState(null);
   const [isWarningClosed, setIsWarningClosed] = useState(false);
   const [runTour, setRunTour] = useState(false);
@@ -219,6 +220,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       const compileTimeRun = ((Date.now() - compileStartRun) / 1000).toFixed(2);
       addConsoleOutput('✓ Contract compiled successfully');
       addConsoleOutput(`✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`);
+      setWasmSize(compileResult.size);
       addConsoleOutput(
         JSON.stringify({
           text: `✓ Compilation Time: ${compileTimeRun}s`,
@@ -289,6 +291,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           : ((Date.now() - compileStartCLI) / 1000).toFixed(2);
       addConsoleOutput('✓ Contract compiled successfully');
       addConsoleOutput(`✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`);
+      setWasmSize(compileResult.size);
       addConsoleOutput(
         JSON.stringify({
           text: `✓ Compilation Time: ${compileTimeCLI}s`,
@@ -509,6 +512,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         consoleOutput={consoleOutput}
         deployedContractId={deployedContractId}
         deploymentTxHash={deploymentTxHash}
+        wasmSize={wasmSize}
       />
     </div>
   );

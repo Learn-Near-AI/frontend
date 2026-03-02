@@ -1,153 +1,159 @@
-import React, { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
-import { useNearWallet } from 'near-connect-hooks'
-import { Loader2, CheckCircle2, AlertCircle, Info, Lock } from 'lucide-react'
-import { logger } from '../lib/logger'
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { useNearWallet } from 'near-connect-hooks';
+import { Loader2, CheckCircle2, AlertCircle, Info, Lock, DollarSign, Zap, Eye } from 'lucide-react';
+import { logger } from '../lib/logger';
+import { fetchNearPrice, formatUsd, getGasInfo } from '../lib/nearCosts';
 
 // Parse code to extract methods
 const parseMethodsFromCode = (code, language) => {
-  const viewMethods = []
-  const callMethods = []
+  const viewMethods = [];
+  const callMethods = [];
 
   if (language === 'Rust') {
     // Match: pub fn method_name(&self) or pub fn method_name(&mut self, ...)
-    const viewRegex = /pub fn (\w+)\(&self[^)]*\)/g
-    const callRegex = /pub fn (\w+)\(&mut self[^)]*\)/g
-    
-    let match
+    const viewRegex = /pub fn (\w+)\(&self[^)]*\)/g;
+    const callRegex = /pub fn (\w+)\(&mut self[^)]*\)/g;
+
+    let match;
     while ((match = viewRegex.exec(code)) !== null) {
-      viewMethods.push({ name: match[1], args: {} })
+      viewMethods.push({ name: match[1], args: {} });
     }
     while ((match = callRegex.exec(code)) !== null) {
       // Try to extract parameter names
-      const methodName = match[1]
-      const fullMatch = code.substring(code.indexOf(match[0]))
-      const paramMatch = fullMatch.match(/\(&mut self(?:,\s*(\w+):\s*\w+[^)]*)?\)/)
-      let args = {}
+      const methodName = match[1];
+      const fullMatch = code.substring(code.indexOf(match[0]));
+      const paramMatch = fullMatch.match(/\(&mut self(?:,\s*(\w+):\s*\w+[^)]*)?\)/);
+      let args = {};
       if (paramMatch && paramMatch[1]) {
         // Simple extraction - just get first param name
-        const params = fullMatch.match(/\(&mut self,\s*(\w+):/)?.[1]
+        const params = fullMatch.match(/\(&mut self,\s*(\w+):/)?.[1];
         if (params) {
-          args[params] = ''
+          args[params] = '';
         }
       }
-      callMethods.push({ name: methodName, args })
+      callMethods.push({ name: methodName, args });
     }
   } else if (language === 'JavaScript' || language === 'TypeScript') {
     // Match: @view({}) methodName() or @call({}) methodName()
-    const viewRegex = /@view\([^)]*\)\s+(\w+)\([^)]*\)/g
-    const callRegex = /@call\([^)]*\)\s+(\w+)\([^)]*\)/g
-    
-    let match
+    const viewRegex = /@view\([^)]*\)\s+(\w+)\([^)]*\)/g;
+    const callRegex = /@call\([^)]*\)\s+(\w+)\([^)]*\)/g;
+
+    let match;
     while ((match = viewRegex.exec(code)) !== null) {
-      viewMethods.push({ name: match[1], args: {} })
+      viewMethods.push({ name: match[1], args: {} });
     }
     while ((match = callRegex.exec(code)) !== null) {
-      const methodName = match[1]
+      const methodName = match[1];
       // Try to extract parameters
-      const fullMatch = code.substring(code.indexOf(match[0]))
-      const paramMatch = fullMatch.match(/\([^)]*\{([^}]+)\}[^)]*\)/)
-      let args = {}
+      const fullMatch = code.substring(code.indexOf(match[0]));
+      const paramMatch = fullMatch.match(/\([^)]*\{([^}]+)\}[^)]*\)/);
+      let args = {};
       if (paramMatch) {
         // Extract parameter names from destructured object
-        const params = paramMatch[1].split(',').map(p => p.trim().split(':')[0].trim())
-        params.forEach(param => {
-          if (param) args[param] = ''
-        })
+        const params = paramMatch[1].split(',').map((p) => p.trim().split(':')[0].trim());
+        params.forEach((param) => {
+          if (param) args[param] = '';
+        });
       }
-      callMethods.push({ name: methodName, args })
+      callMethods.push({ name: methodName, args });
     }
   }
 
-  return { viewMethods, callMethods }
-}
+  return { viewMethods, callMethods };
+};
 
 function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDeploying }) {
-  const { signedAccountId, viewFunction, callFunction } = useNearWallet()
-  
-  const [contractId, setContractId] = useState('')
-  const [selectedMethod, setSelectedMethod] = useState(null)
-  const [methodArgs, setMethodArgs] = useState('{}')
-  const [result, setResult] = useState(null)
-  const [error, setError] = useState(null)
-  const [isExecuting, setIsExecuting] = useState(false)
-  const [parsedMethods, setParsedMethods] = useState({ viewMethods: [], callMethods: [] })
+  const { signedAccountId, viewFunction, callFunction } = useNearWallet();
+
+  const [contractId, setContractId] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState(null);
+  const [methodArgs, setMethodArgs] = useState('{}');
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [parsedMethods, setParsedMethods] = useState({ viewMethods: [], callMethods: [] });
+  const [nearPrice, setNearPrice] = useState(null);
+
+  useEffect(() => {
+    fetchNearPrice().then(setNearPrice);
+  }, []);
 
   // Parse methods from current code
   useEffect(() => {
     if (code) {
-      const methods = parseMethodsFromCode(code, activeLanguage)
-      setParsedMethods(methods)
+      const methods = parseMethodsFromCode(code, activeLanguage);
+      setParsedMethods(methods);
     }
-  }, [code, activeLanguage])
+  }, [code, activeLanguage]);
 
   // Update contract ID when deployment happens
   useEffect(() => {
     if (deployedContractId) {
-      setContractId(deployedContractId)
+      setContractId(deployedContractId);
     }
-  }, [deployedContractId])
+  }, [deployedContractId]);
 
   const handleMethodCall = async (method, isView) => {
     if (!contractId) {
-      setError('No contract deployed')
-      return
+      setError('No contract deployed');
+      return;
     }
 
     if (!isView && !signedAccountId) {
-      setError('Please connect your wallet in the navigation to call contract methods')
-      return
+      setError('Please connect your wallet in the navigation to call contract methods');
+      return;
     }
 
-    setIsExecuting(true)
-    setError(null)
-    setResult(null)
-    setSelectedMethod(method)
+    setIsExecuting(true);
+    setError(null);
+    setResult(null);
+    setSelectedMethod(method);
 
     try {
       // Parse args
-      let parsedArgs
+      let parsedArgs;
       try {
-        parsedArgs = JSON.parse(methodArgs)
+        parsedArgs = JSON.parse(methodArgs);
       } catch (e) {
-        throw new Error('Invalid JSON arguments: ' + e.message)
+        throw new Error('Invalid JSON arguments: ' + e.message);
       }
 
-      let response
+      let response;
       if (isView) {
         // viewFunction supports args if needed
         const viewParams = {
           contractId: contractId,
-          method: method.name
-        }
+          method: method.name,
+        };
         // Only add args if they exist and are not empty
         if (parsedArgs && Object.keys(parsedArgs).length > 0) {
-          viewParams.args = parsedArgs
+          viewParams.args = parsedArgs;
         }
-        response = await viewFunction(viewParams)
+        response = await viewFunction(viewParams);
       } else {
         response = await callFunction({
           contractId: contractId,
           method: method.name,
-          args: parsedArgs
-        })
+          args: parsedArgs,
+        });
       }
-      
-      setResult(response)
+
+      setResult(response);
     } catch (err) {
-      logger.error('Function call error:', err)
-      setError(err.message || 'Failed to call function')
+      logger.error('Function call error:', err);
+      setError(err.message || 'Failed to call function');
     } finally {
-      setIsExecuting(false)
+      setIsExecuting(false);
     }
-  }
+  };
 
   const selectMethod = (method, isView) => {
-    setSelectedMethod(method)
-    setMethodArgs(JSON.stringify(method.args, null, 2))
-    setError(null)
-    setResult(null)
-  }
+    setSelectedMethod(method);
+    setMethodArgs(JSON.stringify(method.args, null, 2));
+    setError(null);
+    setResult(null);
+  };
 
   // If no contract deployed, show deploy first message
   if (!deployedContractId) {
@@ -165,14 +171,13 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
             {isDeploying ? 'Deploying Contract...' : 'Deploy Contract First'}
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-500">
-            {isDeploying 
+            {isDeploying
               ? 'Please wait while your contract is being deployed to the NEAR network.'
-              : 'Click the "Deploy" button in the code editor to deploy this contract. Once deployed, you\'ll be able to test its functions here.'
-            }
+              : 'Click the "Deploy" button in the code editor to deploy this contract. Once deployed, you\'ll be able to test its functions here.'}
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -195,7 +200,13 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
       {/* Read-only Methods */}
       {parsedMethods.viewMethods.length > 0 && (
         <div className="space-y-2">
-          <div className="text-xs font-semibold text-gray-400">Calling Read-only Methods</div>
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold text-gray-400">Calling Read-only Methods</div>
+            <div className="flex items-center gap-1 text-[0.65rem] text-green-400">
+              <Eye className="h-3 w-3" />
+              <span>Free</span>
+            </div>
+          </div>
           <div className="space-y-2">
             {parsedMethods.viewMethods.map((method, idx) => (
               <div
@@ -225,7 +236,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
                         onChange={(e) => setMethodArgs(e.target.value)}
                         rows={2}
                         className="w-full bg-gray-50 dark:bg-[#0d0f14] text-xs text-gray-900 dark:text-gray-100 px-2 py-1.5 rounded border border-gray-200 dark:border-[#3e3e42] outline-none focus:border-blue-500 resize-none font-mono"
-                        placeholder='{}'
+                        placeholder="{}"
                       />
                     </div>
                     <button
@@ -253,7 +264,13 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
       {/* Contract Methods (Change Methods) */}
       {parsedMethods.callMethods.length > 0 && (
         <div className="space-y-2">
-          <div className="text-xs font-semibold text-gray-400">Calling Contract Methods</div>
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold text-gray-400">Calling Contract Methods</div>
+            <div className="flex items-center gap-1 text-[0.65rem] text-amber-400">
+              <Zap className="h-3 w-3" />
+              <span>~300 TGas</span>
+            </div>
+          </div>
           <div className="space-y-2">
             {parsedMethods.callMethods.map((method, idx) => (
               <div
@@ -284,7 +301,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
                         onChange={(e) => setMethodArgs(e.target.value)}
                         rows={2}
                         className="w-full bg-gray-50 dark:bg-[#0d0f14] text-xs text-gray-900 dark:text-gray-100 px-2 py-1.5 rounded border border-gray-200 dark:border-[#3e3e42] outline-none focus:border-purple-500 resize-none font-mono"
-                        placeholder='{}'
+                        placeholder="{}"
                       />
                     </div>
                     <button
@@ -301,6 +318,12 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
                         'Call Method'
                       )}
                     </button>
+                    <div className="flex items-center justify-between text-[0.65rem] text-gray-500">
+                      <span>Est. cost:</span>
+                      <span className="text-amber-400">
+                        ~300 TGas {nearPrice ? `($${formatUsd(0.0003 * nearPrice)})` : ''}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -319,7 +342,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
 
       {/* Result or Error Display */}
       {(result !== null || error) && (
-                <div className="bg-white dark:bg-[#111216] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42] space-y-2">
+        <div className="bg-white dark:bg-[#111216] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42] space-y-2">
           <div className="flex items-center gap-2">
             {error ? (
               <AlertCircle className="h-4 w-4 text-red-400" />
@@ -338,7 +361,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
         </div>
       )}
     </div>
-  )
+  );
 }
 
 FnTestingTab.propTypes = {
@@ -350,6 +373,6 @@ FnTestingTab.propTypes = {
   activeLanguage: PropTypes.oneOf(['Rust', 'JavaScript']).isRequired,
   deployedContractId: PropTypes.string,
   isDeploying: PropTypes.bool.isRequired,
-}
+};
 
-export default FnTestingTab
+export default FnTestingTab;
