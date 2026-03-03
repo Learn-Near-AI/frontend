@@ -812,19 +812,25 @@ class Contract {
 
   @call({})
   set_message({ message }) {
-    // TODO: Emit EVENT_JSON event with near.log("EVENT_JSON:" + JSON.stringify(...))
+    // TODO: Emit an event using the #[near(event_json(...))] macro
     this.message = message;
   }
 }
 `,
     Rust: `use near_sdk::near;
-use near_sdk::env;
 use near_sdk::PanicOnDefault;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     message: String,
+}
+
+// Define events using the high-level #[near(event_json(...))] macro
+// This automatically formats events according to NEP-297 standard
+#[near(event_json(standard = "example", version = "1.0.0"))]
+enum Event {
+    MessageUpdated { new_message: String },
 }
 
 #[near]
@@ -841,11 +847,10 @@ impl Contract {
     }
 
     pub fn set_message(&mut self, message: String) {
-        let json = format!(
-            r#"{{"standard":"example","version":"1.0.0","event":"MessageUpdated","data":{{"new_message":"{}"}}}}"#,
-            message.replace('"', "\\\"")
-        );
-        env::log_str(&format!("EVENT_JSON:{}", json));
+        // Emit the event - the macro handles all the JSON formatting!
+        self.emit(Event::MessageUpdated {
+            new_message: message.clone(),
+        });
         self.message = message;
     }
 }`,
