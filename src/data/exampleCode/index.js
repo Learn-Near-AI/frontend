@@ -7,11 +7,11 @@ import { crossContractCode } from './crossContract.js';
 import { nftsCode } from './nfts.js';
 import { chainSignaturesCode } from './chainSignatures.js';
 import { indexingCode } from './indexing.js';
-import { COMING_SOON_TEMPLATE } from '../constants.js';
+import { COMING_SOON_TEMPLATE } from '../constants.jsx';
 
 // List of example IDs that have working implementations (full learning UI, incl. Intro path)
 export const WORKING_EXAMPLES = [
-  // Basics — Intro = structured learning path; rest = runnable contracts
+  // Basics (9)
   'intro',
   'hello-world',
   'contract-structure',
@@ -20,14 +20,15 @@ export const WORKING_EXAMPLES = [
   'state-management',
   'input-validation',
   'error-handling',
-  'events',
   'collections-vector',
+  // Advanced (7)
   'collections-map',
-  // Security (5)
+  'events',
   'owner-pattern',
   'role-based-access',
   'pausable-contract',
   'multi-signature',
+  'upgrade-pattern',
 ];
 
 // Combine all code examples
