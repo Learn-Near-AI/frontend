@@ -67,20 +67,6 @@ function ConsolePanel({ consoleOutput, deployedContractId, deploymentTxHash, was
 
       {/* Cost Information */}
       <div className="px-4 pb-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <DollarSign className="h-4 w-4" />
-          Cost Information
-        </h3>
-
-        {/* NEAR Price */}
-        <div className="text-xs bg-gray-50 dark:bg-[#1a1b1f] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42]">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-500">NEAR Price (RealTime) </span>
-            <span className="text-green-400 font-semibold">
-              {nearPrice ? `$${formatUsd(nearPrice)}` : 'Loading...'}
-            </span>
-          </div>
-        </div>
 
         {/* Deployment Cost */}
         <div className="text-xs bg-gray-50 dark:bg-[#1a1b1f] rounded-lg p-3 border border-gray-200 dark:border-[#3e3e42] space-y-2">

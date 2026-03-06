@@ -13,7 +13,7 @@ function WelcomeContent({ filteredExamples, onExampleSelect }) {
           <Codesandbox className="h-7 w-7 text-near-primary" />
         </div>
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          Welcome to NEAR Examples
+          Welcome to NEAR By Examples
         </h1>
         <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
           Select an example from the sidebar to begin learning. Explore interactive code examples,

@@ -1,93 +1,91 @@
 // Contract explanations - concise explanations for each contract (markdown formatted)
 export const contractExplanations = {
-  intro: `Hey there! Welcome to our little corner of NEAR development.
+  intro: `Welcome to NEARbyExample, brave adventurer!
 
-**What's going on here?**
+**What's this place?**
 
-We put together 15 working examples to help you learn NEAR smart contracts. The rest are still being built — we're working on them as fast as we can.
+Think of NEARbyExample like a giant shared notebook that everyone can see, but only you can write in (for your own pages). Once you write something, it stays there forever. No one can rip out the page or change what you wrote.
 
-**How this works**
+**Your Quest Begins Here**
 
-Each example walks you through something real. Not just "here's the code" — but why it works, where the tricky parts are, and how people actually build things in the wild. We cover the basics first: writing contracts, storing data, handling errors. Then we move into things like collections, access control, and making contracts that can be upgraded.
+We've built a learning path that works like unlocking new levels in a game. Each example builds on the last, and you'll gain new skills along the way:
 
-**Why we did it this way**
+**The Basics ⚔️**
+Your first dungeons! Master these 8 examples to unlock the Advanced world:
+- Hello World, Contract Structure, View Methods, Change Methods
+- State Management, Input Validation, Error Handling, Collections: Vector
 
-Most learning material out there jumps straight to "here's a tutorial, good luck." We wanted something where you could actually play with code and see what happens. Every example has Rust and JavaScript — pick whichever feels more familiar.
+**Advanced 🛡️**
+For brave explorers who've conquered the basics:
+- Maps, Events, Owner Pattern, Role-Based Access
+- Pausable Contract, Multi-Signature, Upgrade Pattern
 
-**What you'll learn**
+**Under Development 🚧**
+More dungeons being built:
+- Collections & Data, NFTs, Cross-Contract, Chain Signatures, Indexing, Advanced Patterns
 
-- How NEAR contracts are structured and why
-- Reading and writing data on-chain
-- Handling the weird edge cases (input validation, errors, events)
-- Collections: vectors and maps for storing lists and key-value data
-- Access control: owner patterns, roles, pausable contracts
-- Upgrading contracts without losing user data
+**Why We Did This**
 
-The sidebar shows all the topics. We recommend going in order — one each builds on the last. But hey, you're the boss. Jump around if you want.
+Most tutorials assume you already know things. We don't think that's fair. So we made this — a place where you can actually play with code and see what happens. Every example has Rust and JavaScript versions. Pick your weapon and start questing!
 
-If something's confusing or you find a bug, that's on us. We're still learning too. Hope this helps you get started with NEAR!
+> **Note on code:** You'll see \`use near_sdk::...\` imports in the code. These bring in the NEAR SDK types you need. Don't worry about memorizing them — they become familiar quickly!
 
-— The Team`,
+**What You'll Learn**
+
+- How NEAR contracts are structured (the foundation)
+- Reading and writing data on-chain (your superpowers)
+- Handling edge cases (your safety net)
+- Collections for lists and key-value data (your inventory)
+- Access control patterns (castle guards & guilds)
+- Upgrading contracts without losing data (magic evolution)
+
+The sidebar shows all your quests. We recommend going in order — each one unlocks the next. But hey, you're the hero. Choose your own path!
+
+If something's confusing or you find a bug, that's on us. We're still learning too. Hope this helps you on your quest!
+
+— The NEARbyExample Team`,
 
   'hello-world':
-    "This is the simplest NEAR smart contract and serves as the perfect entry point for learning NEAR development.\n\n- **Structure:** A contract struct with `#[near(contract_state)]` and `#[near]` on the impl block (generates serialization and contract interface boilerplate).\n- **View method:** Returns a greeting string. View methods are *read-only*, don't modify state, and are **free to call**—no transactions or gas fees.\n\nUnderstanding this basic pattern is crucial; every NEAR contract follows a similar structure.",
+    "Meet **Beep** — your first NEAR robot! She lives on the blockchain and always says \"Hello, NEAR!\" — no server needed.\n\n- **Structure:** A contract struct with `#[near(contract_state)]` and `#[derive(PanicOnDefault)]` for safety. The `#[init]` constructor ensures proper setup.\n- **View method:** The `hello_world` function uses `&self`, making it a read-only view method—**free to call** with no gas fees or wallet signature needed.\n- **PanicOnDefault:** Prevents the contract from being used without proper initialization—a good safety habit.\n\nUnderstanding this basic pattern is crucial; every NEAR contract follows a similar structure. Your journey starts here!",
 
   'contract-structure':
-    'Overview of the **fundamental structure** every NEAR smart contract must follow.\n\n- **Contract struct** — Holds state (e.g. `owner_id`). Use `#[near(contract_state)]` for serialization; *do not* manually derive `BorshDeserialize`/`BorshSerialize` for contract state.\n- **PanicOnDefault** — Recommended derive; panics if the contract is deserialized without explicit init.\n- **`#[init]`** — Explicitly initializes the contract with required values.\n\nState in the contract struct persists across all calls and transactions. Storing/retrieving account info here is the foundation for access control.',
+    "Every contract needs a brain. Think of it like a **vending machine**: you put in money (gas), make your selection (call a method), and get what you want (result). No middleman needed!\n\n- **Contract struct** — Holds state (e.g. `owner_id`). Use `#[near(contract_state)]` for serialization.\n- **PanicOnDefault** — Safety net! Panics if the contract is deserialized without explicit init.\n- **`#[init]`** — Explicitly initializes the contract with required values. Must be called once when deploying.\n- **View method** — `get_owner` uses `&self` for read-only access, free to call.\n\n**Heads up:** We're setting up owner_id now, but we won't actually use it until the \"Owner Pattern\" lesson — building the foundation early!\n\nState in the contract struct persists across all calls. The owner pattern is the foundation for access control.",
 
   'view-methods':
-    '**View methods** are read-only functions that query contract state without modifying it.\n\n- **Free to call** — No transactions, gas fees, or wallet signatures.\n- **Return types** — This example shows a string and a numeric value; view methods can return any serializable type (strings, numbers, structs, vectors, maps).\n- **Definition** — Use the `#[view]` attribute or omit change-method marking.\n\nUse view methods for UIs, balances, ownership checks, and any read-only contract data. They are the primary way applications read contract state.',
+    "Become **The Scout**! A scout only LOOKS at stuff — never changes anything. That's what view methods do!\n\n- **Free to call** — No transactions, gas fees, or wallet signatures.\n- **This example:** Shows two view methods—`get_greeting` returns a string, `get_greeting_length` returns a number.\n- **Return types** — View methods can return any serializable type.\n- **Definition** — Use `&self` to mark as view/read-only.\n\nThe `&` in `&self` means \"borrow\" — use without taking ownership. That's why it's free! Use view methods for UIs, balances, ownership checks — anything read-only.",
 
   'change-methods':
-    '**Change methods** modify contract state and require a signed transaction with gas.\n\n- **This example:** Stores and updates a string in contract state—the foundation for all data persistence on NEAR.\n- **Storage** is persistent; data remains across transactions until explicitly modified.\n- **Marking:** Use `#[call]` for change methods.\n\nThe NEAR runtime handles Borsh serialization automatically. Change methods are the main mechanism for updating state and implementing business logic.',
+    "Scouts are great, but sometimes you need to **build** stuff. That's where change methods come in — like picking up items in a game or casting spells that alter the world!\n\n- **This example:** Shows two change methods—`set_greeting` replaces the entire string, `add_to_greeting` adds to the existing string.\n- **Marking:** Use `&mut self` (one ampersand + mut to allow changes) to mark as change/mutable.\n- **Storage** is persistent — data remains across transactions.\n\nChange methods cost a tiny bit of NEAR (gas) because you're actually changing something on the blockchain. They're how users interact with your contract!",
 
   'state-management':
-    '**State management** is central to smart contracts. This example uses a **counter** that can be incremented.\n\n- **Lifecycle:** Initialization → reading state (view methods) → updating state (change methods).\n- **Persistence:** The new value stays in contract state for all future calls until modified.\n- **Atomicity:** Either the whole transaction succeeds and state updates, or it fails and state is unchanged.\n\nThe counter pattern is the core of votes, balances, token supplies, and user data in real applications.',
+    "Your **inventory** awaits! In games, your inventory is what makes you unique. In contracts, **state** is your inventory — the data that sticks around between calls.\n\n- **This example:** A counter that goes up! Uses `increment` to add 1.\n- **Contract struct:** `counter: u64` stores an unsigned 64-bit integer.\n- **Lifecycle:** Initialization → reading (view) → updating (change).\n- **Persistence:** The new value stays until modified again.\n\nThe counter pattern is everywhere — votes, token balances, user scores. One method reads, one method changes. Simple!",
 
   'input-validation':
-    '**Input validation** prevents invalid or malicious data from corrupting contract state.\n\n- This example uses **`require!`** to check message length (non-empty, max 100 chars).\n- Failed validation panics with a clear message.\n- Use these patterns for bounds, formats, and business logic to prevent common vulnerabilities.\n\nUse `require!` for invariants that must never be violated.',
+    "Meet **The Gatekeeper**! Every good castle has one — the person who checks what's allowed in. In your contracts, YOU are the gatekeeper.\n\n- This example uses **`require!`** to check message length (non-empty, max 100 chars).\n- **Storage:** Uses `String::new()` for empty initial state (same as `\"\".to_string()`).\n- **How it works:** If the check FAILS, the whole transaction stops — nothing gets saved.\n\nOn the blockchain, anyone can call your contract. Nice users. Mean users. Hackers. You need to check EVERYTHING!",
 
   'error-handling':
-    '**When to use Option/Result vs panic:**\n\n- **Recoverable:** `try_parse_number`, `safe_divide` return `Option` (e.g. invalid input, division by zero). `parse_with_default` uses `unwrap_or` for fallbacks.\n- **Unrecoverable:** `assert_positive` and `strict_check` use `require!` and `env::panic_str` for invariants.\n\nUse **Option/Result** for recoverable cases; **panic** for invariants that must never be violated.',
-
-  events:
-    "**Events** let contracts emit structured logs that indexers and external systems can query.\n\n- **NEP-297** — NEAR's standard for event formatting. Events are stored on-chain in transaction receipts.\n- **Use cases:** Tracking contract activity, state changes, analytics; token transfers, ownership changes, votes.\n- **Best practices:** Define event structs with relevant data, emit at key execution points, use clear names and structure for indexing.\n\nEvents power wallet histories, DeFi analytics, and other user-facing blockchain features.",
+    "Even with the best gatekeeper, sometimes things go wrong. That's where **error handling** comes in — your safety net!\n\n- **Option<T>** for recoverable errors: `try_parse_number` returns `Some(value)` or `None`, `safe_divide` returns `Some(result)` or `None`.\n- **unwrap_or** for fallbacks: `parse_with_default` uses `s.parse().unwrap_or(default)`.\n- **require!** for validation: `assert_positive` checks `value > 0`.\n- **env::panic_str** for critical failures: `strict_check` for invariants that must never be violated.\n\n**Golden rule:** Fail gracefully when you can. Panic when you must. Always give clear error messages!",
 
   'collections-vector':
-    '**Vectors** are dynamic arrays. Use **unique prefixes** (e.g. `b"i"`, `b"t"`) to namespace multiple collections and avoid key collisions.\n\n- This example has *items* and *tags* with different storage keys.\n- **Operations:** `add`, `swap_remove` (O(1) remove by swapping with last), iterate.\n\nPattern for multiple collections in one contract.',
+    "Unlock **The Treasure Chest**! Vectors let you store ordered lists that persist on the blockchain — like a to-do list, chat messages, or game logs.\n\n- **Storage prefix:** Each vector needs a unique prefix (e.g. `b\"i\"` for items, `b\"t\"` for tags) to avoid key collisions.\n- **This example:** Has `items: Vector<String>` with prefix `b\"i\"` and `tags: Vector<String>` with prefix `b\"t\"`.\n- **Operations:** `push` adds to end, `get` returns Option, `swap_remove` removes O(1) by swapping with last.\n\n> **⚠️ Gotcha:** `swap_remove` does NOT preserve order! It swaps the removed item with the LAST item. If order matters, be careful!\n\n> **⚠️ Gas warning:** `get_items` that collects everything is a gas trap for large lists. Works fine for small lists (~100 items), use pagination for bigger ones.",
 
   'collections-map':
-    '**Maps** store key-value pairs for efficient lookups.\n\n- Use **`LookupMap`** or **`UnorderedMap`** from `near_sdk::collections`.\n- Ideal for data indexed by unique keys: user profiles, token balances.\n- **Operations:** insert, get, remove.',
+    "The **Leaderboard**! Imagine a scoreboard in an arcade. Every player has a score. You can look up ANY player's score instantly.\n\n- **UnorderedMap<AccountId, u64>** = the scoreboard type\n- **Storage prefix:** Use unique prefixes (e.g. `b\"b\"` for balances)\n- **Operations:** `insert`, `get`, `remove`, `contains_key`, `keys().collect()`\n\n> ⚠️ **Gas trap warning:** Collecting all keys with `keys().collect()` can be expensive for large maps! Works fine for small lists (~100), pagination for bigger ones.\n\nUnlike vectors (position: 0, 1, 2...), maps find things by KEY — super fast no matter how big the list!",
 
   'owner-pattern':
-    '**Owner pattern** — Restrict privileged operations (e.g. `set_value`) to the contract owner.\n\n- **`env::predecessor_account_id()`** — Identifies the caller.\n- **`assert_owner()`** — Guards sensitive calls.\n- Owner is set at **init**.',
+    "The **Castle Guard**! Every castle needs someone in charge — someone who can open the gates, change the rules, or guard the treasure.\n\n- **Set at init:** `owner_id: env::current_account_id()` = the contract account (not deployer!)\n- **Check:** `env::predecessor_account_id()` = who CALLED the method\n- **Guard:** `assert_owner()` checks predecessor == owner\n\n> **Key distinction:** `current_account_id()` = where contract lives, `predecessor_account_id()` = who called the method. Usually you want contract as owner, not deployer wallet!\n\nOnly the owner can do special things — change settings, withdraw fees, pause/upgrade. Everyone else uses regular features.",
 
   'role-based-access':
-    '**Role-based access:** owner plus admins (stored in an **`UnorderedSet`**).\n\n- Owner or admins can call **`add_admin`**.\n- **`admin_only_action`** requires admin.\n- Use **`is_admin`** to gate privileged operations. More flexible than owner-only.',
+    "The **Guild Roles**! In an RPG guild: Guild Master runs everything, Admins manage members, Members are regular players. That's RBAC — multiple permission levels!\n\n- **This example:** Owner + admins (stored in `UnorderedSet<AccountId>`)\n- **add_admin:** Owner or existing admins can add\n- **is_admin:** Check if account is admin\n- **admin_only_action:** Guarded by owner OR admin\n\nMore flexible than owner-only! One person isn't the bottleneck for everything.",
 
   'pausable-contract':
-    '**Pausable contracts** can temporarily halt operations in emergencies.\n\n- Pause/unpause is controlled by the owner.\n- When paused, critical functions revert.\n- Useful for responding to bugs or security issues without redeploying.',
+    "The **Emergency Button**! Sometimes you need to hit PAUSE — bug found, emergency upgrade, maintenance. The pausable pattern adds a big red button!\n\n- **Flag:** `paused: bool` in state\n- **Owner-only:** `pause()` and `unpause()` functions\n- **Guard:** `require!(!self.paused, \"Contract is paused\")`\n\nWhen paused: critical operations stop, everyone sees \"temporarily disabled\", you fix things, then unpause! Like an emergency stop in a factory — hope never to use it, but glad it's there.",
 
   'multi-signature':
-    '**Multi-signature** requires multiple approvals before executing actions.\n\n- This example collects signatures from multiple accounts and executes only when the **threshold** is met.\n- Essential for high-security operations where no single account should have full control.',
-
-  'todo-list':
-    '**Todo list** demonstrates **CRUD** with collections.\n\n- Create, read, update, and delete todo items in a vector or map.\n- Practical state management for apps that maintain lists of user data.',
-
-  'user-profiles':
-    '**User profiles** store account-specific data in a map.\n\n- Map **account IDs** to profile structs with user information.\n- Create, update, and retrieve user data.\n- Common in social or identity applications on NEAR.',
-
-  'voting-system':
-    '**Voting system** — Tally votes and track participation.\n\n- **Vote counters:** e.g. `votes_yes`, `votes_no`.\n- **`UnorderedSet`** for voters to prevent double-voting.\n- **`get_results`** returns the tally. Practical governance pattern for binary (yes/no) proposals.',
-
-  testing:
-    '**Unit testing** verifies contract logic.\n\n- **Rust:** `#[cfg(test)]` `mod tests` with `assert_eq!`; run `cargo test`.\n- **JavaScript:** For pure logic (no `near.*`), test the class with vitest; for full contract tests use *near-workspaces*.\n- Both examples test `add(2,3)==5`.',
-
-  'simple-calls':
-    '**Simple cross-contract calls** invoke methods on other contracts.\n\n- Uses **`Promise`** to call external contracts with a configurable method name.\n- Basic pattern for contract-to-contract communication, essential for composable DeFi.',
+    "The **Two-Key Safe**! Imagine a safe needing TWO keys to open. Neither person can open it alone — both must approve!\n\n- **This example:** 3 signers, require 2 approvals (`required_signatures: 2`)\n- **Approvals:** Stored as `\"action:signer\"` to prevent duplicates\n- **execute:** Loops through signers MANUALLY (no magic `clear_for_action`!)\n\n\nCrucial for team treasuries, high-value ops, DAO-style governance. No single person can sneak something through!",
 
   'upgrade-pattern':
-    '**Upgrade pattern:**\n\n- **init**, **PanicOnDefault** (prevents uninitialized deserialization), and **migration** for post-upgrade schema changes.\n- Migration functions upgrade contract code while preserving data.\n- Owner-only **`migrate()`** handles versioning and backward compatibility.',
+    "> ⚠️ **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever!\n\nThe **Evolution**! In games your character evolves. Your contract can too — update code while keeping data!\n\n- **Simple pattern:** Just `version: u32` + `migrate()` function\n- **How it works:** Deploy new WASM to same account, state is preserved\n- **migrate():** Increments version (and transforms data if needed!)\n\nNo proxy pattern, no Promise::new().deploy_contract(). Just version += 1! The actual code is much simpler than you might expect.",
 
   'simple-marketplace':
     '**Simple marketplace** — Buy and sell NFTs.\n\n- **`list_item`** creates listings; **`buy`** pays the seller and transfers the NFT via **`nft_transfer_from`**.\n- **`on_payment_sent`** callback checks **`promise_result`** before transferring payment—essential for safe cross-contract flows.',

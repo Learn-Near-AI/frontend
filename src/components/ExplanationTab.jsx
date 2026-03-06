@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { MoveDiagonal, Sparkles } from 'lucide-react';
+import { MoveDiagonal } from 'lucide-react';
 import { isAuditedExample } from '../data/examples';
-import { getBasicsDetailedExplanation, isBasicsExample } from '../data/basicsExplanations';
+import { getBasicsDetailedExplanation, isBasicsExample, getDetailedExplanation } from '../data/basicsExplanations';
 import { getAdvancedDetailedExplanation, isAdvancedExample } from '../data/advancedExplanations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
@@ -102,7 +102,7 @@ function ExplanationTab({ example }) {
   const isAudited = isAuditedExample(example.id);
   const detailedSections = useMemo(() => {
     if (isBasicsExample(example.id)) {
-      return getBasicsDetailedExplanation(example.id);
+      return getDetailedExplanation(example.id);
     }
     if (isAdvancedExample(example.id)) {
       return getAdvancedDetailedExplanation(example.id);
@@ -129,23 +129,22 @@ function ExplanationTab({ example }) {
             <span className={`normal-case font-medium ${auditColor}`}>({auditLabel})</span>
           </p>
         </div>
-        {hasMoreSections && (
-          <button
-            type="button"
-            onClick={() => setDetailedModalOpen(true)}
-            className="flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-near-primary/30 dark:border-near-primary/30 bg-near-primary/10 text-near-primary hover:bg-near-primary/20 transition-colors"
-            title="Learn more with deep dive"
-          >
-            <Sparkles className="h-4 w-4" />
-            Learn more
-          </button>
-        )}
       </div>
       <div className="relative prose prose-sm max-w-none">
         {firstSection ? (
           <ReactMarkdown components={markdownComponents}>{firstSection.content}</ReactMarkdown>
         ) : (
           <p className="text-gray-500 dark:text-gray-400 italic">No explanation available yet.</p>
+        )}
+        {hasMoreSections && (
+          <button
+            type="button"
+            onClick={() => setDetailedModalOpen(true)}
+            className="mt-3 text-md font-medium text-near-primary hover:text-near-primary/80 cursor-pointer transition-colors"
+            title="Learn more with deep dive"
+          >
+            Learn More →
+          </button>
         )}
       </div>
 

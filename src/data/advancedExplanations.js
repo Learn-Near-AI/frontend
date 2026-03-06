@@ -32,14 +32,23 @@ Unlike vectors (where you find things by position: 0, 1, 2...), maps let you fin
       content: `Here's a map in action:
 
 \`\`\`rust
-balances: UnorderedMap::new(b"b")
+use near_sdk::near;
+use near_sdk::AccountId;
+use near_sdk::collections::UnorderedMap;
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    balances: UnorderedMap<AccountId, u64>,
+}
 \`\`\`
 
 **Translation:**
-- \`UnorderedMap\` = the leaderboard type
-- \`b"b"\` = the storage label (short for "balances")
-- Key type: AccountId (like "player123.near")
-- Value type: u64 (their balance/score)
+- \`UnorderedMap<AccountId, u64>\` = the leaderboard type
+- Key: AccountId (like "player123.near")
+- Value: u64 (their balance/score)
+- \`UnorderedMap::new(b"b")\` = storage prefix "b" for "balances"
 
 Think of it like: "For each account ID, store a number."`,
     },
@@ -72,7 +81,7 @@ self.balances.contains_key(&account_id)
 self.balances.keys().collect::<Vec<_>>()
 \`\`\`
 
-Instant lookups, no matter how many players!`,
+> ⚠️ **Gas trap warning:** Collecting all keys can be expensive for large maps! Works fine for small lists (~100), but for bigger ones consider pagination.`,
     },
     {
       title: 'Map vs Vector - When To Use Which?',
@@ -88,8 +97,8 @@ Instant lookups, no matter how many players!`,
 - Order doesn't matter
 - It's a "for each X, there's a Y" situation
 
-| Game Thing | Use |
-|-----------|-----|
+| Use Case | Best Choice |
+|----------|-------------|
 | High scores | Map |
 | Chat history | Vector |
 | Player inventory | Map |
@@ -106,7 +115,7 @@ Choose wisely!`,
 
 **Events** in NEAR are exactly that - your contract shouting news to the world!
 
-When something important happens (a transfer, a purchase, a achievement), your contract can EMIT an event. Special tools called **indexers** listen for these and keep track.
+When something important happens (a transfer, a purchase, a message), your contract can EMIT an event. Special tools called **indexers** listen for these and keep track.
 
 Without events, apps would have to scan EVERY transaction ever made. With events? They just listen for the shouts!`,
     },
@@ -115,18 +124,33 @@ Without events, apps would have to scan EVERY transaction ever made. With events
       content: `Modern NEAR contracts use a special macro:
 
 \`\`\`rust
-#[near(event_json(standard = "mygame", version = "1.0.0"))]
-enum Event {
-    LevelUp { player: AccountId, new_level: u32 },
+use near_sdk::near;
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    message: String,
 }
 
+// Define events using the macro - this creates the emit() method!
+#[near(event_json(standard = "example", version = "1.0.0"))]
+enum Event {
+    MessageUpdated { new_message: String },
+}
+
+#[near]
 impl Contract {
-    pub fn gain_xp(&mut self, player: AccountId, xp: u32) {
-        // ... game logic ...
-        self.emit(Event::LevelUp { player: player.clone(), new_level: self.levels.get(&player).unwrap_or(1) });
+    pub fn set_message(&mut self, message: String) {
+        // self.emit() comes from the macro - it handles all the JSON formatting!
+        self.emit(Event::MessageUpdated { new_message: message.clone() });
+        self.message = message;
     }
 }
 \`\`\`
+
+**Where does emit() come from?**
+The \`#[near(event_json(...))]\` macro automatically generates the \`emit()\` method for you! You just call \`self.emit(...)\` and it handles all the JSON formatting.
 
 **Why this rocks:**
 1. The code writes the format for you
@@ -138,8 +162,8 @@ impl Contract {
       title: 'What Happens Behind The Scenes',
       content: `Here's the journey of an event:
 
-1. Your contract calls \`emit()\`
-2. NEAR converts it to special JSON
+1. Your contract calls \`self.emit()\`
+2. The macro converts it to special JSON
 3. Written to the transaction receipt
 4. Receipt gets processed
 5. **Indexers** pick it up (they watch EVERY receipt!)
@@ -149,10 +173,10 @@ impl Contract {
 **The NEP-297 standard:**
 \`\`\`json
 {
-  "standard": "mygame",
+  "standard": "example",
   "version": "1.0.0",
-  "event": "level_up",
-  "data": { "player": "alice.near", "new_level": 5 }
+  "event": "MessageUpdated",
+  "data": { "new_message": "Hello!" }
 }
 \`\`\`
 
@@ -189,32 +213,44 @@ Everyone else? They can only use the regular features.`,
     },
     {
       title: 'How The Guard Works',
-      content: `The owner is set when the contract is born:
+      content: `Here's how it works in the actual code:
 
 \`\`\`rust
-#[init]
-pub fn new() -> Self {
-    Self {
-        owner_id: env::current_account_id(),  // The deployer!
+use near_sdk::near;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    value: u64,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),  // The contract account
+            value: 0,
+        }
+    }
+
+    fn assert_owner(&self) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only the owner can do this!"
+        );
     }
 }
 \`\`\`
 
-Then you check before doing owner-only things:
+**Important distinction:**
+- \`env::current_account_id()\` = The account WHERE this contract is deployed (NOT the deployer!)
+- \`env::predecessor_account_id()\` = The account that CALLED this method
 
-\`\`\`rust
-fn assert_owner(&self) {
-    require!(
-        env::predecessor_account_id() == self.owner_id,
-        "Only the owner can do this!"
-    );
-}
-\`\`\`
-
-**NEAR magic:**
-- \`env::current_account_id()\` = "who deployed me"
-- \`env::predecessor_account_id()\` = "who just called me"
-- Match them = proven owner!`,
+In most cases, you want the contract account as owner (using current_account_id), not the deployer's wallet. This is simpler for single-admin contracts.`,
     },
     {
       title: 'Try It Yourself',
@@ -259,8 +295,7 @@ Start simple. Add complexity only when you need it!`,
       title: 'Guild Roles!',
       content: `In an RPG, a guild has different roles:
 - **Guild Master** - runs everything, can promote others
-- **Officers** - manage members, run events
-- **Veterans** - trusted players, can help newcomers
+- **Admins** - manage members, run events
 - **Members** - regular players
 
 That's **Role-Based Access Control (RBAC)** - multiple levels of permission!
@@ -269,53 +304,73 @@ The owner pattern gives power to ONE person. RBAC spreads it around. Much more f
     },
     {
       title: 'Building Your Guild',
-      content: `Here's a guild with two roles:
+      content: `Here's how RBAC looks in the actual code:
 
 \`\`\`rust
+use near_sdk::near;
+use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
-    officers: UnorderedSet<AccountId>,
+    admins: UnorderedSet<AccountId>,  // Note: uses "admins" not "officers"
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            admins: UnorderedSet::new(b"a"),
+            owner_id: env::current_account_id(),
+        }
+    }
+
+    pub fn is_admin(&self, account: AccountId) -> bool {
+        self.admins.contains(&account)
+    }
 }
 \`\`\`
 
 **Who can do what:**
-- **Owner:** everything, including promoting to officer
-- **Officers:** certain admin tasks
-- **Everyone else:** only basic features
-
-The key is checking roles BEFORE doing important things:
-
-\`\`\`rust
-require!(
-    caller == self.owner_id || self.officers.contains(&caller),
-    "Only owner or officers can do this"
-);
-\`\`\``,
+- **Owner:** everything, including adding admins
+- **Admins:** certain admin tasks
+- **Everyone else:** only basic features`,
     },
     {
       title: 'Managing Roles',
-      content: `You can add and remove roles dynamically:
+      content: `Here's how to add admins:
 
 \`\`\`rust
-pub fn add_officer(&mut self, account: AccountId) {
-    // Only owner or existing officers can add
+pub fn add_admin(&mut self, account: AccountId) {
+    // Only owner or existing admins can add
     let caller = env::predecessor_account_id();
     require!(
-        caller == self.owner_id || self.officers.contains(&caller),
+        caller == self.owner_id || self.admins.contains(&caller),
         "Not authorized"
     );
     
-    self.officers.insert(&account);
-}
-
-pub fn remove_officer(&mut self, account: AccountId) {
-    // Only owner can remove (for safety!)
-    require!(env::predecessor_account_id() == self.owner_id, "Not owner");
-    self.officers.remove(&account);
+    self.admins.insert(&account);
 }
 \`\`\`
 
-**The pattern:** make adding flexible, removing restrictive!`,
+And how to check for admin-only actions:
+
+\`\`\`rust
+pub fn admin_only_action(&mut self) {
+    let caller = env::predecessor_account_id();
+    require!(
+        caller == self.owner_id || self.admins.contains(&caller),
+        "Only admins can do this"
+    );
+    // ... do the action ...
+}
+\`\`\`
+
+**The pattern:** checking roles BEFORE doing important things!`,
     },
     {
       title: 'Scaling To More Roles',
@@ -326,7 +381,7 @@ pub struct Contract {
     owners: UnorderedSet<AccountId>,      // Full power
     moderators: UnorderedSet<AccountId>,  // Can delete content
     verifiers: UnorderedSet<AccountId>,  // Can approve KYC
-    minter: UnorderedSet<AccountId>,     // Can mint tokens
+    minters: UnorderedSet<AccountId>,    // Can mint tokens
 }
 \`\`\`
 
@@ -436,21 +491,41 @@ This is crucial for:
     },
     {
       title: "The Safe's Data",
-      content: `Here's what a multi-sig needs:
+      content: `Here's what the actual code looks like:
 
 \`\`\`rust
+use near_sdk::near;
+use near_sdk::collections::UnorderedSet;
+use near_sdk::{env, AccountId, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     signers: UnorderedSet<AccountId>,
-    required: u32,
-    approvals: UnorderedSet<String>,
-    last_action: Option<String>,
+    required_signatures: u32,      // How many approvals needed (e.g., 2)
+    approvals: UnorderedSet<String>, // Stored as "action:signer"
+    last_executed_action: Option<String>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            signers: UnorderedSet::new(b"s"),
+            required_signatures: 2,
+            approvals: UnorderedSet::new(b"a"),
+            last_executed_action: None,
+        }
+    }
 }
 \`\`\`
 
 **Design:**
 - 3 signers, require 2 = any 2 of 3 must approve
 - Approvals stored as "action:signer" to prevent duplicates
-- Keep history for transparency`,
+- Keep history (last_executed_action) for transparency`,
     },
     {
       title: 'Adding Signers',
@@ -458,11 +533,11 @@ pub struct Contract {
 
 \`\`\`rust
 pub fn add_signer(&mut self, account: AccountId) {
-    let caller = env::predecessor_account_id();
+    let pred = env::predecessor_account_id();
     require!(
-        (self.signers.is_empty() && caller == env::current_account_id())
-        || self.signers.contains(&caller),
-        "Not authorized to add signers"
+        (self.signers.is_empty() && pred == env::current_account_id()) 
+        || self.signers.contains(&pred),
+        "Only deployer (when empty) or signers can add"
     );
     self.signers.insert(&account);
 }
@@ -475,24 +550,49 @@ pub fn add_signer(&mut self, account: AccountId) {
     },
     {
       title: 'The Approval System',
-      content: `Signers approve actions by adding their approval:
+      content: `Signers approve actions:
 
 \`\`\`rust
 pub fn approve(&mut self, action: String) {
-    require!(self.signers.contains(&env::predecessor_account_id()), "Not a signer");
-    let key = format!("{}:{}", action, env::predecessor_account_id());
+    let signer = env::predecessor_account_id();
+    require!(self.signers.contains(&signer), "Not a signer");
+    let key = format!("{}:{}", action, signer);
     self.approvals.insert(&key);
 }
 \`\`\`
 
-**To execute:**
+**Check if enough approvals:**
 \`\`\`rust
-pub fn execute(&mut self, action: String) {
-    require!(self.has_enough_approvals(&action), "Need more approvals");
-    // Do the thing!
-    self.approvals.clear_for_action(&action);
+pub fn can_execute(&self, action: &String) -> bool {
+    let count = self.signers.iter()
+        .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
+        .count();
+    count >= self.required_signatures as usize
 }
 \`\`\`
+
+This manually loops through signers to count approvals - no magic method!`,
+    },
+    {
+      title: 'Executing The Action',
+      content: `Execute only when enough people approved:
+
+\`\`\`rust
+pub fn execute(&mut self, action: String) {
+    require!(self.can_execute(&action), "Not enough approvals for this action");
+    
+    // Remove all approvals for this action (loop through signers manually!)
+    for signer in self.signers.iter() {
+        let key = format!("{}:{}", action, signer);
+        self.approvals.remove(&key);
+    }
+    
+    self.last_executed_action = Some(action.clone());
+    env::log_str(&format!("Executed: {}", action));
+}
+\`\`\`
+
+**Important Note:** Notice there's NO magic method like clear_for_action()! The code manually loops through each signer and removes their approval. This is exactly what the actual code does - no shortcuts!
 
 This way, no single signer can sneak something through!`,
     },
@@ -502,86 +602,98 @@ This way, no single signer can sneak something through!`,
       title: 'The Evolution!',
       content: `In games, your character evolves. New abilities, better stats, cooler gear. Your contract can do something similar!
 
-The **Upgrade Pattern** lets you update your contract's code while keeping its data. It's like:
+The **Upgrade Pattern** lets you update your contract while keeping its data. It's like:
 - Patching a bug without losing progress
 - Adding new features to an existing game
 - Improving performance over time
 
-**The catch:** with great power comes great responsibility. Users must trust you not to abuse it!`,
+> ⚠️ **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever! This is the most important rule.`,
     },
     {
-      title: 'The Proxy Pattern',
-      content: `The classic upgrade pattern uses TWO contracts:
-
-1. **Proxy** - holds all the data, delegates calls
-2. **Implementation** - has the actual code
+      title: 'The Actual Code',
+      content: `Here's what the actual code looks like - much simpler than you might expect!
 
 \`\`\`rust
-// Proxy (never changes!)
-pub struct Proxy {
-    owner_id: AccountId,
-    implementation: AccountId,  // Points to current code
+use near_sdk::near;
+use near_sdk::{env, require};
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: near_sdk::AccountId,
+    version: u32,  // Just a version number!
 }
 
-// Implementation (can swap this!)
-pub struct GameV1 {
-    score: u64,
-    players: Vector<String>,
-}
-\`\`\`
-
-When users call the proxy, it forwards to the implementation. Swap the implementation = instant upgrade!`,
-    },
-    {
-      title: 'NEAR Upgrades',
-      content: `NEAR makes upgrades easier:
-
-\`\`\`rust
-#[private]
-pub fn upgrade(&mut self, code: Vec<u8>) {
-    require!(env::predecessor_account_id() == self.owner_id, "Not owner");
-    
-    Promise::new(env::current_account_id())
-        .deploy_contract(code)
-        .then(Self::ext(env::current_account_id()).on_upgraded())
-        .as_self();
-}
-
-pub fn on_upgraded(&mut self) {
-    // Migration logic if needed
-}
-\`\`\`
-
-**Flow:**
-1. Owner calls upgrade() with new WASM code
-2. Contract deploys new code to itself
-3. Next call uses new code!
-4. Old data stays intact (unless you migrate)`,
-    },
-    {
-      title: 'Data Migration',
-      content: `When upgrading, you might need to handle data changes:
-
-\`\`\`rust
-#[private]
-pub fn migrate(&mut self, from_version: u32) {
-    match from_version {
-        1 => {
-            // Add new field, give it a default
-            self.new_field = "default".to_string();
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            version: 1,
         }
-        _ => {},
+    }
+
+    pub fn get_version(&self) -> u32 {
+        self.version
+    }
+
+    /// Migration hook: call after code upgrade. Owner-only.
+    pub fn migrate(&mut self) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only owner can migrate"
+        );
+        self.version += 1;
+        env::log_str(&format!("Upgraded to version {}", self.version));
     }
 }
 \`\`\`
 
-**Golden rules:**
-- ALWAYS version your contract
-- Keep old fields when adding new ones
-- Test migrations on testnet first
-- Consider a timelock (users can see what's coming)
+That's it! No proxy pattern, no Promise::new().deploy_contract(). Just a version number that increments!`,
+    },
+    {
+      title: 'How It Works',
+      content: `The pattern is simple:
 
-**Never delete fields** or you'll lose data forever!`,
+1. **Version tracking:** You have a \`version: u32\` field
+2. **Migration function:** The \`migrate()\` function increments the version
+3. **Deploy new code:** When you deploy new contract code to the same account, the existing state is preserved
+4. **Call migrate:** After upgrading, call \`migrate()\` to increment version (and do any data transformations if needed!)
+
+**The flow:**
+- Deploy contract (version = 1)
+- Use contract for a while
+- Want new features? Deploy new WASM to same account
+- Call migrate() → version becomes 2
+- Done! Data preserved!`,
+    },
+    {
+      title: 'When To Use More Complex Patterns',
+      content: `The simple version pattern works great for:
+- Adding new features
+- Bug fixes
+- Minor changes
+
+**When you need more:**
+- If you ADD a new field that needs a default value, do it in migrate()
+- If you CHANGE how data is stored, transform in migrate()
+- If you need ZERO downtime upgrades (proxy pattern), that's a whole other level
+
+> ⚠️ **THE GOLDEN RULE:** NEVER delete fields! Always keep old data and transform it if needed.
+
+**Example of data migration:**
+\`\`\`rust
+pub fn migrate(&mut self) {
+    require!(env::predecessor_account_id() == self.owner_id, "Only owner");
+    
+    // Example: if you added a new field
+    // self.new_field = "default_value".to_string();
+    
+    self.version += 1;
+}
+\`\`\``,
     },
   ],
 };

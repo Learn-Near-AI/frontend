@@ -60,7 +60,7 @@ export const putItToTheTest = {
   'change-methods': `### Put it to the test
 
 - Implement **\`set_greeting\`** so it updates the contract's \`greeting\` state with the given string.
-- Implement **\`append_suffix\`** so it appends the given suffix to the current \`greeting\`.
+- Implement **\`add_to_greeting\`** so it appends the given suffix to the current \`greeting\`.
 - Run to compile; deploy to test state changes.`,
 
   'state-management': `### Put it to the test
@@ -219,10 +219,10 @@ export const exerciseHints = {
   },
   'change-methods': {
     Rust: [
-      'set_greeting: take a String, assign to self.greeting. append_suffix: use greeting.push_str(&suffix).',
+      'set_greeting: take a String, assign to self.greeting. add_to_greeting: use greeting.push_str(&suffix).',
     ],
     JavaScript: [
-      'Use @call for methods that change state. set_greeting: this.greeting = greeting. append_suffix: this.greeting += suffix.',
+      'Use @call for methods that change state. set_greeting: this.greeting = greeting. add_to_greeting: this.greeting += suffix.',
     ],
   },
   'state-management': {

@@ -2,46 +2,70 @@
 export const basicsCode = {
   intro: {
     Intro: `═══════════════════════════════════════════════════════════════
-  WELCOME TO NEAR DEV — Let's Learn Together!
-  ═══════════════════════════════════════════════════════════════
+  WELCOME TO NEARbyExample — Your Adventure Awaits!
+  ════════════════════════════════════════════════════════════════
 
-  We're building something a bit different here. Most tutorials and
-  docs out there assume you already know things. We don't think that's
-  fair. So we made this to help you actually get it — step by step.
+  Imagine a digital universe where you build things that last forever.
+  That's NEARbyExample — your personal quest to master NEAR smart contracts!
 
-  Right now, 15 examples are ready to go. The rest? We're working on
-  them. Hope to have more out soon.
+  We've crafted a learning path just for you. Think of it like unlocking
+  new levels in a game — each example builds on the last, and you'll
+  gain new powers (skills) along the way.
 
-  Here's the path we recommend:
+  Ready to begin? Let's go!
 
-  BASICS (start here!)
-    1. Hello World        — See how a contract looks and works
-    2. Contract Structure — Learn about state and setup
-    3. View Methods       — Read data without paying gas
-    4. Change Methods     — Write data to the blockchain
-    5. State Management   — Keep data around between calls
-    6. Input Validation   — Check that people's input is safe
-    7. Error Handling     — What to do when things go wrong
-    8. Events             — Tell the outside world stuff happened
+  ════════════════════════════════════════════════════════════════
+  THE BASICS ⚔️ — Start Your Quest Here!
+  ════════════════════════════════════════════════════════════════
 
-  COLLECTIONS
-    9. Collections: Vector — Lists of things
-   10. Collections: Map     — Key-value pairs
+  These are your first dungeons. Master them to unlock the Advanced
+  world. Each one teaches something essential:
 
-  ACCESS CONTROL
-   11. Owner Pattern       — One person controls stuff
-   12. Role-Based Access   — Different people, different powers
-   13. Pausable Contract  — Hit the big red button if things go wrong
-   14. Multi-Signature    — Need multiple people to agree
+    1. Hello World        — Meet your first robot friend
+    2. Contract Structure — Build your base of operations
+    3. View Methods      — Scout ahead and observe (free!)
+    4. Change Methods    — Start crafting and modifying
+    5. State Management  — Your inventory system
+    6. Input Validation  — The gatekeeper stands guard
+    7. Error Handling    — Build your safety net
+    8. Collections       — Unlock the treasure chest
 
-   15. Upgrade Pattern    — Change code without losing data
+  ════════════════════════════════════════════════════════════════
+  ADVANCED 🛡️ — For Brave Explorers
+  ════════════════════════════════════════════════════════════════
 
-  Pick "Hello World" from the sidebar to get started. Each example
-  has both Rust and JavaScript versions. Try the code, break it,
-  fix it — that's how you learn.
+  Conquered the basics? The advanced world opens up:
 
-  We're not going to pretend this is the only way to learn NEAR.
-  But we hope it helps. Happy coding!
+    9. Collections: Map  — Scoreboards & leaderboards
+   10. Events            — The town crier announces news
+   11. Owner Pattern     — Castle guard for your contracts
+   12. Role-Based Access — Guilds with different powers
+   13. Pausable Contract — The big red button
+   14. Multi-Signature   — Need multiple heroes to agree
+   15. Upgrade Pattern   — Magic code that evolves
+
+  ════════════════════════════════════════════════════════════════
+  UNDER DEVELOPMENT 🚧 — Coming Soon!
+  ════════════════════════════════════════════════════════════════
+
+  More dungeons are being built:
+
+    • Collections & Data     — Todo lists, voting, marketplaces
+    • NFTs                   — Digital collectibles & marketplaces
+    • Cross-Contract         — Team up with other contracts
+    • Chain Signatures       — Sign messages for other chains
+    • Indexing               — Listen for events
+    • Advanced Patterns     — Unit testing & more
+
+  We're building these as fast as we can. Check back often!
+
+  ════════════════════════════════════════════════════════════════
+
+  Pick "Hello World" from the sidebar to begin your quest.
+  Each example has Rust and JavaScript versions — choose your weapon!
+  Try the code, break it, fix it — that's how heroes are made.
+
+  See you in NEARbyExample, adventurer!
 `,
   },
   'hello-world': {
@@ -309,7 +333,7 @@ impl Contract {
         let _: u64 = ();
     }
 
-    pub fn append_suffix(&mut self, suffix: String) {
+    pub fn add_to_greeting(&mut self, suffix: String) {
         // Append the suffix to the current greeting.
         let _: u64 = ();
     }
@@ -334,7 +358,7 @@ class Contract {
   }
 
   @call({})
-  append_suffix({ suffix }) {
+  add_to_greeting({ suffix }) {
     // TODO: Append suffix to this.greeting
   }
 }
@@ -366,7 +390,7 @@ impl Contract {
         self.greeting = greeting;
     }
 
-    pub fn append_suffix(&mut self, suffix: String) {
+    pub fn add_to_greeting(&mut self, suffix: String) {
         self.greeting.push_str(&suffix);
     }
 }`,
@@ -390,7 +414,7 @@ class Contract {
   }
 
   @call({})
-  append_suffix({ suffix }) {
+  add_to_greeting({ suffix }) {
     this.greeting = this.greeting + suffix;
   }
 }
