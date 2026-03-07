@@ -1,0 +1,167 @@
+export const eventsExplanation = [
+  {
+    title: 'The Town Crier!',
+    content: `In old towns, the crier would shout important news for everyone to hear: "Hear ye! The king has announced..."
+
+**Events** in NEAR are exactly that - your contract shouting news to the world!
+
+When something important happens (a transfer, a purchase, a message), your contract can EMIT an event. Special tools called **indexers** listen for these and keep track.
+
+Without events, apps would have to scan EVERY transaction ever made. With events? They just listen for the shouts!`,
+  },
+  {
+    title: "The Naive Approach (Don't Do This!)",
+    content: `Imagine trying to build a marketplace\`\`rust
+ WITHOUT events:
+
+\`// BAD: No events, force everyone to scan!
+struct BadMarketplace {
+    items: Vector<Item>,
+}
+
+impl BadMarketplace {
+    // Every time someone wants to know "what was sold lately?"
+    // They have to scan EVERY transaction, ever!
+    fn get_recent_sales(&self) -> Vec<Sale> {
+        // Would need access to blockchain history
+        // Scan millions of transactions...
+        // Hope you have time to wait!
+    }
+}
+\`\`\`
+
+**The problem:**
+- 10 transactions? Okay, maybe tolerable.
+- 1,000 transactions? Getting slow...
+- 1,000,000 transactions? Game over!
+
+This is what apps did before events - scan everything. Expensive, slow, painful!`,
+  },
+  {
+    title: 'How To Shout (The Easy Way)',
+    content: `Modern NEAR contracts use a special macro:
+
+\`\`\`rust
+use near_sdk::near;
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    message: String,
+}
+
+// Define events using the macro - this creates the emit() method!
+#[near(event_json(standard = "example", version = "1.0.0"))]
+enum Event {
+    MessageUpdated { new_message: String },
+}
+
+#[near]
+impl Contract {
+    pub fn set_message(&mut self, message: String) {
+        // self.emit() comes from the macro - it handles all the JSON formatting!
+        self.emit(Event::MessageUpdated { new_message: message.clone() });
+        self.message = message;
+    }
+}
+\`\`\`
+
+**Where does emit() come from?**
+The \`#[near(event_json(...))]\` macro automatically generates the \`emit()\` method for you! You just call \`self.emit(...)\` and it handles all the JSON formatting.
+
+**Why this rocks:**
+1. The code writes the format for you
+2. Can't mess up the JSON
+3. Follows standards automatically
+4. Type-safe!`,
+  },
+  {
+    title: 'What Happens Behind The Scenes',
+    content: `Here's the journey of an event:
+
+1. Your contract calls \`self.emit()\`
+2. The macro converts it to special JSON
+3. Written to the transaction receipt
+4. Receipt gets processed
+5. **Indexers** pick it up (they watch EVERY receipt!)
+6. Indexers parse and store it
+7. Your app queries the indexer instead of scanning
+
+**The NEP-297 standard:**
+\`\`\`json
+{
+  "standard": "example",
+  "version": "1.0.0",
+  "event": "MessageUpdated",
+  "data": { "new_message": "Hello!" }
+}
+\`\`\`
+
+Consistent format = everyone can understand!`,
+  },
+  {
+    title: 'Events vs Polling - When To Use Which?',
+    content: `Quick guide:
+
+**Use EVENTS when:**
+- You need real-time updates
+- Many users need the same data (wallets, marketplaces)
+- You want to notify external systems
+- Speed matters
+
+**Use POLLING (direct contract calls) when:**
+- You only need occasional data
+- Exact on-chain data is critical
+- The data changes rarely
+- Simplicity is more important than speed
+
+**The insight:** Events = push (be told when things happen). Polling = pull (go check yourself). Events scale better for popular dApps!`,
+  },
+  {
+    title: 'The Design Insight',
+    content: `**Why events work: Indexers!**
+
+Events aren't stored directly on-chain in some special place. Instead:
+
+1. Your contract emits an event via \`self.emit()\`
+2. The macro transforms it into NEP-297 JSON format
+3. The event gets written to the transaction receipt
+4. **Indexers** - special services - watch EVERY receipt
+5. When they see your event, they parse and store it
+6. Your frontend queries the indexer (fast!) instead of scanning chain (slow!)
+
+It's like:
+- Without indexers: every app personally watches the blockchain 24/7
+- With indexers: one service watches, everyone subscribes to it
+
+This separation of concerns is what makes blockchain usable!
+
+> ⚠️ **Important:** Events are notifications, NOT state. If you need authoritative data, query the contract state directly. Events do NOT replace on-chain data!`,
+  },
+  {
+    title: 'Tradeoffs (Nothing Is Perfect!)',
+    content: `Events are powerful, but know the costs:
+
+**EVENTS give you:**
+- ⚡ Fast queries (from indexer, not chain)
+- Real-time updates via subscriptions
+- Scalability (one indexer serves many apps)
+
+**EVENTS don't give you:**
+- ❌ Direct on-chain access (go through indexer)
+- ❌ Guaranteed delivery (indexer might miss)
+- ❌ Historical data before event was added
+
+**When events hurt you:**
+- Need guaranteed accuracy? Query contract directly.
+- Historical data from before you started emitting? Can't get it.
+- Indexer downtime? You're blind until it recovers.
+
+**The insight:** Events are the bridge between blockchain and real-time apps. But always have a fallback to direct contract calls when precision matters!
+
+**When NOT to use Events:** If you're building something where every detail must be verified on-chain, or you only need occasional data - just poll the contract directly!`,
+  },
+];
+
+export default eventsExplanation;
