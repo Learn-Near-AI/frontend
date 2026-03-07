@@ -28,6 +28,42 @@ Unlike vectors (where you find things by position: 0, 1, 2...), maps let you fin
 **Super fast:** Finding a value by key takes the same time no matter how big the list is!`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `Imagine a newbie trying to build a leaderboard WITHOUT maps:
+
+\`\`\`rust
+// BAD: Using a vector for lookups!
+struct BadLeaderboard {
+    players: Vec<Player>,  // Just a list!
+}
+
+struct Player {
+    name: String,
+    score: u64,
+}
+
+impl BadLeaderboard {
+    fn find_score(&self, name: &str) -> Option<u64> {
+        // Every single time, scan the ENTIRE list!
+        for player in &self.players {
+            if player.name == name {
+                return Some(player.score);
+            }
+        }
+        None
+    }
+}
+\`\`\`
+
+**The problem:**
+- 10 players? Okay, maybe tolerable.
+- 100 players? Getting slow...
+- 1,000 players? Painful.
+- 1,000,000 players? Game over!
+
+This is O(n) - time grows with size. Maps are O(1) - instant regardless of size!`,
+    },
+    {
       title: 'The Scoreboard Structure',
       content: `Here's a map in action:
 
@@ -97,15 +133,51 @@ self.balances.keys().collect::<Vec<_>>()
 - Order doesn't matter
 - It's a "for each X, there's a Y" situation
 
-| Use Case | Best Choice |
-|----------|-------------|
-| High scores | Map |
-| Chat history | Vector |
-| Player inventory | Map |
-| Quest log | Vector |
-| Item owners | Map |
-
 Choose wisely!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why maps are so fast: Hashing!**
+
+When you insert "player123" with score 500, the map doesn't just store it linearly. It runs "player123" through a special function:
+
+\`\`\`
+"player123" → [HASH FUNCTION] → 0x7a2f...
+\`\`\`
+
+That hash becomes the STORAGE LOCATION. It's like:
+- Regular list: books scattered on a desk, must search each one
+- Map: magic bookshelf where "Harry Potter" jumps to shelf 7 automatically!
+
+**The magic:**
+- Same name → always same spot (deterministic)
+- Different names → different spots (usually!)
+- Finding something = calculate spot → go there = instant!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Maps are awesome, but know the costs:
+
+**MAP gives you:**
+- ⚡ Instant lookups (same speed no matter size)
+- Fast inserts
+- ❌ No order guarantee
+- ⚠️ More expensive to iterate everything
+
+**VECTOR gives you:**
+- Fast inserts
+- ✅ Order preserved
+- ✅ Easy to iterate everything
+- 🐢 Slow lookups (scan through everything)
+
+**When maps hurt you:**
+- Need to process everything in order? Vectors win!
+- Storage is super tight? Vectors use less.
+- Very small datasets? Vectors simpler!
+
+**The insight:** Maps shine when you have data to look up by key. Vectors shine when order matters or you're processing everything. Choose based on YOUR use case!
+
+**When NOT to use a Map:** If you need things in a specific order or are only ever processing ALL items sequentially - just use a Vector!`,
     },
   ],
   events: [
@@ -118,6 +190,34 @@ Choose wisely!`,
 When something important happens (a transfer, a purchase, a message), your contract can EMIT an event. Special tools called **indexers** listen for these and keep track.
 
 Without events, apps would have to scan EVERY transaction ever made. With events? They just listen for the shouts!`,
+    },
+    {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `Imagine trying to build a marketplace WITHOUT events:
+
+\`\`\`rust
+// BAD: No events, force everyone to scan!
+struct BadMarketplace {
+    items: Vector<Item>,
+}
+
+impl BadMarketplace {
+    // Every time someone wants to know "what was sold lately?"
+    // They have to scan EVERY transaction, ever!
+    fn get_recent_sales(&self) -> Vec<Sale> {
+        // Would need access to blockchain history
+        // Scan millions of transactions...
+        // Hope you have time to wait!
+    }
+}
+\`\`\`
+
+**The problem:**
+- 10 transactions? Okay, maybe tolerable.
+- 1,000 transactions? Getting slow...
+- 1,000,000 transactions? Game over!
+
+This is what apps did before events - scan everything. Expensive, slow, painful!`,
     },
     {
       title: 'How To Shout (The Easy Way)',
@@ -183,18 +283,66 @@ The \`#[near(event_json(...))]\` macro automatically generates the \`emit()\` me
 Consistent format = everyone can understand!`,
     },
     {
-      title: 'Why Events Matter',
-      content: `Events make blockchain usable:
+      title: 'Events vs Polling - When To Use Which?',
+      content: `Quick guide:
 
-**Without events:**
-- Wallet checks balance → scans millions of transactions → slow!
-- Marketplace sees sale → scans everything → expensive!
+**Use EVENTS when:**
+- You need real-time updates
+- Many users need the same data (wallets, marketplaces)
+- You want to notify external systems
+- Speed matters
 
-**With events:**
-- Wallet listens for "transfer" events → instant!
-- Marketplace listens for "sale" events → fast!
+**Use POLLING (direct contract calls) when:**
+- You only need occasional data
+- Exact on-chain data is critical
+- The data changes rarely
+- Simplicity is more important than speed
 
-Events turn "read everything" into "hear the news." That's the difference between a usable app and one that nobody wants to use!`,
+**The insight:** Events = push (be told when things happen). Polling = pull (go check yourself). Events scale better for popular dApps!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why events work: Indexers!**
+
+Events aren't stored directly on-chain in some special place. Instead:
+
+1. Your contract emits an event via \`self.emit()\`
+2. The macro transforms it into NEP-297 JSON format
+3. The event gets written to the transaction receipt
+4. **Indexers** - special services - watch EVERY receipt
+5. When they see your event, they parse and store it
+6. Your frontend queries the indexer (fast!) instead of scanning chain (slow!)
+
+It's like:
+- Without indexers: every app personally watches the blockchain 24/7
+- With indexers: one service watches, everyone subscribes to it
+
+This separation of concerns is what makes blockchain usable!
+
+> ⚠️ **Important:** Events are notifications, NOT state. If you need authoritative data, query the contract state directly. Events do NOT replace on-chain data!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Events are powerful, but know the costs:
+
+**EVENTS give you:**
+- ⚡ Fast queries (from indexer, not chain)
+- Real-time updates via subscriptions
+- Scalability (one indexer serves many apps)
+
+**EVENTS don't give you:**
+- ❌ Direct on-chain access (go through indexer)
+- ❌ Guaranteed delivery (indexer might miss)
+- ❌ Historical data before event was added
+
+**When events hurt you:**
+- Need guaranteed accuracy? Query contract directly.
+- Historical data from before you started emitting? Can't get it.
+- Indexer downtime? You're blind until it recovers.
+
+**The insight:** Events are the bridge between blockchain and real-time apps. But always have a fallback to direct contract calls when precision matters!
+
+**When NOT to use Events:** If you're building something where every detail must be verified on-chain, or you only need occasional data - just poll the contract directly!`,
     },
   ],
   'owner-pattern': [
