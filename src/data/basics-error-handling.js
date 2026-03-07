@@ -13,6 +13,26 @@ That's where **error handling** comes in. It's your safety net - catching proble
 A contract with different error handling patterns - returning Option, using require!, and panicking when needed!`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you ignored errors?
+
+\`\`\`rust
+// BAD: No error handling!
+pub fn divide(&self, a: u64, b: u64) -> u64 {
+    // b could be 0 → PANIC!
+    a / b
+}
+\`\`\`
+
+**The problem:**
+- Division by zero crashes contract
+- No graceful failure
+- User gets cryptic error
+- Bad UX!
+
+Handle errors explicitly!`,
+    },
+    {
       title: 'The Contract Setup',
       content: `Here's the contract we'll use - it's empty because we're focusing on error handling:
 
@@ -149,6 +169,55 @@ pub fn strict_check(&self, value: u64) {
 
 **Golden rule:**
 Fail gracefully when you can. Panic when you must. Always give clear error messages!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why different error types?**
+
+Different situations need different handling:
+
+**Option<T>:**
+- Expected to sometimes fail
+- Caller handles None case
+- Like searching: might find, might not
+
+**require!:**
+- Should not happen if input is valid
+- But user might give bad input
+- Clear message helps them fix it
+
+**panic_str:**
+- Should NEVER happen
+- Bug in contract
+- Need to investigate
+
+Match the error type to the situation!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Error handling has tradeoffs:
+
+**OPTION gives you:**
+- ✅ Graceful failures
+- ✅ Caller decides what to do
+- ✅ No crashes
+
+**OPTION doesn't give you:**
+- ❌ More code to handle None
+- ❌ Might forget to check!
+
+**REQUIRE gives you:**
+- ✅ Clear error messages
+- ✅ Stops bad data
+- ✅ Simple to use
+
+**PANIC gives you:**
+- ✅ Catches critical bugs
+- ✅ No continuing in bad state
+
+**The insight:** Match error handling to the situation. Don't over-handle or under-handle!
+
+**When NOT to use error handling:** When you're 100% sure the input is valid (internal calls) - but always at public boundaries!`,
     },
   ],
 };

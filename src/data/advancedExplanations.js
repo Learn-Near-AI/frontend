@@ -360,6 +360,33 @@ In your contract, you designate ONE account as the owner. Only that account can 
 Everyone else? They can only use the regular features.`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `Imagine a castle with NO guard at all:
+
+\`\`\`rust
+// BAD: No access control at all!
+struct BadContract {
+    value: u64,
+    // No owner_id! Anyone can do anything!
+}
+
+impl BadContract {
+    pub fn withdraw(&mut self, amount: u64) {
+        // Anyone can call this!
+        // Anyone can drain all the funds!
+        // No checks whatsoever!
+    }
+}
+\`\`\`
+
+**The problem:**
+- One hacker finds a bug → game over!
+- No accountability → anyone can wreck things
+- No way to pause or fix when attacked
+
+This is what happens when you skip access control entirely. Every vulnerable contract looks like this!`,
+    },
+    {
       title: 'How The Guard Works',
       content: `Here's how it works in the actual code:
 
@@ -401,41 +428,87 @@ impl Contract {
 In most cases, you want the contract account as owner (using current_account_id), not the deployer's wallet. This is simpler for single-admin contracts.`,
     },
     {
-      title: 'Try It Yourself',
-      content: `Your mission: finish the owner check!
+      title: 'Guard Operations',
+      content: `Here's how to protect your functions:
 
-\`\`\`rust
-fn assert_owner(&self) {
-    // TODO: require! that predecessor == owner_id
-    // Hint: env::predecessor_account_id() and self.owner_id
-}
-\`\`\`
-
-**The answer:**
 \`\`\`rust
 fn assert_owner(&self) {
     require!(
         env::predecessor_account_id() == self.owner_id,
-        "Only owner can call this"
+        "Only the owner can do this!"
     );
+}
+
+// Use it to protect sensitive operations:
+pub fn withdraw(&mut self, amount: u128) {
+    self.assert_owner();  // Guard check!
+    // ... withdrawal logic ...
+}
+
+pub fn set_config(&mut self, new_value: String) {
+    self.assert_owner();  // Guard check!
+    self.config = new_value;
 }
 \`\`\`
 
-Once you add this, try calling the function from a different account. You should get a clear error!`,
+**The pattern:** assert_owner() at the START of any sensitive function!`,
     },
     {
       title: 'When To Use Owner Pattern',
-      content: `Perfect for:
+      content: `Quick guide:
+
+**Use OWNER PATTERN when:**
 - Simple dApps with one admin
 - Personal tools
 - Contracts where you alone should control upgrades
+- You need basic protection, nothing complex
 
-**Not great for:**
-- DAOs (too centralized)
-- Multi-user protocols (need more flexibility)
-- Games where players should have some control
+**Use SOMETHING ELSE when:**
+- Multiple people need different access levels → RBAC
+- Team treasury → Multi-signature
+- Community governance → DAO
 
 Start simple. Add complexity only when you need it!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why this works: The predecessor check!**
+
+Every transaction on NEAR has a clear "caller":
+
+\`\`\`
+User A → Contract → "Who called me?" → User A!
+\`\`\`
+
+The \`env::predecessor_account_id()\` gives you exactly that - the account that signed the transaction. It's:
+- Tamper-proof (blockchain verifies it)
+- Reliable (always available)
+- Cheap (just a function call)
+
+The owner pattern simply asks: "Is the caller the owner?" If yes, proceed. If no, revert. Simple but effective!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Owner pattern is simple, but has limits:
+
+**OWNER PATTERN gives you:**
+- ✅ Simple to implement
+- ✅ Easy to understand
+- ✅ Single point of control
+
+**OWNER PATTERN doesn't give you:**
+- ❌ Multiple administrators
+- ❌ Role-based flexibility
+- ❌ Consensus (one person can make mistakes)
+
+**When owner pattern hurts you:**
+- Owner loses their key? You're stuck.
+- Owner goes rogue? No checks.
+- Team grows? Everyone needs owner-level access → risky!
+
+**The insight:** Owner pattern is perfect for personal projects and simple contracts. But as soon as multiple trusted people need access, consider RBAC or multi-signature!
+
+**When NOT to use Owner Pattern:** If you're building a DAO, team treasury, or any project where multiple people should have different access levels - use RBAC or multi-signature instead!`,
     },
   ],
   'role-based-access': [
@@ -449,6 +522,34 @@ Start simple. Add complexity only when you need it!`,
 That's **Role-Based Access Control (RBAC)** - multiple levels of permission!
 
 The owner pattern gives power to ONE person. RBAC spreads it around. Much more flexible!`,
+    },
+    {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you only have the owner pattern, but need multiple admins?
+
+\`\`\`rust
+// BAD: Just owner, no roles!
+struct BadContract {
+    owner_id: AccountId,
+    // Can't add moderators, helpers, etc.
+    // Everyone must go through owner!
+}
+
+impl BadContract {
+    pub fn add_moderator(&mut self, account: AccountId) {
+        // Can't do this! No role system!
+        // Owner has to do EVERYTHING
+    }
+}
+\`\`\`
+
+**The problem:**
+- Owner becomes bottleneck for every decision
+- No way to delegate specific tasks
+- All-or-nothing: either you're owner or regular user
+- Can't have "temporary" elevated access
+
+This is what happens with just owner pattern when you need more flexibility!`,
     },
     {
       title: 'Building Your Guild',
@@ -540,6 +641,64 @@ Each role gets:
 
 **The insight:** roles are just named groups of accounts!`,
     },
+    {
+      title: 'RBAC vs Owner - When To Use Which?',
+      content: `Quick guide:
+
+**Use OWNER when:**
+- Single admin is sufficient
+- Simple project
+- You don't need role delegation
+
+**Use RBAC when:**
+- Multiple people need different access levels
+- You want to delegate tasks safely
+- Some actions can be done by helpers, not just boss
+- Need "temporary" elevated access
+
+**The insight:** RBAC is owner pattern with superpowers. Same mechanism, but now you can have as many roles as you need!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why sets work for roles!**
+
+Each role is stored as an \`UnorderedSet<AccountId>\`:
+
+\`\`\`rust
+admins: UnorderedSet<AccountId>,  // "a" prefix
+moderators: UnorderedSet<AccountId>,  // "m" prefix
+\`\`\`
+
+Why sets?
+- Fast lookup: \`admins.contains(&account)\` = O(1)
+- Easy to add/remove: \`admins.insert()\`, \`admins.remove()\`
+- Scale to thousands: still fast!
+
+The pattern is simple: "Is account X in set Y?" → if yes, they have that role. That's it!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `RBAC is powerful, but know the costs:
+
+**RBAC gives you:**
+- ✅ Flexible permissions
+- ✅ Delegation without sharing owner key
+- ✅ Audit trail (know who did what)
+
+**RBAC doesn't give you:**
+- ❌ Consensus (still trust-based)
+- ❌ Automatic decisions
+- ❌ Simplicity (more code to maintain)
+
+**When RBAC hurts you:**
+- Too many roles? Gets complex.
+- Role creep? Users accumulate permissions over time.
+- Still centralized? Everyone trusts someone.
+
+**The insight:** RBAC solves "one owner isn't enough" but doesn't solve "we need consensus." That's what multi-signature is for!
+
+**When NOT to use RBAC:** If you need multiple people to agree on important decisions (like spending money), use multi-signature instead. RBAC is for permission management, not consensus!`,
+    },
   ],
   'pausable-contract': [
     {
@@ -556,6 +715,33 @@ The **Pausable Pattern** adds a big red button to your contract. When paused:
 - Then unpause!
 
 It's like an emergency stop in a factory. You hope never to use it, but you're glad it's there.`,
+    },
+    {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if there's no pause button?
+
+\`\`\`rust
+// BAD: No emergency stop!
+struct BadContract {
+    funds: u128,
+    // No pause flag!
+}
+
+impl BadContract {
+    pub fn transfer(&mut self, to: AccountId, amount: u128) {
+        // If there's a bug, attackers keep draining funds
+        // No way to stop!
+        // Just watch your money disappear...
+    }
+}
+\`\`\`
+
+**The problem:**
+- Bug found? Too bad, keep getting exploited
+- Hacker draining funds? Can't stop them
+- Need maintenance? Can't do it safely
+
+This is why pausable contracts exist! When things go wrong, you need a way to stop the bleeding.`,
     },
     {
       title: 'The Pause Button',
@@ -584,8 +770,17 @@ pub fn new() -> Self {
 \`\`\``,
     },
     {
-      title: 'Only Owner Can Press The Button',
-      content: `The pause/unpause functions are owner-only:
+      title: 'Guarding Your Operations',
+      content: `Now guard sensitive operations:
+
+\`\`\`rust
+pub fn transfer(&mut self, to: AccountId, amount: u128) {
+    require!(!self.paused, "Contract is paused for safety");
+    // ... transfer logic ...
+}
+\`\`\`
+
+And the pause/unpause functions (owner-only):
 
 \`\`\`rust
 pub fn pause(&mut self) {
@@ -599,19 +794,6 @@ pub fn unpause(&mut self) {
 }
 \`\`\`
 
-**Critical:** only the owner should have this power. Anyone else hitting the emergency button would be bad!`,
-    },
-    {
-      title: 'Guarding Your Operations',
-      content: `Now guard sensitive operations:
-
-\`\`\`rust
-pub fn transfer(&mut self, to: AccountId, amount: u128) {
-    require!(!self.paused, "Contract is paused for safety");
-    // ... transfer logic ...
-}
-\`\`\`
-
 **What should be guarded?**
 - ✅ Transfers, withdrawals
 - ✅ State changes
@@ -619,9 +801,67 @@ pub fn transfer(&mut self, to: AccountId, amount: u128) {
 
 **What should NOT be guarded?**
 - ❌ View methods (reading is always safe)
-- ❌ Public information
+- ❌ Public information`,
+    },
+    {
+      title: 'When To Use Pausable Pattern',
+      content: `Quick guide:
 
-The pause button protects your users when things go wrong!`,
+**Use PAUSABLE when:**
+- Contract holds valuable assets
+- Complex logic that could have bugs
+- You need time to respond to attacks
+- Regulatory compliance needs "stop button"
+
+**The insight:** Pausable contracts give you time to react when things go wrong. Without it, you're helpless against bugs or attacks!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why a simple flag works!**
+
+The pause mechanism is elegantly simple:
+
+\`\`\`rust
+paused: bool  // true or false
+\`\`\`
+
+Every sensitive function checks this ONE flag:
+\`\`\`rust
+require!(!self.paused, "Paused!");
+\`\`\`
+
+When paused = true, the check fails and the function reverts. That's it!
+
+**The magic:**
+- Instant: no complex state changes
+- Reversible: just set paused = false
+- Cheap: single boolean check
+- Clear: users know contract state
+
+It's like a master switch. One toggle protects everything!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Pausable is powerful, but know the costs:
+
+**PAUSABLE gives you:**
+- ✅ Emergency response capability
+- ✅ Time to fix bugs
+- ✅ User protection during crises
+
+**PAUSABLE doesn't give you:**
+- ❌ Automatic bug fixing (just stops usage)
+- ❌ Loss recovery (pausing doesn't restore funds)
+- ❌ Decentralized control (owner has the button)
+
+**When pausable hurts you:**
+- Owner goes rogue? They can freeze indefinitely!
+- Pause stuck on? Users can't use contract!
+- False alarm? Pausing damages trust.
+
+**The insight:** Pausable is a safety net, not a solution. You still need to fix the actual problem. And consider time-locks instead of instant pause for more trust!
+
+**When NOT to use Pausable:** If your contract is purely informational (no funds, no state changes), or if you want true decentralization where no single person can freeze it - skip the pause button!`,
     },
   ],
   'multi-signature': [
@@ -636,6 +876,34 @@ This is crucial for:
 - High-value operations
 - DAO-style governance
 - Any time you need trustless consensus`,
+    },
+    {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if only ONE person controls the treasury?
+
+\`\`\`rust
+// BAD: Single point of failure!
+struct BadTreasury {
+    owner: AccountId,
+    balance: u128,
+}
+
+impl BadTreasury {
+    pub fn withdraw(&mut self, to: AccountId, amount: u128) {
+        // ONE person can drain everything!
+        // No checks, no consensus!
+        // If owner goes rogue or gets hacked → game over!
+    }
+}
+\`\`\`
+
+**The problem:**
+- One compromised key → all funds lost
+- No accountability
+- No trustlessness
+- Single point of failure
+
+This is why multi-signature exists - no single person should control valuable assets!`,
     },
     {
       title: "The Safe's Data",
@@ -676,8 +944,9 @@ impl Contract {
 - Keep history (last_executed_action) for transparency`,
     },
     {
-      title: 'Adding Signers',
-      content: `Only signers (or the first deployer) can add new signers:
+      title: 'Multi-sig Operations',
+      content: `**Adding Signers:**
+Only signers (or the first deployer) can add new signers:
 
 \`\`\`rust
 pub fn add_signer(&mut self, account: AccountId) {
@@ -691,15 +960,7 @@ pub fn add_signer(&mut self, account: AccountId) {
 }
 \`\`\`
 
-**The rule:**
-- First signer = deployer (can start the system)
-- After that, existing signers vote in new ones
-- No single person can take over!`,
-    },
-    {
-      title: 'The Approval System',
-      content: `Signers approve actions:
-
+**Approving Actions:**
 \`\`\`rust
 pub fn approve(&mut self, action: String) {
     let signer = env::predecessor_account_id();
@@ -709,40 +970,87 @@ pub fn approve(&mut self, action: String) {
 }
 \`\`\`
 
-**Check if enough approvals:**
-\`\`\`rust
-pub fn can_execute(&self, action: &String) -> bool {
-    let count = self.signers.iter()
-        .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
-        .count();
-    count >= self.required_signatures as usize
-}
-\`\`\`
-
-This manually loops through signers to count approvals - no magic method!`,
-    },
-    {
-      title: 'Executing The Action',
-      content: `Execute only when enough people approved:
-
+**Executing:**
 \`\`\`rust
 pub fn execute(&mut self, action: String) {
-    require!(self.can_execute(&action), "Not enough approvals for this action");
+    require!(self.can_execute(&action), "Not enough approvals");
     
-    // Remove all approvals for this action (loop through signers manually!)
+    // Clear approvals after execution
     for signer in self.signers.iter() {
         let key = format!("{}:{}", action, signer);
         self.approvals.remove(&key);
     }
     
     self.last_executed_action = Some(action.clone());
-    env::log_str(&format!("Executed: {}", action));
 }
+\`\`\``,
+    },
+    {
+      title: 'Multi-sig vs Other Patterns',
+      content: `Quick guide:
+
+**Use MULTI-SIG when:**
+- Team treasury
+- High-value operations
+- Need consensus, not just permissions
+- No single person should control funds
+
+**Use OWNER when:**
+- Single admin is fine
+- Simple project
+
+**Use RBAC when:**
+- Different people need different permissions
+- But consensus isn't required
+
+**The insight:** Multi-sig is about CONSENSUS. RBAC is about PERMISSIONS. They solve different problems!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why approval tracking works!**
+
+The system uses two key sets:
+
+\`\`\`rust
+signers: UnorderedSet<AccountId>,    // Who can approve
+approvals: UnorderedSet<String>,    // "action:signer" pairs
 \`\`\`
 
-**Important Note:** Notice there's NO magic method like clear_for_action()! The code manually loops through each signer and removes their approval. This is exactly what the actual code does - no shortcuts!
+**The flow:**
+1. Action proposed (as a string like "transfer:100:alice.near")
+2. Signers call approve() → adds "action:signer" to approvals
+3. Execute checks: count approvals ≥ required_signatures?
+4. If yes, execute and clear all approvals for that action
 
-This way, no single signer can sneak something through!`,
+**Why this works:**
+- Each signer can only approve once per action (set prevents duplicates)
+- All approvals needed = consensus achieved
+- Clearing after execution prevents replay
+
+Simple but effective consensus mechanism!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Multi-sig is powerful, but know the costs:
+
+**MULTI-SIG gives you:**
+- ✅ Consensus (no single point of failure)
+- ✅ Trustlessness (doesn't require trusting one person)
+- ✅ Accountability (multiple people must agree)
+
+**MULTI-SIG doesn't give you:**
+- ❌ Speed (requires multiple approvals)
+- ❌ Simplicity (more complex than owner pattern)
+- ❌ Automatic decisions (still manual approvals)
+
+**When multi-sig hurts you:**
+- Emergency? Too slow to react!
+- Small team? Overhead not worth it.
+- All signers unresponsive? Stuck!
+
+**The insight:** Multi-sig trades speed for safety. Perfect for treasuries, not for everyday operations!
+
+**When NOT to use Multi-sig:** If you need fast, automated decisions, or single-user operations - use owner pattern or RBAC instead. Multi-sig is for high-value, low-frequency decisions!`,
     },
   ],
   'upgrade-pattern': [
@@ -756,6 +1064,34 @@ The **Upgrade Pattern** lets you update your contract while keeping its data. It
 - Improving performance over time
 
 > ⚠️ **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever! This is the most important rule.`,
+    },
+    {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you can't upgrade at all?
+
+\`\`\`rust
+// BAD: Can't upgrade, can't fix bugs!
+struct BadContract {
+    data: Vec<u8>,
+    // Once deployed, you're stuck with it!
+    // Bug found? Too bad!
+    // Need new feature? Deploy NEW contract, migrate manually!
+}
+
+impl BadContract {
+    // No migrate function!
+    // No version tracking!
+    // Just hope nothing goes wrong...
+}
+\`\`\`
+
+**The problem:**
+- Bug in production? Deploy from scratch!
+- Want new features? New contract, new address!
+- Lose all users, history, trust!
+- Expensive migration every time
+
+This is why upgrade pattern exists! Contracts MUST be able to evolve!`,
     },
     {
       title: 'The Actual Code',
@@ -802,46 +1138,94 @@ impl Contract {
 That's it! No proxy pattern, no Promise::new().deploy_contract(). Just a version number that increments!`,
     },
     {
-      title: 'How It Works',
-      content: `The pattern is simple:
+      title: 'Upgrade Operations',
+      content: `**The upgrade flow:**
 
-1. **Version tracking:** You have a \`version: u32\` field
-2. **Migration function:** The \`migrate()\` function increments the version
-3. **Deploy new code:** When you deploy new contract code to the same account, the existing state is preserved
-4. **Call migrate:** After upgrading, call \`migrate()\` to increment version (and do any data transformations if needed!)
+1. **Deploy contract** → Same account, new WASM
+2. **State preserved** → All your data stays!
+3. **Call migrate()** → Increment version, run transformations
+4. **Done!** → Users don't even notice
 
-**The flow:**
-- Deploy contract (version = 1)
-- Use contract for a while
-- Want new features? Deploy new WASM to same account
-- Call migrate() → version becomes 2
-- Done! Data preserved!`,
-    },
-    {
-      title: 'When To Use More Complex Patterns',
-      content: `The simple version pattern works great for:
-- Adding new features
-- Bug fixes
-- Minor changes
-
-**When you need more:**
-- If you ADD a new field that needs a default value, do it in migrate()
-- If you CHANGE how data is stored, transform in migrate()
-- If you need ZERO downtime upgrades (proxy pattern), that's a whole other level
-
-> ⚠️ **THE GOLDEN RULE:** NEVER delete fields! Always keep old data and transform it if needed.
-
-**Example of data migration:**
+**Adding new fields:**
 \`\`\`rust
 pub fn migrate(&mut self) {
     require!(env::predecessor_account_id() == self.owner_id, "Only owner");
     
-    // Example: if you added a new field
-    // self.new_field = "default_value".to_string();
+    // New field gets default value
+    // self.new_field = "default".to_string();
+    
+    self.version += 1;
+}
+\`\`\`
+
+**Transforming data:**
+\`\`\`rust
+pub fn migrate(&mut self) {
+    // Example: rename field in storage
+    // self.new_name = self.old_name;
     
     self.version += 1;
 }
 \`\`\``,
+    },
+    {
+      title: 'When To Use Upgrade Pattern',
+      content: `Quick guide:
+
+**Use UPGRADE when:**
+- Expect bugs (all software has them!)
+- Want to add features over time
+- Need to fix critical issues fast
+- Plan long-term project
+
+**The insight:** All successful contracts evolve. The upgrade pattern lets you fix bugs and add features without losing your users!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why this works: NEAR's state model!**
+
+When you deploy new WASM to the same account:
+- Code changes → NEW behavior
+- State stays → ALL data preserved
+- Address same → Users don't need to update!
+
+\`\`\`
+Old WASM + Old State → Deploy New WASM → New WASM + Same State
+\`\`\`
+
+**The magic:**
+- \`version: u32\` tracks which version running
+- \`migrate()\` runs AFTER new code deployed
+- Can add/transform data in migrate()
+- Owner controls when to upgrade
+
+This is why version tracking matters - you know what state you're in!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Upgrade pattern is powerful, but know the costs:
+
+**UPGRADE gives you:**
+- ✅ Fix bugs without redeploying
+- ✅ Add features over time
+- ✅ Maintain user relationships
+- ✅ Fast emergency patches
+
+**UPGRADE doesn't give you:**
+- ❌ True decentralization (owner controls upgrades)
+- ❌ Immutable guarantees
+- ❌ Predictable behavior forever
+
+**When upgrade hurts you:**
+- Owner goes rogue? Can change anything!
+- Users lose trust? "Can change anytime"
+- Complex migrations? Break data!
+
+> ⚠️ **THE GOLDEN RULE:** NEVER delete fields! Always keep old data and transform it if needed.
+
+**The insight:** Upgrade pattern is essential for production contracts. But for maximum trust, consider time-locks on upgrades or eventually making the contract immutable!
+
+**When NOT to use Upgrade Pattern:** If you want true immutability (no one can ever change it), skip the upgrade pattern. Some projects want to be forever unchanged - that's when you remove the migrate function entirely!`,
     },
   ],
 };

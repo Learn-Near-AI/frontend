@@ -16,6 +16,27 @@ A counter contract - the simplest example of state that changes! This pattern is
 - Anything that counts!`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if state wasn't persisted?
+
+\`\`\`rust
+// BAD: State resets every call!
+fn increment(counter: u64) -> u64 {
+    counter + 1
+}
+// Every time you call, counter is 0!
+// Like a game that never saves!
+\`\`\`
+
+**The problem:**
+- No memory between calls
+- Can't build anything useful
+- Every call starts fresh
+- Not a real smart contract!
+
+You NEED persisted state to build real apps!`,
+    },
+    {
       title: 'The Contract Brain - Counter Edition',
       content: `Here's a contract with state:
 
@@ -104,6 +125,28 @@ Call increment, then call get_counter. Does it remember? You bet it does!
 State persistence is what makes smart contracts powerful. The data survives even when you're not using the app. It's like having a database that never goes down!`,
     },
     {
+      title: 'The Design Insight',
+      content: `**Why state persists: NEAR's storage!**
+
+NEAR automatically persists your state:
+
+\`\`\`
+Call → Load state → Modify → Save → Receipt
+\`\`\`
+
+The \`#[near(contract_state)]\` macro handles:
+- Serializing state to bytes
+- Saving to blockchain storage
+- Deserializing back when needed
+
+Your contract state is:
+- Backed by the blockchain
+- Survives contract calls
+- Tied to the contract account
+
+This is what makes it "persistent"!`,
+    },
+    {
       title: 'Real World Inventories',
       content: `Big apps have HUGE inventories:
 
@@ -124,6 +167,29 @@ State persistence is what makes smart contracts powerful. The data survives even
 - Proposal status
 
 Understanding state is key to building anything useful. Your inventory is your power!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `State management has tradewrites:
+
+**STATE gives you:**
+- ✅ Persistent data
+- ✅ Real functionality
+- ✅ Build any app
+
+**STATE doesn't give you:**
+- ❌ Free storage (costs gas)
+- ❌ Unlimited size
+- ❌ Always fast
+
+**When state hurts you:**
+- Too much data = expensive
+- Complex queries = slow
+- Need indexing = use events/indexers
+
+**The insight:** State is essential, but use it wisely. Store what's needed, not everything!
+
+**When NOT to store in state:** Temporary calculations, cached data, things you can compute on-demand!`,
     },
   ],
 };

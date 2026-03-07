@@ -15,6 +15,29 @@ Vectors let you store ordered lists that persist on the blockchain. Time to upgr
 A simple list manager with add, remove, and get operations!`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you only had single values?
+
+\`\`\`rust
+// BAD: Can't store lists!
+struct Contract {
+    item1: String,
+    item2: String,
+    item3: String,
+    // Limited to 3 items!
+    // What about item4, item5...?
+}
+\`\`\`
+
+**The problem:**
+- Fixed size - can't grow
+- Wasteful if you only use a few
+- Clunky to manage
+- Not scalable!
+
+Vectors solve this - dynamic, unlimited lists!`,
+    },
+    {
       title: 'The Contract Setup',
       content: `Here's how you create vectors in NEAR:
 
@@ -153,6 +176,51 @@ for item in self.items.iter() {
 \`\`\`
 
 Vectors are perfect for: to-do lists, chat messages, game logs, anything ordered!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why vectors work: Indexed storage!**
+
+Vectors store items by index:
+
+\`\`\`
+Index 0 → Item A
+Index 1 → Item B
+Index 2 → Item C
+\`\`\`
+
+**Benefits:**
+- Order preserved (0, 1, 2...)
+- Fast random access by index
+- Efficient iteration
+
+**Storage:**
+- Each vector needs unique prefix
+- NEAR handles serialization
+- Persists on blockchain!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Vectors have tradeoffs:
+
+**VECTOR gives you:**
+- ✅ Ordered lists
+- ✅ Fast index access
+- ✅ Easy to iterate
+
+**VECTOR doesn't give you:**
+- ❌ Fast key lookup (use Map for that!)
+- ❌ Unlimited (gas costs grow)
+- ❌ Preserve order on remove (swap_remove!)
+
+**When vectors hurt you:**
+- Need key-value lookup? Use Map
+- Large datasets? Pagination needed
+- Frequent removals? Consider alternative
+
+**The insight:** Vectors for ordered lists, Maps for lookups. Choose the right tool!
+
+**When NOT to use vectors:** When you need fast lookups by key - that's what Maps are for!`,
     },
   ],
 };

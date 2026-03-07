@@ -12,6 +12,28 @@ Why does this matter? Because on the blockchain, anyone can call your contract. 
 A message board where users can set a message - but with rules! Messages must be 1-100 characters.`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you accepted ANY input?
+
+\`\`\`rust
+// BAD: No validation!
+pub fn set_message(&mut self, message: String) {
+    // Accepts empty strings
+    // Accepts 1 million characters
+    // Accepts anything!
+    self.message = message;
+}
+\`\`\`
+
+**The problem:**
+- Empty messages clutter your app
+- Massive strings eat storage
+- Hackers can exploit bad data
+- Contract becomes unreliable
+
+Always validate input!`,
+    },
+    {
       title: 'The Contract Setup',
       content: `First, let's set up the contract with state:
 
@@ -122,6 +144,48 @@ If condition is true → continue normally`,
 
 **Your turn:**
 Try setting an empty message or one that's too long. See how the contract protects itself!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why require! works: Panic vs Continue!**
+
+\`require!\` is simple:
+
+\`\`\`
+Condition true → continue normally
+Condition false → PANIC (revert transaction)
+\`\`\`
+
+When it panics:
+- Transaction reverts
+- No state changes saved
+- User sees error message
+- Gas spent but nothing changes
+
+This is perfect for validation - fail fast, fail clear!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Validation has tradeoffs:
+
+**VALIDATION gives you:**
+- ✅ Security
+- ✅ Data quality
+- ✅ Cost savings
+
+**VALIDATION doesn't give you:**
+- ❌ More code to write
+- ❌ Slightly higher gas (minimal)
+- ❌ Can't catch everything
+
+**When validation hurts you:**
+- Too strict? Users frustrated!
+- Too loose? Security risk!
+- Balance is key!
+
+**The insight:** Validate early, validate often, fail fast with clear messages!
+
+**When NOT to validate:** For internal functions where you know the data is valid - but always validate at public boundaries!`,
     },
   ],
 };

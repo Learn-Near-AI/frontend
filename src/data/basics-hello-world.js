@@ -16,6 +16,27 @@ This is the "Hello World" of smart contracts. It's the simplest thing you can bu
 Your journey starts here. Let's make Beep say something cool!`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if your contract couldn't remember anything?
+
+\`\`\`rust
+// BAD: No contract at all!
+fn hello_world() -> String {
+    "Hello, NEAR!".to_string()
+}
+\`\`\`
+
+This is just a regular function - it lives in your code, runs when YOU run it, and disappears when done.
+
+**The problem:**
+- Lives on your computer, not blockchain
+- No one else can call it
+- No persistence - every call starts fresh
+- Not a "smart contract" at all!
+
+You NEED a contract to be a smart contract. That's what we're building!`,
+    },
+    {
       title: 'The Contract Brain',
       content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
 
@@ -102,6 +123,45 @@ Try changing what Beep says! Click the code, change "Hello, NEAR!" to something 
 - "Beep boop - I'm a robot!"
 
 Go ahead. Make it yours!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why this works: The NEAR runtime!**
+
+When you deploy a contract:
+- Code gets stored on-chain (as WASM)
+- State gets stored separately
+- Anyone can call methods
+
+The magic: \`#[near(contract_state)]\` tells NEAR to save your struct's data. Your contract's state persists between calls!
+
+\`\`\`
+Deploy → Code on chain → State stored separately → Methods can read/write state
+\`\`\`
+
+This is what makes it a "smart contract" - it has its own data that lives on the blockchain!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Even simple contracts have tradeoffs:
+
+**HELLO WORLD gives you:**
+- ✅ Easy to understand
+- ✅ Free to call view methods
+- ✅ Lives forever on blockchain
+
+**HELLO WORLD doesn't give you:**
+- ❌ Any state (can't remember anything)
+- ❌ User interactions
+- ❌ Real functionality
+
+**When hello world hurts you:**
+- Can't build anything useful with just it
+- Need state for real apps
+
+**The insight:** Hello World is the START, not the end. Every real contract adds state, methods, and logic on top of this foundation!
+
+**When NOT to use this pattern:** If you need to store any data or allow user interactions - you need state (covered in later lessons!)`,
     },
   ],
 };

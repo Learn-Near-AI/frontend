@@ -15,6 +15,33 @@ Free to use. No cost. Just looking.
 A contract with state that can be read — with TWO view methods to show different ways to read data!`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you had no view methods?
+
+\`\`\`rust
+// BAD: No way to read anything!
+struct Contract {
+    greeting: String,
+}
+
+impl Contract {
+    // Only change methods - can set but never read!
+    pub fn set_greeting(&mut self, greeting: String) {
+        self.greeting = greeting;
+    }
+    // No getter! User has no idea what's stored!
+}
+\`\`\`
+
+**The problem:**
+- Users can't see their data
+- No way to verify state
+- Very frustrating UX!
+- Like a bank that won't tell you your balance!
+
+Every change method should have a view method to read the data!`,
+    },
+    {
       title: 'The Contract With State',
       content: `First, let's set up the contract with some state to read:
 
@@ -99,6 +126,48 @@ NEAR (and other blockchains) separate these for good reasons:
 
 Most apps let you view a LOT for free, and only charge when you change something. That's why dApps feel snappy!`,
     },
+    {
+      title: 'The Design Insight',
+      content: `**Why view methods are free: Validators!**
+
+When you call a view method:
+- No transaction needed
+- Any node can answer (doesn't need to be validator)
+- No state changes to process
+- Just reads stored data
+
+It's like asking a librarian for a book - they just look it up, no work needed!
+
+**Change methods:**
+- Must be processed by validators
+- State changes must be recorded
+- Consensus needed
+- Costs gas
+
+This separation is what makes blockchain practical!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `View methods have tradeoffs:
+
+**VIEW gives you:**
+- ✅ Free to call
+- ✅ Fast responses
+- ✅ Anyone can verify state
+
+**VIEW doesn't give you:**
+- ❌ Can't modify anything
+- ❌ Stale data (might be slightly outdated)
+- ❌ Can't trigger complex logic
+
+**When view methods hurt you:**
+- Need to do complex calculations? Better as change method
+- Real-time critical data? Might need push instead of pull
+
+**The insight:** View methods are perfect for reading data. Pair them with change methods for a complete API!
+
+**When NOT to use view methods:** If you need to modify state or perform complex logic - that's what change methods are for!`,
+    },
   ],
   'change-methods': [
     {
@@ -114,6 +183,34 @@ They cost a tiny bit of NEAR (like gas in a car) because you're actually changin
 
 **What you'll build:**
 A contract with TWO change methods - one to set a greeting and one to add to it!`,
+    },
+    {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you ONLY had view methods?
+
+\`\`\`rust
+// BAD: Read-only contract!
+struct Contract {
+    greeting: String,
+}
+
+impl Contract {
+    // Can only READ, never change!
+    pub fn get_greeting(&self) -> String {
+        self.greeting.clone()
+    }
+    // No way to update greeting ever!
+    // Contract is frozen!
+}
+\`\`\`
+
+**The problem:**
+- Contract can never change
+- No user interactions
+- No way to build anything useful
+- Like a read-only database!
+
+You need change methods to build real apps!`,
     },
     {
       title: 'The Contract Setup',
@@ -208,6 +305,49 @@ Think of it like:
 - Posting something = small fee (like mailing a letter)
 
 You're now a builder! Start changing things!`,
+    },
+    {
+      title: 'The Design Insight',
+      content: `**Why &mut self matters: Ownership!**
+
+In Rust:
+- \`&self\` = borrow (read only)
+- \`&mut self\` = borrow_mut (can modify)
+
+When you use \`&mut self\`:
+- Rust gives you exclusive access to modify
+- Compiler guarantees no data races
+- State changes are safe!
+
+**The flow:**
+\`\`\`
+User calls → Wallet signs → Load state → &mut self → Modify → Save state → Receipt!
+\`\`\`
+
+This is what makes blockchain state changes reliable!`,
+    },
+    {
+      title: 'Tradeoffs (Nothing Is Perfect!)',
+      content: `Change methods have tradeoffs:
+
+**CHANGE gives you:**
+- ✅ Full functionality
+- ✅ User interactions
+- ✅ Build real apps
+
+**CHANGE doesn't give you:**
+- ❌ Free (costs gas)
+- ❌ Instant (needs blockchain)
+- ❌ Reversible (unless you code it!)
+
+**When change methods hurt you:**
+- Too many changes = expensive
+- Complex logic = more gas
+- Can break if not validated
+
+**The insight:** Use change methods when you NEED to modify state. Use view methods for reading. Pair them together!
+
+**When NOT to use change methods:** If you only need to read data - use view methods instead! They save users gas.`,
     },
   ],
 };
