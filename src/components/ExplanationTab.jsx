@@ -1,8 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { MoveDiagonal } from 'lucide-react';
+import { MoveDiagonal, ExternalLink } from 'lucide-react';
 import { isAuditedExample } from '../data/examples';
-import { getBasicsDetailedExplanation, isBasicsExample, getDetailedExplanation } from '../data/basicsExplanations';
+import {
+  getBasicsDetailedExplanation,
+  isBasicsExample,
+  getDetailedExplanation,
+} from '../data/basicsExplanations';
 import { getAdvancedDetailedExplanation, isAdvancedExample } from '../data/advancedExplanations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
@@ -12,6 +16,24 @@ Hello World → Contract Structure → View Methods → Change Methods → State
 
 *Each step builds on the previous. Use the sidebar to open the next example. The editor on the left shows this path; switch to any example to see and run code.*
 `;
+
+const NEAR_DOCS_LINKS = {
+  'hello-world': 'https://docs.near.org/build/smart-contracts/anatomy/anatomy',
+  'contract-structure': 'https://docs.near.org/build/smart-contracts/anatomy/anatomy',
+  'view-methods': 'https://docs.near.org/build/smart-contracts/quickstart',
+  'change-methods': 'https://docs.near.org/build/smart-contracts/quickstart',
+  'state-management': 'https://docs.near.org/build/smart-contracts/anatomy/state',
+  'input-validation': 'https://docs.near.org/build/smart-contracts/best-practices/validation',
+  'error-handling': 'https://docs.near.org/build/smart-contracts/best-practices/validation',
+  'collections-vector': 'https://docs.near.org/build/smart-contracts/anatomy/collections',
+  'collections-map': 'https://docs.near.org/build/smart-contracts/anatomy/collections',
+  events: 'https://docs.near.org/build/smart-contracts/best-practices/events',
+  'owner-pattern': 'https://docs.near.org/build/smart-contracts/best-practices/access-control',
+  'role-based-access': 'https://docs.near.org/build/smart-contracts/best-practices/access-control',
+  'pausable-contract': 'https://docs.near.org/build/smart-contracts/best-practices/pause',
+  'multi-signature': 'https://docs.near.org/build/smart-contracts/best-practices/multisig',
+  'upgrade-pattern': 'https://docs.near.org/build/smart-contracts/anatomy/upgrade',
+};
 
 const markdownComponents = {
   p: ({ children }) => (

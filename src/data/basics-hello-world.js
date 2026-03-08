@@ -2,7 +2,9 @@ export const helloWorldDetailedExplanation = {
   'hello-world': [
     {
       title: 'Meet Your Robot Friend!',
-      content: `Time to meet **Beep** - your first NEAR robot!
+      content: `Every smart contract starts with a simple greeting function.
+
+Time to meet **Beep** - your first NEAR robot!
 
 Beep lives in NEARbyExample. She's very simple - she only knows how to say one thing: "Hello, NEAR!" Every time someone asks her what's up, she replies the same way.
 
@@ -162,6 +164,10 @@ This is what makes it a "smart contract" - it has its own data that lives on the
 **The insight:** Hello World is the START, not the end. Every real contract adds state, methods, and logic on top of this foundation!
 
 **When NOT to use this pattern:** If you need to store any data or allow user interactions - you need state (covered in later lessons!)`,
+    },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy)`,
     },
   ],
 };

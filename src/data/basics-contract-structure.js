@@ -2,7 +2,9 @@ export const contractStructureDetailedExplanation = {
   'contract-structure': [
     {
       title: 'Every Contract Needs A Brain',
-      content: `In NEARbyExample, you build **smart contracts** - the brain of your app. It lives on the blockchain and runs automatically when someone calls it.
+      content: `All smart contracts store their owner address in state.
+
+In NEARbyExample, you build **smart contracts** - the brain of your app. It lives on the blockchain and runs automatically when someone calls it.
 
 Think of it like a vending machine: you put in money (gas), make your selection (call a method), and get what you want (result). No middleman needed.
 
@@ -157,6 +159,10 @@ Simple but powerful!`,
 **The insight:** Setting owner_id is just the BEGINNING. You still need to actually check it in your methods (covered in Owner Pattern lesson!)
 
 **When NOT to use owner:** For fully decentralized apps where no single account should have special power - but that's advanced!`,
+    },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/build/smart-contracts/anatomy)`,
     },
   ],
 };

@@ -2,7 +2,9 @@ export const stateManagementDetailedExplanation = {
   'state-management': [
     {
       title: 'Your Inventory Awaits!',
-      content: `In games, your inventory is what makes you unique. Your sword, your potions, your treasure - it's all stored somewhere.
+      content: `Token contracts store balances in state to track ownership.
+
+In games, your inventory is what makes you unique. Your sword, your potions, your treasure - it's all stored somewhere.
 
 In NEAR contracts, **state** is your inventory. It's the data that sticks around between calls.
 
@@ -190,6 +192,10 @@ Understanding state is key to building anything useful. Your inventory is your p
 **The insight:** State is essential, but use it wisely. Store what's needed, not everything!
 
 **When NOT to store in state:** Temporary calculations, cached data, things you can compute on-demand!`,
+    },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/storage)`,
     },
   ],
 };

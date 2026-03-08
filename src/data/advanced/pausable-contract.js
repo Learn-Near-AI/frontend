@@ -1,7 +1,9 @@
 export const pausableContractExplanation = [
   {
     title: 'The Emergency Button!',
-    content: `Sometimes you need to hit PAUSE. Like:
+    content: `Stablecoin protocols pause transfers when vulnerabilities are discovered.
+
+Sometimes you need to hit PAUSE. Like:
 - A bug is found, need to stop attacks
 - Doing maintenance
 - Emergency upgrade
@@ -160,6 +162,10 @@ It's like a master switch. One toggle protects everything!`,
 **The insight:** Pausable is a safety net, not a solution. You still need to fix the actual problem. And consider time-locks instead of instant pause for more trust!
 
 **When NOT to use Pausable:** If your contract is purely informational (no funds, no state changes), or if you want true decentralization where no single person can freeze it - skip the pause button!`,
+  },
+  {
+    title: 'Learn More',
+    content: `[Learn more about this topic →](https://docs.rs/near-contract-tools/latest/near_contract_tools/pause/index.html)`,
   },
 ];
 

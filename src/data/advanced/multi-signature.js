@@ -1,7 +1,9 @@
 export const multiSignatureExplanation = [
   {
     title: 'The Two-Key Safe!',
-    content: `Imagine a safe that needs TWO keys to open. You have one key, your business partner has the other. Neither of you can open it alone!
+    content: `DAOs use multi-sig contracts to secure treasuries requiring multiple approvals.
+
+Imagine a safe that needs TWO keys to open. You have one key, your business partner has the other. Neither of you can open it alone!
 
 That's a **multi-signature** contract - multiple people must approve an action before it happens.
 
@@ -185,6 +187,10 @@ Simple but effective consensus mechanism!`,
 **The insight:** Multi-sig trades speed for safety. Perfect for treasuries, not for everyday operations!
 
 **When NOT to use Multi-sig:** If you need fast, automated decisions, or single-user operations - use owner pattern or RBAC instead. Multi-sig is for high-value, low-frequency decisions!`,
+  },
+  {
+    title: 'Learn More',
+    content: `[Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
   },
 ];
 

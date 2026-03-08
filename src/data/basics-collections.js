@@ -2,7 +2,9 @@ export const collectionsDetailedExplanation = {
   'collections-vector': [
     {
       title: 'Unlock The Treasure Chest!',
-      content: `So far, you've stored single things - one message, one number. But what if you want to store a LIST of things?
+      content: `Chat applications store messages in vectors to preserve order.
+
+So far, you've stored single things - one message, one number. But what if you want to store a LIST of things?
 
 That's where **Vectors** come in. Think of them like:
 - A treasure chest that holds multiple items
@@ -221,6 +223,10 @@ Index 2 → Item C
 **The insight:** Vectors for ordered lists, Maps for lookups. Choose the right tool!
 
 **When NOT to use vectors:** When you need fast lookups by key - that's what Maps are for!`,
+    },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections)`,
     },
   ],
 };

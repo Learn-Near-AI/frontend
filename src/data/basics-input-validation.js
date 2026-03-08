@@ -2,7 +2,9 @@ export const inputValidationDetailedExplanation = {
   'input-validation': [
     {
       title: 'Meet The Gatekeeper!',
-      content: `Every good castle has a **gatekeeper** - the person who checks who's allowed in and what they're carrying.
+      content: `DeFi protocols validate deposit amounts before processing transactions.
+
+Every good castle has a **gatekeeper** - the person who checks who's allowed in and what they're carrying.
 
 In your contracts, YOU are the gatekeeper. You decide what data gets in and what gets rejected.
 
@@ -186,6 +188,10 @@ This is perfect for validation - fail fast, fail clear!`,
 **The insight:** Validate early, validate often, fail fast with clear messages!
 
 **When NOT to validate:** For internal functions where you know the data is valid - but always validate at public boundaries!`,
+    },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/security/welcome)`,
     },
   ],
 };

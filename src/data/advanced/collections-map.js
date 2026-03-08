@@ -1,7 +1,9 @@
 export const collectionsMapExplanation = [
   {
     title: 'The Leaderboard!',
-    content: `Imagine a scoreboard in an arcade. Every player has a score. You can look up ANY player's score instantly.
+    content: `Token contracts store balances in maps for instant lookups.
+
+Imagine a scoreboard in an arcade. Every player has a score. You can look up ANY player's score instantly.
 
 That's exactly what a **Map** does!
 
@@ -163,6 +165,10 @@ That hash becomes the STORAGE LOCATION. It's like:
 **The insight:** Maps shine when you have data to look up by key. Vectors shine when order matters or you're processing everything. Choose based on YOUR use case!
 
 **When NOT to use a Map:** If you need things in a specific order or are only ever processing ALL items sequentially - just use a Vector!`,
+  },
+  {
+    title: 'Learn More',
+    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections)`,
   },
 ];
 

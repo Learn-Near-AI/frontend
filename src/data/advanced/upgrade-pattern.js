@@ -1,7 +1,9 @@
 export const upgradePatternExplanation = [
   {
     title: 'The Evolution!',
-    content: `In games, your character evolves. New abilities, better stats, cooler gear. Your contract can do something similar!
+    content: `Popular dApps use upgrade patterns to add features while preserving user data.
+
+In games, your character evolves. New abilities, better stats, cooler gear. Your contract can do something similar!
 
 The **Upgrade Pattern** lets you update your contract while keeping its data. It's like:
 - Patching a bug without losing progress
@@ -171,6 +173,10 @@ This is why version tracking matters - you know what state you're in!`,
 **The insight:** Upgrade pattern is essential for production contracts. But for maximum trust, consider time-locks on upgrades or eventually making the contract immutable!
 
 **When NOT to use Upgrade Pattern:** If you want true immutability (no one can ever change it), skip the upgrade pattern. Some projects want to be forever unchanged - that's when you remove the migrate function entirely!`,
+  },
+  {
+    title: 'Learn More',
+    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/release/upgrade)`,
   },
 ];
 

@@ -1,8 +1,10 @@
 export const errorHandlingDetailedExplanation = {
   'error-handling': [
     {
-      title: 'Building Your Safety Net',
-      content: `Even with the best gatekeeper (validation), sometimes things go wrong. Maybe:
+      title: 'Building Your Safety Net!',
+      content: `Parsing user input returns Option types to handle invalid data gracefully.
+
+Even with the best gatekeeper (validation), sometimes things go wrong. Maybe:
 - User sends "abc" when you expect a number
 - User tries to divide by zero
 - Something totally unexpected happens
@@ -218,6 +220,10 @@ Match the error type to the situation!`,
 **The insight:** Match error handling to the situation. Don't over-handle or under-handle!
 
 **When NOT to use error handling:** When you're 100% sure the input is valid (internal calls) - but always at public boundaries!`,
+    },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/security/welcome)`,
     },
   ],
 };

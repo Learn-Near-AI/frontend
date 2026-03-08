@@ -1,7 +1,9 @@
 export const ownerPatternExplanation = [
   {
     title: 'The Castle Guard!',
-    content: `Every castle needs someone in charge. Someone who can open the gates, change the rules, or guard the treasure.
+    content: `NFT contracts use owner patterns to restrict minting and burning.
+
+Every castle needs someone in charge. Someone who can open the gates, change the rules, or guard the treasure.
 
 That's the **Owner Pattern** - the simplest form of access control.
 
@@ -162,6 +164,10 @@ The owner pattern simply asks: "Is the caller the owner?" If yes, proceed. If no
 **The insight:** Owner pattern is perfect for personal projects and simple contracts. But as soon as multiple trusted people need access, consider RBAC or multi-signature!
 
 **When NOT to use Owner Pattern:** If you're building a DAO, team treasury, or any project where multiple people should have different access levels - use RBAC or multi-signature instead!`,
+  },
+  {
+    title: 'Learn More',
+    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
   },
 ];
 

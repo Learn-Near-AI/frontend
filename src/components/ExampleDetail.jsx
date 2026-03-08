@@ -508,10 +508,14 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         )}
       </div>
 
-      <ConsolePanel
-        consoleOutput={consoleOutput}
-        deployedContractId={deployedContractId}
-        deploymentTxHash={deploymentTxHash}
+      {!isIntroExample && (
+        <ConsolePanel
+          consoleOutput={consoleOutput}
+          deployedContractId={deployedContractId}
+          deploymentTxHash={deploymentTxHash}
+          wasmSize={wasmSize}
+        />
+      )}
         wasmSize={wasmSize}
       />
     </div>

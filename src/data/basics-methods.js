@@ -2,7 +2,9 @@ export const methodsDetailedExplanation = {
   'view-methods': [
     {
       title: 'Become The Scout',
-      content: `In every good game, you need a **scout** - someone who looks around and reports what they see. That's what view methods are!
+      content: `Wallets use view methods to display balances instantly without transactions.
+
+In every good game, you need a **scout** - someone who looks around and reports what they see. That's what view methods are!
 
 A view method only LOOKS at stuff. It never changes anything. It's like:
 - Checking your inventory
@@ -168,11 +170,17 @@ This separation is what makes blockchain practical!`,
 
 **When NOT to use view methods:** If you need to modify state or perform complex logic - that's what change methods are for!`,
     },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/quickstart)`,
+    },
   ],
   'change-methods': [
     {
       title: 'Time To Build!',
-      content: `Scouts are great, but sometimes you need to actually DO stuff. That's where **change methods** come in.
+      content: `Token transfers are change methods that modify user balances.
+
+Scouts are great, but sometimes you need to actually DO stuff. That's where **change methods** come in.
 
 Change methods are like:
 - Picking up items in a game
@@ -348,6 +356,10 @@ This is what makes blockchain state changes reliable!`,
 **The insight:** Use change methods when you NEED to modify state. Use view methods for reading. Pair them together!
 
 **When NOT to use change methods:** If you only need to read data - use view methods instead! They save users gas.`,
+    },
+    {
+      title: 'Learn More',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy)`,
     },
   ],
 };

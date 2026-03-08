@@ -1,7 +1,9 @@
 export const roleBasedAccessExplanation = [
   {
     title: 'Guild Roles!',
-    content: `In an RPG, a guild has different roles:
+    content: `DeFi protocols use RBAC to separate regular users from admins and moderators.
+
+In an RPG, a guild has different roles:
 - **Guild Master** - runs everything, can promote others
 - **Admins** - manage members, run events
 - **Members** - regular players
@@ -185,6 +187,10 @@ The pattern is simple: "Is account X in set Y?" → if yes, they have that role.
 **The insight:** RBAC solves "one owner isn't enough" but doesn't solve "we need consensus." That's what multi-signature is for!
 
 **When NOT to use RBAC:** If you need multiple people to agree on important decisions (like spending money), use multi-signature instead. RBAC is for permission management, not consensus!`,
+  },
+  {
+    title: 'Learn More',
+    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
   },
 ];
 

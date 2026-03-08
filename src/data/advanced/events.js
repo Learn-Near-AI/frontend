@@ -1,7 +1,9 @@
 export const eventsExplanation = [
   {
     title: 'The Town Crier!',
-    content: `In old towns, the crier would shout important news for everyone to hear: "Hear ye! The king has announced..."
+    content: `Wallets listen for transfer events to update balances in real-time.
+
+In old towns, the crier would shout important news for everyone to hear: "Hear ye! The king has announced..."
 
 **Events** in NEAR are exactly that - your contract shouting news to the world!
 
@@ -161,6 +163,10 @@ This separation of concerns is what makes blockchain usable!
 **The insight:** Events are the bridge between blockchain and real-time apps. But always have a fallback to direct contract calls when precision matters!
 
 **When NOT to use Events:** If you're building something where every detail must be verified on-chain, or you only need occasional data - just poll the contract directly!`,
+  },
+  {
+    title: 'Learn More',
+    content: `[Learn more about this topic →](https://github.com/near/NEPs/blob/master/neps/nep-0297.md)`,
   },
 ];
 
