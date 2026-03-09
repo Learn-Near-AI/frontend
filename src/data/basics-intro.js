@@ -1,6 +1,6 @@
 export const BASICS_EXAMPLE_IDS = [
   'intro',
-  'hello-world',
+  'greeting',
   'contract-structure',
   'view-methods',
   'change-methods',
@@ -39,7 +39,7 @@ You're about to build 15 mini-projects. Each one teaches something new. By the e
       content: `Here's your path through NEARbyExample:
 
 **⚔️ The Basics (you start here):**
-1. Hello World - Meet your first robot friend
+1. Greeting - Meet your first robot friend
 2. Contract Structure - Learn how to build a base
 3. View Methods - Become a scout who observes
 4. Change Methods - Start building and changing things

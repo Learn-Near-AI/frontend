@@ -168,7 +168,7 @@ That hash becomes the STORAGE LOCATION. It's like:
   },
   {
     title: 'Learn More',
-    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections)`,
+    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#lookupmap)`,
   },
 ];
 

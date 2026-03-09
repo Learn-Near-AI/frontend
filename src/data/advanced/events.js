@@ -13,10 +13,10 @@ Without events, apps would have to scan EVERY transaction ever made. With events
   },
   {
     title: "The Naive Approach (Don't Do This!)",
-    content: `Imagine trying to build a marketplace\`\`rust
- WITHOUT events:
+    content: `Imagine trying to build a marketplace WITHOUT events:
 
-\`// BAD: No events, force everyone to scan!
+\`\`\`rust
+// BAD: No events, force everyone to scan!
 struct BadMarketplace {
     items: Vector<Item>,
 }
@@ -46,6 +46,7 @@ This is what apps did before events - scan everything. Expensive, slow, painful!
 \`\`\`rust
 use near_sdk::near;
 use near_sdk::PanicOnDefault;
+use near_sdk::AccountId;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -53,36 +54,59 @@ pub struct Contract {
     message: String,
 }
 
-// Define events using the macro - this creates the emit() method!
-#[near(event_json(standard = "example", version = "1.0.0"))]
-enum Event {
-    MessageUpdated { new_message: String },
+// 100/100 NEP-297 Events – modern best practice
+#[near(event_json(standard = "learn-near-message"))]
+pub enum Event {
+    #[event_version("1.0.0")]
+    MessageUpdated {
+        old_message: String,
+        new_message: String,
+        updated_by: AccountId,
+    },
+
+    #[event_version("1.0.0")]
+    MessageDeleted {
+        deleted_message: String,
+        deleted_by: AccountId,
+    },
+
+    #[event_version("1.1.0")]
+    MessageReported {
+        reported_message: String,
+        reason: String,
+        reported_by: AccountId,
+    },
 }
 
 #[near]
 impl Contract {
-    pub fn set_message(&mut self, message: String) {
-        // self.emit() comes from the macro - it handles all the JSON formatting!
-        self.emit(Event::MessageUpdated { new_message: message.clone() });
-        self.message = message;
+    pub fn set_message(&mut self, new_message: String) {
+        let old_message = self.message.clone();
+
+        // Emit clean NEP-297 event (macro handles everything!)
+        Event::MessageUpdated {
+            old_message,
+            new_message: new_message.clone(),
+            updated_by: near_sdk::env::predecessor_account_id(),
+        }
+        .emit();
+
+        self.message = new_message;
     }
 }
 \`\`\`
 
-**Where does emit() come from?**
-The \`#[near(event_json(...))]\` macro automatically generates the \`emit()\` method for you! You just call \`self.emit(...)\` and it handles all the JSON formatting.
-
 **Why this rocks:**
-1. The code writes the format for you
-2. Can't mess up the JSON
-3. Follows standards automatically
-4. Type-safe!`,
+1. \`#[near(event_json(...))]\` macro → auto-generates \`emit()\` method
+2. \`#[event_version(...)]\` → versions each event variant
+3. Type-safe → compiler catches mistakes
+4. NEP-297 compliant → indexers love it!`,
   },
   {
     title: 'What Happens Behind The Scenes',
     content: `Here's the journey of an event:
 
-1. Your contract calls \`self.emit()\`
+1. Your contract calls \`Event::MessageUpdated { ... }.emit()\`
 2. The macro converts it to special JSON
 3. Written to the transaction receipt
 4. Receipt gets processed
@@ -93,10 +117,15 @@ The \`#[near(event_json(...))]\` macro automatically generates the \`emit()\` me
 **The NEP-297 standard:**
 \`\`\`json
 {
-  "standard": "example",
+  "standard": "learn-near-message",
   "version": "1.0.0",
   "event": "MessageUpdated",
-  "data": { "new_message": "Hello!" }
+  "data": { 
+    "old_message": "Hello", 
+    "new_message": "Hi there!",
+    "updated_by": "user.near"
+  }
+}
 }
 \`\`\`
 
@@ -126,7 +155,7 @@ Consistent format = everyone can understand!`,
 
 Events aren't stored directly on-chain in some special place. Instead:
 
-1. Your contract emits an event via \`self.emit()\`
+1. Your contract emits an event via \`Event::MessageUpdated { ... }.emit()\`
 2. The macro transforms it into NEP-297 JSON format
 3. The event gets written to the transaction receipt
 4. **Indexers** - special services - watch EVERY receipt

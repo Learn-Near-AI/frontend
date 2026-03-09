@@ -1,5 +1,10 @@
-import { BASICS_EXAMPLE_IDS, isBasicsExample, basicsDetailedExplanations, getBasicsDetailedExplanation } from './basics-intro.js';
-import { getHelloWorldDetailedExplanation } from './basics-hello-world.js';
+import {
+  BASICS_EXAMPLE_IDS,
+  isBasicsExample,
+  basicsDetailedExplanations,
+  getBasicsDetailedExplanation,
+} from './basics-intro.js';
+import { getGreetingDetailedExplanation } from './basics-greeting.js';
 import { getContractStructureDetailedExplanation } from './basics-contract-structure.js';
 import { getMethodsDetailedExplanation } from './basics-methods.js';
 import { getStateManagementDetailedExplanation } from './basics-state-management.js';
@@ -18,8 +23,8 @@ export const getDetailedExplanation = (exampleId) => {
   if (exampleId === 'intro') {
     return getBasicsDetailedExplanation(exampleId);
   }
-  if (exampleId === 'hello-world') {
-    return getHelloWorldDetailedExplanation(exampleId);
+  if (exampleId === 'greeting') {
+    return getGreetingDetailedExplanation(exampleId);
   }
   if (exampleId === 'contract-structure') {
     return getContractStructureDetailedExplanation(exampleId);

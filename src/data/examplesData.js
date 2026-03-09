@@ -2,7 +2,7 @@
 export const examplesData = {
   Basics: [
     { id: 'intro', name: 'Intro', difficulty: 'Beginner', language: 'Intro' },
-    { id: 'hello-world', name: 'Hello World', difficulty: 'Beginner', language: 'Rust' },
+    { id: 'greeting', name: 'Greeting', difficulty: 'Beginner', language: 'Rust' },
     {
       id: 'contract-structure',
       name: 'Contract Structure',

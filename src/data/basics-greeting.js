@@ -1,12 +1,12 @@
-export const helloWorldDetailedExplanation = {
-  'hello-world': [
+export const greetingDetailedExplanation = {
+  greeting: [
     {
       title: 'Meet Your Robot Friend!',
       content: `Every smart contract starts with a simple greeting function.
 
 Time to meet **Beep** - your first NEAR robot!
 
-Beep lives in NEARbyExample. She's very simple - she only knows how to say one thing: "Hello, NEAR!" Every time someone asks her what's up, she replies the same way.
+Beep lives in NEARbyExample. She's very simple - she only knows how to say one thing: "Greetings, Adventurer!" Every time someone asks her what's up, she replies the same way.
 
 **Why does this matter?**
 This is the "Hello World" of smart contracts. It's the simplest thing you can build. But don't let that fool you - Beep has superpowers:
@@ -23,8 +23,8 @@ Your journey starts here. Let's make Beep say something cool!`,
 
 \`\`\`rust
 // BAD: No contract at all!
-fn hello_world() -> String {
-    "Hello, NEAR!".to_string()
+fn greet() -> String {
+    "Greetings, Adventurer!".to_string()
 }
 \`\`\`
 
@@ -84,21 +84,21 @@ impl Contract {
 In later lessons, you'll add real state here - like setting an owner, initial balance, or default message. The constructor is your one chance to set up the contract's initial values.`,
     },
     {
-      title: 'Hello World - The View Method',
+      title: 'Greeting - The View Method',
       content: `Now for the fun part - Beep's greeting!
 
 \`\`\`rust
 // View method - read-only, free to call (no gas fees!)
-pub fn hello_world(&self) -> String {
-    "Hello, NEAR!".to_string()
+pub fn greet(&self) -> String {
+    "Greetings, Adventurer!".to_string()
 }
 \`\`\`
 
 **Breaking it down:**
-- \`pub fn hello_world\` = The function name (what you call from outside)
+- \`pub fn greet\` = The function name (what you call from outside)
 - \`&self\` = Read-only! This method can LOOK at data but can't CHANGE anything
 - \`-> String\` = Returns text
-- \`"Hello, NEAR!".to_string()\` = The actual words she says
+- \`"Greetings, Adventurer!".to_string()\` = The actual words she says
 
 **The View Method Superpower:**
 Methods with \`&self\` are called "view methods." They're special because:
@@ -108,13 +108,13 @@ Methods with \`&self\` are called "view methods." They're special because:
 
 In the code, you know it's a view method because of \`&self\` (one ampersand). This means "read-only, no changes to the blockchain."
 
-Try changing what Beep says! Click the code, change "Hello, NEAR!" to something else, and hit Run. You've already made your first change to a blockchain app!`,
+Try changing what Beep says! Click the code, change "Greetings, Adventurer!" to something else, and hit Run. You've already made your first change to a blockchain app!`,
     },
     {
       title: 'Your Turn!',
       content: `Here's your mission:
 
-1. Find the line that says \`"Hello, NEAR!".to_string()\`
+1. Find the line that says \`"Greetings, Adventurer!".to_string()\`
 2. Change it to your own greeting
 3. Click the Run button
 4. See what Beep says now!
@@ -172,5 +172,5 @@ This is what makes it a "smart contract" - it has its own data that lives on the
   ],
 };
 
-export const getHelloWorldDetailedExplanation = (exampleId) =>
-  helloWorldDetailedExplanation[exampleId] ?? null;
+export const getGreetingDetailedExplanation = (exampleId) =>
+  greetingDetailedExplanation[exampleId] ?? null;

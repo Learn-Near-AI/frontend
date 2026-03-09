@@ -14,47 +14,46 @@ A view method only LOOKS at stuff. It never changes anything. It's like:
 Free to use. No cost. Just looking.
 
 **What you'll build:**
-A contract with state that can be read — with TWO view methods to show different ways to read data!`,
+A contract with default + user-specific greetings — THREE view methods showing different ways to read data!`,
     },
     {
       title: "The Naive Approach (Don't Do This!)",
-      content: `What if you had no view methods?
+      content: `What if you could only have ONE greeting for everyone?
 
 \`\`\`rust
-// BAD: No way to read anything!
+// BAD: One size fits all!
 struct Contract {
-    greeting: String,
+    greeting: String,  // Same for everyone!
 }
 
 impl Contract {
-    // Only change methods - can set but never read!
-    pub fn set_greeting(&mut self, greeting: String) {
-        self.greeting = greeting;
-    }
-    // No getter! User has no idea what's stored!
+    // Every user sees the SAME greeting
+    // No personalization possible!
 }
 \`\`\`
 
 **The problem:**
-- Users can't see their data
-- No way to verify state
-- Very frustrating UX!
-- Like a bank that won't tell you your balance!
+- Can't personalize for users
+- Everyone sees identical content
+- Not realistic for real apps
+- Like a billboard, not an app!
 
-Every change method should have a view method to read the data!`,
+Real apps need user-specific data!`,
     },
     {
-      title: 'The Contract With State',
-      content: `First, let's set up the contract with some state to read:
+      title: 'The Contract With User Data',
+      content: `Here's a contract with user-specific storage:
 
 \`\`\`rust
 use near_sdk::near;
-use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::collections::LookupMap;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    greeting: String,      // The message we want to store
+    default_greeting: String,
+    user_greetings: LookupMap<AccountId, String>,
 }
 
 #[near]
@@ -62,43 +61,51 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            greeting: "hello".to_string(),  // Default greeting
+            default_greeting: "Hello, NEAR explorer!".to_string(),
+            user_greetings: LookupMap::new(b"g"),
         }
     }
 }
 \`\`\`
 
 **What's happening:**
-- \`greeting: String\` = The contract remembers ONE message (stored on-chain!)
-- In the constructor, we set a default value: "hello"
-- Every time the contract loads, it remembers this greeting
+- \`default_greeting\` = Same for everyone
+- \`user_greetings: LookupMap\` = Per-user storage (like a personalized dictionary!)
+- \`LookupMap::new(b"g")\` = Storage prefix "g"
 
-**Why state matters:**
-Hello World (the first lesson) had NO state — it always returned the same thing. That's great for learning, but boring! With state, your contract can remember things between calls — user data, votes, balances, anything!`,
+This is like having a shared sign AND personal notes!`,
     },
     {
       title: 'The Scout Code - View Methods',
-      content: `Here's how your scout reads data:
+      content: `Now the view methods that read the data:
 
 \`\`\`rust
-// View method #1: Return the whole greeting
-pub fn get_greeting(&self) -> String {
-    self.greeting.clone()
+// Get caller's greeting (or default)
+pub fn get_my_greeting(&self) -> String {
+    let caller = env::predecessor_account_id();
+    self.user_greetings
+        .get(&caller)
+        .unwrap_or_else(|| self.default_greeting.clone())
 }
 
-// View method #2: Return just the length
-pub fn get_greeting_length(&self) -> u64 {
-    self.greeting.len() as u64
+// Get length of default greeting
+pub fn get_default_greeting_length(&self) -> u64 {
+    self.default_greeting.len() as u64
+}
+
+// Check if user has custom greeting
+pub fn has_custom_greeting(&self, account: AccountId) -> bool {
+    self.user_greetings.contains_key(&account)
 }
 \`\`\`
 
-**The secret is in the &self:**
-- \`&\` means "borrow" - use without taking ownership
-- \`self\` means "the contract's state"
+**Breaking it down:**
+- \`env::predecessor_account_id()\` = Who called (the user!)
+- \`.get(&key)\` = Lookup in map
+- \`unwrap_or_else(|| default)\` = Use default if not found
+- \`.len()\` = String length (computed!)
 
-Together: "Borrow the contract state just for looking." That's why it's free - you're not making any changes!
-
-The \`.clone()\` is just Rust being careful. It means "give me a copy" so we don't break anything. For \`.len()\`, we don't need clone because it just reads the length (a number), not the actual data.`,
+These are ALL free to call — no gas needed!`,
     },
     {
       title: 'View vs Change - Big Difference',
@@ -108,45 +115,43 @@ The \`.clone()\` is just Rust being careful. It means "give me a copy" so we don
 - Use \`&self\` (one ampersand)
 - Only read data
 - Free to call (no gas fees!)
-- \`pub fn get_something(&self)\`
+- Can call from browser directly
 
 **CHANGE methods:**
-- Use \`&mut self\` (one ampersand + mut to allow changes)
+- Use \`&mut self\` (one ampersand + mut)
 - Modify data
-- Cost a tiny bit of NEAR (gas)
-- \`pub fn set_something(&mut self)\`
+- Cost gas (tiny fee!)
+- Requires wallet signature
 
-The \`mut\` means "allow changes." Without it, Rust says "nope, can't change anything!"
+**Why this matters:**
+- View = checking a map (free!)
+- Change = picking up an item (costs something!)
 
-This difference is huge. View methods are like checking a map (free). Change methods are like picking up an item (costs something because the game world changed).
-
-**Why does this matter?**
-NEAR (and other blockchains) separate these for good reasons:
-1. **Saving money** - Reading data is free because it doesn't bother the validators
-2. **Speed** - View calls happen instantly, no waiting for blockchain
-3. **Trust** - Anyone can verify what's stored without paying
-
-Most apps let you view a LOT for free, and only charge when you change something. That's why dApps feel snappy!`,
+NEAR separates these because reading doesn't burden the network, but writing does!`,
     },
     {
       title: 'The Design Insight',
-      content: `**Why view methods are free: Validators!**
+      content: `**Why LookupMap for user data!**
 
-When you call a view method:
-- No transaction needed
-- Any node can answer (doesn't need to be validator)
-- No state changes to process
-- Just reads stored data
+\`\`\`rust
+user_greetings: LookupMap<AccountId, String>
+\`\`\`
 
-It's like asking a librarian for a book - they just look it up, no work needed!
+LookupMap = Key-Value store:
+- Fast: O(1) lookups by key
+- Efficient: Only loads what you need
+- Scalable: Works for millions of users
 
-**Change methods:**
-- Must be processed by validators
-- State changes must be recorded
-- Consensus needed
-- Costs gas
+**Why not Vector?**
+- Vector = ordered list (find by position)
+- LookupMap = dictionary (find by key)
 
-This separation is what makes blockchain practical!`,
+**The pattern:**
+\`\`\`
+User calls → Get their key → Lookup in map → Return value
+\`\`\`
+
+This is how real apps work — personalized data per user!`,
     },
     {
       title: 'Tradeoffs (Nothing Is Perfect!)',
@@ -156,6 +161,7 @@ This separation is what makes blockchain practical!`,
 - ✅ Free to call
 - ✅ Fast responses
 - ✅ Anyone can verify state
+- ✅ Personalization via LookupMap
 
 **VIEW doesn't give you:**
 - ❌ Can't modify anything
@@ -163,16 +169,17 @@ This separation is what makes blockchain practical!`,
 - ❌ Can't trigger complex logic
 
 **When view methods hurt you:**
-- Need to do complex calculations? Better as change method
-- Real-time critical data? Might need push instead of pull
+- Need real-time updates? Use events!
+- Complex calculations? Make them change methods
+- Need to write? That's what change methods are for!
 
-**The insight:** View methods are perfect for reading data. Pair them with change methods for a complete API!
+**The insight:** View methods for reading, change methods for writing. Pair them together!
 
-**When NOT to use view methods:** If you need to modify state or perform complex logic - that's what change methods are for!`,
+**When NOT to use view methods:** If you need to modify state or perform complex logic - use change methods!`,
     },
     {
       title: 'Learn More',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/quickstart)`,
+      content: `[Learn more about this topic →](https://docs.near.org/build/smart-contracts/protocol/architecture)`,
     },
   ],
   'change-methods': [
@@ -190,113 +197,134 @@ Change methods are like:
 They cost a tiny bit of NEAR (like gas in a car) because you're actually changing something on the blockchain.
 
 **What you'll build:**
-A contract with TWO change methods - one to set a greeting and one to add to it!`,
+A contract with OWNER-PROTECTED change methods — only the owner can modify the message!`,
     },
     {
       title: "The Naive Approach (Don't Do This!)",
-      content: `What if you ONLY had view methods?
+      content: `What if ANYONE could change your message?
 
 \`\`\`rust
-// BAD: Read-only contract!
+// BAD: No protection at all!
 struct Contract {
-    greeting: String,
+    message: String,
 }
 
 impl Contract {
-    // Can only READ, never change!
-    pub fn get_greeting(&self) -> String {
-        self.greeting.clone()
+    // ANYONE can change it!
+    pub fn set_message(&mut self, new_message: String) {
+        self.message = new_message;  // No checks!
     }
-    // No way to update greeting ever!
-    // Contract is frozen!
 }
 \`\`\`
 
 **The problem:**
-- Contract can never change
-- No user interactions
-- No way to build anything useful
-- Like a read-only database!
+- Anyone can vandalize your contract
+- No accountability
+- No security at all!
+- Like leaving your front door wide open!
 
-You need change methods to build real apps!`,
+Every real contract needs access control!`,
     },
     {
-      title: 'The Contract Setup',
-      content: `First, let's set up the contract with state to modify:
+      title: 'The Contract With Protection',
+      content: `Here's a contract with owner protection:
 
 \`\`\`rust
-use near_sdk::near;
-use near_sdk::PanicOnDefault;
+use near_sdk::{env, require, AccountId};
 
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
 pub struct Contract {
-    greeting: String,      // The message we want to change
+    owner_id: AccountId,
+    message: String,
 }
 
-#[near]
 impl Contract {
     #[init]
-    pub fn new() -> Self {
-        Self {
-            greeting: "hello".to_string(),
-        }
+    pub fn new(initial_message: Option<String>) -> Self {
+        let owner = env::predecessor_account_id();
+        let message = initial_message.unwrap_or_else(|| "Welcome, traveler!".to_string());
+
+        Self { owner_id: owner, message }
     }
 
-    // View method - read the greeting (free!)
-    pub fn get_greeting(&self) -> String {
-        self.greeting.clone()
+    // View methods (free!)
+    pub fn get_message(&self) -> String {
+        self.message.clone()
+    }
+
+    // Change method (protected!)
+    pub fn set_message(&mut self, new_message: String) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only the owner can change the message"
+        );
+        require!(!new_message.is_empty(), "Message cannot be empty");
+        self.message = new_message;
     }
 }
 \`\`\`
 
-Notice we have a view method (\`get_greeting\`) to READ the state. Every good contract should let users read what they need!`,
+**Key additions:**
+- \`owner_id\` stored in state
+- \`require!\" for access control
+- \`require!\" for validation`,
     },
     {
-      title: 'The Builder Code - Change Methods',
-      content: `Here's a change method:
+      title: 'The Protected Code',
+      content: `Three change methods, all protected:
 
 \`\`\`rust
-// Change method #1: Set the entire greeting
-pub fn set_greeting(&mut self, greeting: String) {
-    self.greeting = greeting;
+// Replace entire message — owner only
+pub fn set_message(&mut self, new_message: String) {
+    require!(
+        env::predecessor_account_id() == self.owner_id,
+        "Only the owner can change the message"
+    );
+    require!(!new_message.is_empty(), "Message cannot be empty");
+    self.message = new_message;
 }
 
-// Change method #2: Add to the existing greeting
-pub fn add_to_greeting(&mut self, suffix: String) {
-    self.greeting.push_str(&suffix);
+// Append to message — owner only
+pub fn append_to_message(&mut self, addition: String) {
+    require!(env::predecessor_account_id() == self.owner_id, "...");
+    require!(!addition.is_empty(), "...");
+    self.message.push_str(&addition);
+}
+
+// Reset to default — owner only
+pub fn reset_message(&mut self) {
+    require!(env::predecessor_account_id() == self.owner_id, "...");
+    self.message = "Welcome, traveler!".to_string();
 }
 \`\`\`
 
-**Key differences from view methods:**
-- \`&mut self\` - "I need to CHANGE things" (mut = mutable)
-- \`greeting: String\` - Takes a parameter from the caller
-- This example doesn't return anything, but change methods CAN return values if needed
+**The pattern:**
+1. \`env::predecessor_account_id()\` — Who called?
+2. Compare to \`self.owner_id\` — Are they the boss?
+3. If yes → proceed; if no → revert!
 
-When someone calls \`set_greeting\`, they supply a new greeting, and BAM - the contract updates!
-
-**Why does this matter?**
-Change methods are how users interact with your contract. They can update balances, mint NFTs, vote on proposals - anything that modifies state.`,
+**require!** is your bouncer!`,
     },
     {
       title: 'What Happens When You Call It',
-      content: `Here's the journey of a change method call:
+      content: `Here's the journey of a protected change method:
 
-1. **Your wallet signs** the transaction (proves it's you)
-2. **NEAR finds** the contract on the blockchain
-3. **The contract wakes up** and loads its memory (state)
-4. **Your code runs** - changes the greeting
-5. **NEAR saves** the new memory back to the blockchain
-6. **Receipt arrives** - proof it worked
+1. **Your wallet signs** the transaction
+2. **NEAR finds** the contract
+3. **Contract checks** — "Are you the owner?"
+4. **If YES:** Update the message, save state
+5. **If NO:** Revert immediately, message unchanged
+6. **Receipt arrives** — proof of result
 
-All of this happens in seconds. And the validator computers that run this get a small fee. Fair trade!
+**The magic of require!:**
+- Stops bad actors cold
+- Clear error message for users
+- Nothing gets saved if check fails!
 
-**The #[near(contract_state)] magic:**
-You might wonder how NEAR saves your data. The \`#[near(contract_state)]\` macro automatically handles serializing your state to bytes for storage, and deserializing it back when needed. You don't need to worry about it!`,
+This is how real contracts stay secure!`,
     },
     {
       title: 'Gas - The Fuel Of Blockchain',
-      content: `Every change costs **gas** - a small fee that goes to the people running the blockchain computers.
+      content: `Every change costs **gas** - a small fee for the validators.
 
 **What affects gas:**
 - How much data you read/write
@@ -304,62 +332,67 @@ You might wonder how NEAR saves your data. The \`#[near(contract_state)]\` macro
 - How busy the network is
 
 **The good news:**
-- NEAR fees are super low (fractions of a cent for simple stuff)
+- NEAR fees are super low (fractions of a cent!)
 - View methods are FREE
-- Most apps cover fees for users!
+- require! checks are cheap
 
-Think of it like:
-- Viewing a website = free
-- Posting something = small fee (like mailing a letter)
+**The insight:**
+- View = checking a map (free!)
+- Change = updating the map (small fee!)
 
-You're now a builder! Start changing things!`,
+You're now a builder! Build securely!`,
     },
     {
       title: 'The Design Insight',
-      content: `**Why &mut self matters: Ownership!**
+      content: `**Why require! works: The bouncer pattern!**
 
-In Rust:
-- \`&self\` = borrow (read only)
-- \`&mut self\` = borrow_mut (can modify)
+\`\`\`rust
+require!(condition, "error message")
+\`\`\`
 
-When you use \`&mut self\`:
-- Rust gives you exclusive access to modify
-- Compiler guarantees no data races
-- State changes are safe!
+**How it works:**
+- Condition TRUE → continue normally
+- Condition FALSE → PANIC with message!
 
 **The flow:**
 \`\`\`
-User calls → Wallet signs → Load state → &mut self → Modify → Save state → Receipt!
+Caller → Check owner → Pass? → Update → Save
+                  → Fail? → Revert! → Error message
 \`\`\`
 
-This is what makes blockchain state changes reliable!`,
+**Why this matters:**
+- Stops unauthorized changes
+- Clear feedback to users
+- Atomic: either ALL changes or NONE
+
+This is the foundation of secure contracts!`,
     },
     {
       title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `Change methods have tradeoffs:
+      content: `Change methods with protection have tradeoffs:
 
-**CHANGE gives you:**
-- ✅ Full functionality
-- ✅ User interactions
-- ✅ Build real apps
+**PROTECTED CHANGE gives you:**
+- ✅ Security (only owner can modify)
+- ✅ Accountability (know who called)
+- ✅ Validation (prevent bad data)
 
-**CHANGE doesn't give you:**
+**PROTECTED CHANGE doesn't give you:**
 - ❌ Free (costs gas)
-- ❌ Instant (needs blockchain)
-- ❌ Reversible (unless you code it!)
+- ❌ Multi-user editing
+- ❌ Decentralized control
 
-**When change methods hurt you:**
-- Too many changes = expensive
-- Complex logic = more gas
-- Can break if not validated
+**When protection hurts you:**
+- Owner loses key? Stuck forever!
+- Need team input? Doesn't help!
+- Want open editing? Too restrictive!
 
-**The insight:** Use change methods when you NEED to modify state. Use view methods for reading. Pair them together!
+**The insight:** Use protection when needed. For open apps, use other patterns!
 
-**When NOT to use change methods:** If you only need to read data - use view methods instead! They save users gas.`,
+**When NOT to use:** For DAOs or community apps - you'll need more flexible access control!`,
     },
     {
       title: 'Learn More',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy)`,
+      content: `[Learn more about this topic →](https://docs.near.org/build/smart-contracts/protocol/architecture)`,
     },
   ],
 };

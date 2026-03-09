@@ -21,14 +21,14 @@ export const basicsCode = {
   These are your first dungeons. Master them to unlock the Advanced
   world. Each one teaches something essential:
 
-    1. Hello World        — Meet your first robot friend
-    2. Contract Structure — Build your base of operations
-    3. View Methods      — Scout ahead and observe (free!)
-    4. Change Methods    — Start crafting and modifying
-    5. State Management  — Your inventory system
-    6. Input Validation  — The gatekeeper stands guard
-    7. Error Handling    — Build your safety net
-    8. Collections       — Unlock the treasure chest
+    1. Greetings             — Meet your first robot friend
+    2. Contract Structure    — Build your base of operations
+    3. View Methods          — Scout ahead and observe (free!)
+    4. Change Methods        — Start crafting and modifying
+    5. State Management      — Your inventory system
+    6. Input Validation      — The gatekeeper stands guard
+    7. Error Handling        — Build your safety net
+    8. Collections           — Unlock the treasure chest
 
   ════════════════════════════════════════════════════════════════
   ADVANCED 🛡️ — For Brave Explorers
@@ -61,14 +61,14 @@ export const basicsCode = {
 
   ════════════════════════════════════════════════════════════════
 
-  Pick "Hello World" from the sidebar to begin your quest.
+  Pick "Greetings" from the sidebar to begin your quest.
   Each example has Rust and JavaScript versions — choose your weapon!
   Try the code, break it, fix it — that's how heroes are made.
 
   See you in NEARbyExample, adventurer!
 `,
   },
-  'hello-world': {
+  greeting: {
     RustExercise: `use near_sdk::near;
 use near_sdk::PanicOnDefault;
 
@@ -83,7 +83,7 @@ impl Contract {
         Self {}
     }
 
-    pub fn hello_world(&self) -> String {
+    pub fn greet(&self) -> String {
         // Return the greeting string that the test expects.
         ()
     }
@@ -94,7 +94,7 @@ impl Contract {
 class Contract {
   @view({})
   hello_world() {
-    // TODO: Return the string "Hello, NEAR!"
+    // TODO: Return the string "Greetings, Adventurer!"
     return "";
   }
 }
@@ -113,8 +113,8 @@ impl Contract {
         Self {}
     }
 
-    pub fn hello_world(&self) -> String {
-        "Hello, NEAR!".to_string()
+    pub fn greet(&self) -> String {
+        "Greetings, Adventurer!".to_string()
     }
 }`,
     JavaScript: `import { NearBindgen, view } from "near-sdk-js";
@@ -123,7 +123,7 @@ impl Contract {
 class Contract {
   @view({})
   hello_world() {
-    return "Hello, NEAR!";
+    return "Greetings, Adventurer!";
   }
 }
 
@@ -131,219 +131,63 @@ class Contract {
   },
   'contract-structure': {
     RustExercise: `use near_sdk::near;
-use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId};
+use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::require;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
+    greeting: String,
 }
 
 #[near]
 impl Contract {
     #[init]
-    pub fn new() -> Self {
+    pub fn new(initial_greeting: Option<String>) -> Self {
+        // TODO: Set owner_id to the deployer (predecessor_account_id)
+        // TODO: Set greeting from initial_greeting or default
         Self {
-            // Set owner_id to the current account (the deployer).
-            owner_id: env::current_account_id(),
+            owner_id: env::predecessor_account_id(),
+            greeting: "Hello from NEAR!".to_string(),
         }
     }
 
+    @view({})
     pub fn get_owner(&self) -> AccountId {
-        // Return the stored owner_id.
-        ()
-    }
-}`,
-    JavaScriptExercise: `import { NearBindgen, view, near } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ owner_id } = { owner_id: near.currentAccountId() }) {
-    // TODO: Store owner_id (use near.currentAccountId() if not provided)
-    this.owner_id = owner_id ?? near.currentAccountId();
-  }
-
-  @view({})
-  get_owner() {
-    return this.owner_id;
-  }
-}
-`,
-    Rust: `use near_sdk::near;
-use near_sdk::PanicOnDefault;
-use near_sdk::{env, AccountId};
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    owner_id: AccountId,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-        }
-    }
-
-    pub fn get_owner(&self) -> AccountId {
+        // TODO: Return the stored owner_id
         self.owner_id.clone()
     }
-}`,
-    JavaScript: `import { NearBindgen, view, near } from "near-sdk-js";
 
-@NearBindgen({})
-class Contract {
-  constructor({ owner_id } = { owner_id: near.currentAccountId() }) {
-    this.owner_id = owner_id;
-  }
-
-  @view({})
-  get_owner() {
-    return this.owner_id;
-  }
-}
-
-`,
-  },
-  'view-methods': {
-    RustExercise: `use near_sdk::near;
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    greeting: String,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            greeting: "hello".to_string(),
-        }
-    }
-
+    @view({})
     pub fn get_greeting(&self) -> String {
         self.greeting.clone()
     }
 
-    pub fn get_greeting_length(&self) -> u64 {
-        // Return the length of the greeting string.
-        ()
-    }
-}`,
-    JavaScriptExercise: `import { NearBindgen, view } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ greeting } = { greeting: "hello" }) {
-    this.greeting = greeting;
-  }
-
-  @view({})
-  get_greeting() {
-    return this.greeting;
-  }
-
-  @view({})
-  get_greeting_length() {
-    // TODO: Return this.greeting.length
-    return 0;
-  }
-}
-`,
-    Rust: `use near_sdk::near;
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    greeting: String,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            greeting: "hello".to_string(),
-        }
-    }
-
-    pub fn get_greeting(&self) -> String {
-        self.greeting.clone()
-    }
-
-    pub fn get_greeting_length(&self) -> u64 {
-        self.greeting.len() as u64
-    }
-}`,
-    JavaScript: `import { NearBindgen, view } from "near-sdk-js";
-
-@NearBindgen({})
-class Contract {
-  constructor({ greeting } = { greeting: "hello" }) {
-    this.greeting = greeting;
-  }
-
-  @view({})
-  get_greeting() {
-    return this.greeting;
-  }
-
-  @view({})
-  get_greeting_length() {
-    return this.greeting.length;
-  }
-}
-
-`,
-  },
-  'change-methods': {
-    RustExercise: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
-pub struct Contract {
-    greeting: String,
-}
-
-#[near]
-impl Contract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            greeting: "hello".to_string(),
-        }
-    }
-
-    pub fn get_greeting(&self) -> String {
-        self.greeting.clone()
-    }
-
-    pub fn set_greeting(&mut self, greeting: String) {
-        // Update the contract's greeting with the given value.
-        let _: u64 = ();
-    }
-
-    pub fn add_to_greeting(&mut self, suffix: String) {
-        // Append the suffix to the current greeting.
-        let _: u64 = ();
+    @call({})
+    pub fn set_greeting(&mut self, new_greeting: String) {
+        // TODO: Add access control - only owner can call this
+        // Hint: require!(env::predecessor_account_id() == self.owner_id, "...")
+        
+        // TODO: Add validation - greeting cannot be empty
+        // Hint: require!(!new_greeting.is_empty(), "...")
+        
+        self.greeting = new_greeting;
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ greeting } = { greeting: "hello" }) {
+  constructor({ owner_id, greeting } = { owner_id: near.predecessorAccountId(), greeting: "Hello from NEAR!" }) {
+    // TODO: Store owner_id and greeting
+    this.owner_id = owner_id;
     this.greeting = greeting;
+  }
+
+  @view({})
+  get_owner() {
+    return this.owner_id;
   }
 
   @view({})
@@ -352,25 +196,93 @@ class Contract {
   }
 
   @call({})
-  set_greeting({ greeting }) {
-    // TODO: Update this.greeting
-    near.log(\`Setting greeting to \${greeting}\`);
+  set_greeting({ new_greeting }) {
+    // TODO: Add access control - only owner can call this
+    // Hint: require(near.predecessorAccountId() === this.owner_id, "...")
+    
+    this.greeting = new_greeting;
   }
-
-  @call({})
-  add_to_greeting({ suffix }) {
-    // TODO: Append suffix to this.greeting
-  }
-}
-`,
+}`,
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::PanicOnDefault;
+use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::require;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
+    owner_id: AccountId,
     greeting: String,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new(initial_greeting: Option<String>) -> Self {
+        let owner = env::predecessor_account_id();
+        let greeting = initial_greeting.unwrap_or_else(|| "Hello from NEAR!".to_string());
+
+        Self {
+            owner_id: owner,
+            greeting,
+        }
+    }
+
+    pub fn get_owner(&self) -> AccountId {
+        self.owner_id.clone()
+    }
+
+    pub fn get_greeting(&self) -> String {
+        self.greeting.clone()
+    }
+
+    pub fn set_greeting(&mut self, new_greeting: String) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only the owner can change the greeting"
+        );
+
+        require!(!new_greeting.is_empty(), "Greeting cannot be empty");
+
+        self.greeting = new_greeting;
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, greeting } = { owner_id: near.predecessorAccountId(), greeting: "Hello from NEAR!" }) {
+    this.owner_id = owner_id;
+    this.greeting = greeting;
+  }
+
+  @view({})
+  get_owner() {
+    return this.owner_id;
+  }
+
+  @view({})
+  get_greeting() {
+    return this.greeting;
+  }
+
+  @call({})
+  set_greeting({ new_greeting }) {
+    require(near.predecessorAccountId() === this.owner_id, "Only the owner can change the greeting");
+    require(new_greeting.length > 0, "Greeting cannot be empty");
+    this.greeting = new_greeting;
+  }
+}`,
+  },
+  'view-methods': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::collections::LookupMap;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    default_greeting: String,
+    user_greetings: LookupMap<AccountId, String>,
 }
 
 #[near]
@@ -378,48 +290,407 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            greeting: "hello".to_string(),
+            default_greeting: "Hello, NEAR explorer!".to_string(),
+            user_greetings: LookupMap::new(b"g"),
         }
     }
 
-    pub fn get_greeting(&self) -> String {
-        self.greeting.clone()
+    // TODO: Return greeting for caller (or default)
+    pub fn get_my_greeting(&self) -> String {
+        let caller = env::predecessor_account_id();
+        // Hint: user_greetings.get(&caller).unwrap_or_else(|| default_greeting.clone())
+        self.default_greeting.clone()
     }
 
-    pub fn set_greeting(&mut self, greeting: String) {
-        self.greeting = greeting;
+    // TODO: Return length of default greeting
+    pub fn get_default_greeting_length(&self) -> u64 {
+        0 // TODO: implement
     }
 
-    pub fn add_to_greeting(&mut self, suffix: String) {
-        self.greeting.push_str(&suffix);
+    // TODO: Check if user has custom greeting
+    pub fn has_custom_greeting(&self, account: AccountId) -> bool {
+        false // TODO: implement
     }
 }`,
-    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+    JavaScriptExercise: `import { NearBindgen, view, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ greeting } = { greeting: "hello" }) {
-    this.greeting = greeting;
+  constructor({ default_greeting, user_greetings } = { 
+    default_greeting: "Hello, NEAR explorer!",
+    user_greetings: {} 
+  }) {
+    this.default_greeting = default_greeting;
+    this.user_greetings = user_greetings;
   }
 
   @view({})
-  get_greeting() {
-    return this.greeting;
+  get_my_greeting() {
+    // TODO: Return user_greetings[caller] or default_greeting
+    return this.default_greeting;
   }
 
-  @call({})
-  set_greeting({ greeting }) {
-    near.log(\`Setting greeting to \${greeting}\`);
-    this.greeting = greeting;
+  @view({})
+  get_default_greeting_length() {
+    // TODO: Return this.default_greeting.length
+    return 0;
   }
 
-  @call({})
-  add_to_greeting({ suffix }) {
-    this.greeting = this.greeting + suffix;
+  @view({})
+  has_custom_greeting({ account }) {
+    // TODO: Return whether account exists in user_greetings
+    return false;
   }
+}`,
+    Rust: `use near_sdk::near;
+use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::collections::LookupMap;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    default_greeting: String,
+    user_greetings: LookupMap<AccountId, String>,
 }
 
-`,
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            default_greeting: "Hello, NEAR explorer!".to_string(),
+            user_greetings: LookupMap::new(b"g"),
+        }
+    }
+
+    pub fn get_my_greeting(&self) -> String {
+        let caller = env::predecessor_account_id();
+        self.user_greetings
+            .get(&caller)
+            .unwrap_or_else(|| self.default_greeting.clone())
+    }
+
+    pub fn get_default_greeting_length(&self) -> u64 {
+        self.default_greeting.len() as u64
+    }
+
+    pub fn has_custom_greeting(&self, account: AccountId) -> bool {
+        self.user_greetings.contains_key(&account)
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ default_greeting, user_greetings } = { 
+    default_greeting: "Hello, NEAR explorer!",
+    user_greetings: {} 
+  }) {
+    this.default_greeting = default_greeting;
+    this.user_greetings = user_greetings;
+  }
+
+  @view({})
+  get_my_greeting() {
+    const caller = near.predecessorAccountId();
+    return this.user_greetings[caller] || this.default_greeting;
+  }
+
+  @view({})
+  get_default_greeting_length() {
+    return this.default_greeting.length;
+  }
+
+  @view({})
+  has_custom_greeting({ account }) {
+    return account in this.user_greetings;
+  }
+}`,
+  },
+  'change-methods': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::{env, require, AccountId, PanicOnDefault};
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    message: String,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new(initial_message: Option<String>) -> Self {
+        let owner = env::predecessor_account_id();
+        let message = initial_message.unwrap_or_else(|| "Welcome, traveler!".to_string());
+
+        Self {
+            owner_id: owner,
+            message,
+        }
+    }
+
+    // View methods (free)
+    pub fn get_message(&self) -> String {
+        self.message.clone()
+    }
+
+    pub fn get_owner(&self) -> AccountId {
+        self.owner_id.clone()
+    }
+
+    // Change methods — add require! for owner-only access
+
+    // TODO: set_message — require owner, validate not empty, update message
+    pub fn set_message(&mut self, new_message: String) {
+        // Hint: require!(env::predecessor_account_id() == self.owner_id, "...")
+        // Hint: require!(!new_message.is_empty(), "...")
+    }
+
+    // TODO: append_to_message — require owner, validate not empty, push_str
+    pub fn append_to_message(&mut self, addition: String) {
+    }
+
+    // TODO: reset_message — require owner, set back to default
+    pub fn reset_message(&mut self) {
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, message } = { 
+    owner_id: near.predecessorAccountId(),
+    message: "Welcome, traveler!"
+  }) {
+    this.owner_id = owner_id;
+    this.message = message;
+  }
+
+  @view({})
+  get_message() {
+    return this.message;
+  }
+
+  @view({})
+  get_owner() {
+    return this.owner_id;
+  }
+
+  @call({})
+  set_message({ new_message }) {
+    // TODO: require(near.predecessorAccountId() === this.owner_id, "...")
+    // TODO: require(new_message.length > 0, "...")
+    this.message = new_message;
+  }
+
+  @call({})
+  append_to_message({ addition }) {
+    // TODO: require + this.message += addition
+  }
+
+  @call({})
+  reset_message() {
+    // TODO: require + this.message = "Welcome, traveler!"
+  }
+}`,
+    Rust: `use near_sdk::near;
+use near_sdk::{env, require, AccountId, PanicOnDefault};
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    message: String,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new(initial_message: Option<String>) -> Self {
+        let owner = env::predecessor_account_id();
+        let message = initial_message.unwrap_or_else(|| "Welcome, traveler!".to_string());
+
+        Self {
+            owner_id: owner,
+            message,
+        }
+    }
+
+    pub fn get_message(&self) -> String {
+        self.message.clone()
+    }
+
+    pub fn get_owner(&self) -> AccountId {
+        self.owner_id.clone()
+    }
+
+    pub fn get_message_length(&self) -> u64 {
+        self.message.len() as u64
+    }
+
+    pub fn set_message(&mut self, new_message: String) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only the owner can change the message"
+        );
+        require!(!new_message.is_empty(), "Message cannot be empty");
+        self.message = new_message;
+    }
+
+    pub fn append_to_message(&mut self, addition: String) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only the owner can modify the message"
+        );
+        require!(!addition.is_empty(), "Addition cannot be empty");
+        self.message.push_str(&addition);
+    }
+
+    pub fn reset_message(&mut self) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only the owner can reset the message"
+        );
+        self.message = "Welcome, traveler!".to_string();
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, message } = { 
+    owner_id: near.predecessorAccountId(),
+    message: "Welcome, traveler!"
+  }) {
+    this.owner_id = owner_id;
+    this.message = message;
+  }
+
+  @view({})
+  get_message() {
+    return this.message;
+  }
+
+  @view({})
+  get_owner() {
+    return this.owner_id;
+  }
+
+  @view({})
+  get_message_length() {
+    return this.message.length;
+  }
+
+  @call({})
+  set_message({ new_message }) {
+    require(near.predecessorAccountId() === this.owner_id, "Only the owner can change the message");
+    require(new_message.length > 0, "Message cannot be empty");
+    this.message = new_message;
+  }
+
+  @call({})
+  append_to_message({ addition }) {
+    require(near.predecessorAccountId() === this.owner_id, "Only the owner can modify the message");
+    require(addition.length > 0, "Addition cannot be empty");
+    this.message += addition;
+  }
+
+  @call({})
+  reset_message() {
+    require(near.predecessorAccountId() === this.owner_id, "Only the owner can reset the message");
+    this.message = "Welcome, traveler!";
+  }
+}`,
+  },
+  'state-management': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    counter: u64,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { counter: 0 }
+    }
+
+    pub fn increment(&mut self) {
+        // TODO: Add 1 to counter
+    }
+
+    pub fn get_counter(&self) -> u64 {
+        // TODO: Return counter
+        0
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ counter } = { counter: 0 }) {
+    this.counter = counter ?? 0;
+  }
+
+  @call({})
+  increment() {
+    // TODO: Add 1 to this.counter
+  }
+
+  @view({})
+  get_counter() {
+    // TODO: Return this.counter
+    return 0;
+  }
+}`,
+    Rust: `use near_sdk::near;
+use near_sdk::PanicOnDefault;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    counter: u64,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { counter: 0 }
+    }
+
+    pub fn increment(&mut self) {
+        self.counter += 1;
+    }
+
+    pub fn get_counter(&self) -> u64 {
+        self.counter
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ counter } = { counter: 0 }) {
+    this.counter = counter ?? 0;
+  }
+
+  @call({})
+  increment() {
+    this.counter += 1;
+  }
+
+  @view({})
+  get_counter() {
+    return this.counter;
+  }
+}`,
   },
   'state-management': {
     RustExercise: `use near_sdk::near;
@@ -799,14 +1070,18 @@ class Contract {
   },
   events: {
     RustExercise: `use near_sdk::near;
-use near_sdk::env;
 use near_sdk::PanicOnDefault;
+use near_sdk::AccountId;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     message: String,
 }
+
+// TODO: Define events using #[near(event_json(...))] macro
+// Hint: Use standard = "learn-near-message", version = "1.0.0"
+// Hint: Define MessageUpdated event with old_message, new_message, updated_by fields
 
 #[near]
 impl Contract {
@@ -821,9 +1096,11 @@ impl Contract {
         self.message.clone()
     }
 
-    pub fn set_message(&mut self, message: String) {
-        // Emit a NEP-297 EVENT_JSON (standard, version, event, data), then store the message.
-        let _: u64 = ();
+    pub fn set_message(&mut self, new_message: String) {
+        // TODO: Emit the MessageUpdated event before updating
+        // Hint: Use self.emit(Event::MessageUpdated { ... })
+        
+        self.message = new_message;
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, call, near } from "near-sdk-js";
@@ -839,10 +1116,10 @@ class Contract {
     // TODO: Emit an event using the #[near(event_json(...))] macro
     this.message = message;
   }
-}
-`,
+}`,
     Rust: `use near_sdk::near;
 use near_sdk::PanicOnDefault;
+use near_sdk::AccountId;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -850,11 +1127,28 @@ pub struct Contract {
     message: String,
 }
 
-// Define events using the high-level #[near(event_json(...))] macro
-// This automatically formats events according to NEP-297 standard
-#[near(event_json(standard = "example", version = "1.0.0"))]
-enum Event {
-    MessageUpdated { new_message: String },
+// 100/100 NEP-297 Events – modern best practice
+#[near(event_json(standard = "learn-near-message"))]
+pub enum Event {
+    #[event_version("1.0.0")]
+    MessageUpdated {
+        old_message: String,
+        new_message: String,
+        updated_by: AccountId,
+    },
+
+    #[event_version("1.0.0")]
+    MessageDeleted {
+        deleted_message: String,
+        deleted_by: AccountId,
+    },
+
+    #[event_version("1.1.0")]
+    MessageReported {
+        reported_message: String,
+        reason: String,
+        reported_by: AccountId,
+    },
 }
 
 #[near]
@@ -870,12 +1164,30 @@ impl Contract {
         self.message.clone()
     }
 
-    pub fn set_message(&mut self, message: String) {
-        // Emit the event - the macro handles all the JSON formatting!
-        self.emit(Event::MessageUpdated {
-            new_message: message.clone(),
-        });
-        self.message = message;
+    pub fn set_message(&mut self, new_message: String) {
+        let old_message = self.message.clone();
+
+        // Emit clean NEP-297 event (macro handles everything!)
+        Event::MessageUpdated {
+            old_message,
+            new_message: new_message.clone(),
+            updated_by: near_sdk::env::predecessor_account_id(),
+        }
+        .emit();
+
+        self.message = new_message;
+    }
+
+    pub fn delete_message(&mut self) {
+        let deleted_message = self.message.clone();
+
+        Event::MessageDeleted {
+            deleted_message,
+            deleted_by: near_sdk::env::predecessor_account_id(),
+        }
+        .emit();
+
+        self.message = String::new();
     }
 }`,
     JavaScript: `import { NearBindgen, call, near } from "near-sdk-js";
@@ -889,10 +1201,14 @@ class Contract {
   @call({})
   set_message({ message }) {
     const event = {
-      standard: "example",
+      standard: "learn-near-message",
       version: "1.0.0",
       event: "MessageUpdated",
-      data: { new_message: message },
+      data: { 
+        old_message: this.message,
+        new_message: message,
+        updated_by: near.sender,
+      },
     };
     near.log("EVENT_JSON:" + JSON.stringify(event));
     this.message = message;

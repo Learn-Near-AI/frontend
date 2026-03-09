@@ -13,7 +13,7 @@ import { COMING_SOON_TEMPLATE } from '../constants.jsx';
 export const WORKING_EXAMPLES = [
   // Basics (9)
   'intro',
-  'hello-world',
+  'greeting',
   'contract-structure',
   'view-methods',
   'change-methods',

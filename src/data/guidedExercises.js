@@ -3,7 +3,7 @@
 
 export const BASIC_GUIDED_EXAMPLES = [
   // Basics
-  'hello-world',
+  'greeting',
   'contract-structure',
   'view-methods',
   'change-methods',
@@ -35,33 +35,38 @@ export const BASIC_GUIDED_EXAMPLES = [
   'nft-marketplace',
 ];
 
-export const isGuidedExample = (exampleId) =>
-  BASIC_GUIDED_EXAMPLES.includes(exampleId);
+export const isGuidedExample = (exampleId) => BASIC_GUIDED_EXAMPLES.includes(exampleId);
 
 // "Put it to the test" section content (markdown) for ExplanationTab
 export const putItToTheTest = {
-  'hello-world': `### Put it to the test
+  greeting: `### Put it to the test
 
-- Complete the **\`hello_world\`** method so it returns the string **"Hello, NEAR!"**.
+- Complete the **\`greet\`** method so it returns the string **"Greetings, Adventurer!"**.
 - Run the contract; it should compile and the view method should return that greeting.`,
 
   'contract-structure': `### Put it to the test
 
-- Add the **\`owner_id\`** state field (type \`AccountId\`) to the contract struct.
-- In **\`new\`**, set \`owner_id\` to **\`env::current_account_id()\`**.
-- Implement **\`get_owner\`** to return the stored \`owner_id\`.
-- Run to verify it compiles and returns the current account.`,
+- Add **\`owner_id: AccountId\`** and **\`greeting: String\`** to the contract struct.
+- In **\`new\`**, set **\`owner_id\`** to **\`env::predecessor_account_id()\`** (the deployer).
+- Implement **\`get_owner\`** and **\`get_greeting\`** as view methods.
+- Implement **\`set_greeting\`** with:
+  - Access control: require predecessor == owner_id
+  - Validation: require greeting is not empty
+- Run to verify: anyone can read, only owner can write!`,
 
   'view-methods': `### Put it to the test
 
-- Add a **\`get_greeting_length\`** view method that returns the length of \`greeting\` (e.g. \`u64\` in Rust, \`number\` in JS).
-- Keep **\`get_greeting\`** returning the string. Run and call both; both should succeed.`,
+- Implement **\`get_my_greeting\`**: Use \`env::predecessor_account_id()\` to get caller, then lookup in user_greetings (or return default).
+- Implement **\`get_default_greeting_length\`**: Return \`default_greeting.len() as u64\`.
+- Implement **\`has_custom_greeting(account)\`**: Use \`user_greetings.contains_key(&account)\`.
+- All are FREE view methods — run and call them without a wallet!`,
 
   'change-methods': `### Put it to the test
 
-- Implement **\`set_greeting\`** so it updates the contract's \`greeting\` state with the given string.
-- Implement **\`add_to_greeting\`** so it appends the given suffix to the current \`greeting\`.
-- Run to compile; deploy to test state changes.`,
+- Implement **\`set_message\`**: Add require! for owner (predecessor == owner_id), validate not empty, update message.
+- Implement **\`append_to_message\`**: Add require! for owner, validate not empty, use push_str.
+- Implement **\`reset_message\`**: Add require! for owner, set back to "Welcome, traveler!".
+- Run to compile; test that owner can change, non-owner cannot!`,
 
   'state-management': `### Put it to the test
 
@@ -81,10 +86,12 @@ export const putItToTheTest = {
 - Implement **\`safe_divide(a, b)\`** to return \`Option\`: result if \`b != 0\`, else \`None\`.
 - Run (and run tests in Rust) so the contract compiles and tests pass.`,
 
-  'events': `### Put it to the test
+  events: `### Put it to the test
 
-- In **\`set_message\`**, after updating state, emit an **NEP-297** event: log a string starting with **\`EVENT_JSON:\`** followed by JSON with \`standard\`, \`version\`, \`event\`, and \`data\` (e.g. \`MessageUpdated\` with \`new_message\`).
-- Run to compile; calling set_message should update state and emit the event.`,
+- Define a **\`#[near(event_json(standard = "learn-near-message"))]\`** enum with **\`MessageUpdated\`** variant containing \`old_message\`, \`new_message\`, and \`updated_by\`.
+- In **\`set_message\`**, emit the event using **\`self.emit()\`** BEFORE updating state.
+- Add the **\`updated_by: AccountId\`** field using **\`near_sdk::env::predecessor_account_id()\`**.
+- Run to compile; calling set_message should emit the NEP-297 event.`,
 
   'collections-vector': `### Put it to the test
 
@@ -190,39 +197,49 @@ export const putItToTheTest = {
 
 // Hints per example (by language). Shown in order; "Show solution" reveals full code.
 export const exerciseHints = {
-  'hello-world': {
+  greeting: {
     Rust: [
       'The method should return a String. In Rust use `.to_string()` on a string literal.',
-      'The exact string to return is "Hello, NEAR!" (with the comma and exclamation mark).',
+      'The exact string to return is "Greetings, Adventurer!" (with the comma and exclamation mark).',
     ],
     JavaScript: [
       'Use a view method (no state change). Return a string from the method.',
-      'The exact string to return is "Hello, NEAR!"',
+      'The exact string to return is "Greetings, Adventurer!"',
     ],
   },
   'contract-structure': {
     Rust: [
-      'Add `owner_id: AccountId` to the struct. Derive or use #[near(contract_state)] so it is serialized.',
-      'In `new()`, set `owner_id: env::current_account_id()`. Implement `get_owner` to return `self.owner_id.clone()`.',
+      'Add owner_id and greeting to the struct. Use #[near(contract_state)] for serialization.',
+      'In new(), use env::predecessor_account_id() for owner, initial_greeting.unwrap_or_else for greeting.',
+      'In set_greeting, use require!(env::predecessor_account_id() == self.owner_id, "...") for access control.',
     ],
     JavaScript: [
-      'Store owner_id in the constructor using near.currentAccountId(). Add a @view get_owner that returns it.',
+      'Store owner_id using near.predecessorAccountId() and greeting in constructor.',
+      'In set_greeting, use require(near.predecessorAccountId() === this.owner_id, "...").',
     ],
   },
   'view-methods': {
     Rust: [
-      'Add a method that returns u64. Use `self.greeting.len() as u64`.',
+      'get_my_greeting: Use env::predecessor_account_id() to get caller, then user_greetings.get(&caller).unwrap_or_else(|| default_greeting.clone()).',
+      'get_default_greeting_length: Return self.default_greeting.len() as u64.',
+      'has_custom_greeting: Use user_greetings.contains_key(&account).',
     ],
     JavaScript: [
-      'Add a @view method that returns this.greeting.length.',
+      'get_my_greeting: Use near.predecessorAccountId() to get caller, return this.user_greetings[caller] || this.default_greeting.',
+      'get_default_greeting_length: Return this.default_greeting.length.',
+      'has_custom_greeting: Return account in this.user_greetings.',
     ],
   },
   'change-methods': {
     Rust: [
-      'set_greeting: take a String, assign to self.greeting. add_to_greeting: use greeting.push_str(&suffix).',
+      'set_message: require!(env::predecessor_account_id() == self.owner_id, "..."), require!(!new_message.is_empty(), "..."), then assign.',
+      'append_to_message: require! for owner, require! for not empty, then self.message.push_str(&addition).',
+      'reset_message: require! for owner, then self.message = "Welcome, traveler!".to_string().',
     ],
     JavaScript: [
-      'Use @call for methods that change state. set_greeting: this.greeting = greeting. add_to_greeting: this.greeting += suffix.',
+      'set_message: require(near.predecessorAccountId() === this.owner_id, "..."), require(new_message.length > 0, "..."), then this.message = new_message.',
+      'append_to_message: require + this.message += addition.',
+      'reset_message: require + this.message = "Welcome, traveler!".',
     ],
   },
   'state-management': {
@@ -234,9 +251,7 @@ export const exerciseHints = {
     ],
   },
   'input-validation': {
-    Rust: [
-      'Use require!(condition, "message"). Check message.len() > 0 and message.len() <= 100.',
-    ],
+    Rust: ['Use require!(condition, "message"). Check message.len() > 0 and message.len() <= 100.'],
     JavaScript: [
       'Use near.panic("message") when invalid. Check message.length === 0 and message.length > 100.',
     ],
@@ -249,12 +264,14 @@ export const exerciseHints = {
       'Return null for invalid parse or division by zero. Use parseInt and isNaN, or check b === 0.',
     ],
   },
-  'events': {
+  events: {
     Rust: [
-      'Use env::log_str with a string that starts with "EVENT_JSON:" then JSON. format! and r#"..."# for the JSON.',
+      'Define #[near(event_json(standard = "learn-near-message"))] enum Event with #[event_version("1.0.0")] MessageUpdated { old_message, new_message, updated_by }.',
+      'Use Event::MessageUpdated { old_message: ..., new_message: ..., updated_by: near_sdk::env::predecessor_account_id() }.emit() in set_message.',
+      'Remember to import near_sdk::env if using predecessor_account_id().',
     ],
     JavaScript: [
-      'Use near.log("EVENT_JSON:" + JSON.stringify({ standard, version, event, data })).',
+      'Use near.log("EVENT_JSON:" + JSON.stringify({ standard: "learn-near-message", version: "1.0.0", event: "MessageUpdated", data: { ... } })).',
     ],
   },
   'collections-vector': {
@@ -275,73 +292,141 @@ export const exerciseHints = {
   },
   // Access Control & Security
   'owner-pattern': {
-    Rust: ['assert_owner: require!(env::predecessor_account_id() == self.owner_id, "Only owner..."). set_value: call self.assert_owner() then self.value = value.'],
-    JavaScript: ['assert_owner: if (near.predecessorAccountId() !== this.owner_id) near.panic("..."). set_value: call this.assert_owner() then set this.value.'],
+    Rust: [
+      'assert_owner: require!(env::predecessor_account_id() == self.owner_id, "Only owner..."). set_value: call self.assert_owner() then self.value = value.',
+    ],
+    JavaScript: [
+      'assert_owner: if (near.predecessorAccountId() !== this.owner_id) near.panic("..."). set_value: call this.assert_owner() then set this.value.',
+    ],
   },
   'role-based-access': {
-    Rust: ['add_admin: require!(pred == owner_id || admins.contains(&pred)). admins.insert(&account). admin_only_action: require!(is_admin(env::predecessor_account_id())).'],
-    JavaScript: ['add_admin: check pred === owner_id || admins.includes(pred); then push account. admin_only_action: require is_admin(predecessor).'],
+    Rust: [
+      'add_admin: require!(pred == owner_id || admins.contains(&pred)). admins.insert(&account). admin_only_action: require!(is_admin(env::predecessor_account_id())).',
+    ],
+    JavaScript: [
+      'add_admin: check pred === owner_id || admins.includes(pred); then push account. admin_only_action: require is_admin(predecessor).',
+    ],
   },
   'pausable-contract': {
-    Rust: ['pause/unpause: require predecessor == owner_id; set self.paused = true/false. action: require!(!self.paused, "Contract is paused").'],
-    JavaScript: ['pause/unpause: check owner; set this.paused. action: if (this.paused) near.panic("Contract is paused").'],
+    Rust: [
+      'pause/unpause: require predecessor == owner_id; set self.paused = true/false. action: require!(!self.paused, "Contract is paused").',
+    ],
+    JavaScript: [
+      'pause/unpause: check owner; set this.paused. action: if (this.paused) near.panic("Contract is paused").',
+    ],
   },
   'multi-signature': {
-    Rust: ['approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: count approvals for action, return count >= required.'],
-    JavaScript: ['approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count matching approvals >= required_signatures.'],
+    Rust: [
+      'approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: count approvals for action, return count >= required.',
+    ],
+    JavaScript: [
+      'approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count matching approvals >= required_signatures.',
+    ],
   },
   'upgrade-pattern': {
-    Rust: ['new: set owner_id and version. migrate: require!(predecessor == owner_id); self.version += 1; env::log_str(...).'],
-    JavaScript: ['Store owner_id, version. migrate: if (predecessor !== owner_id) near.panic(...); this.version += 1.'],
+    Rust: [
+      'new: set owner_id and version. migrate: require!(predecessor == owner_id); self.version += 1; env::log_str(...).',
+    ],
+    JavaScript: [
+      'Store owner_id, version. migrate: if (predecessor !== owner_id) near.panic(...); this.version += 1.',
+    ],
   },
   // Collections & Data
   'todo-list': {
-    Rust: ['add_todo: require! title; create Todo { id: next_id, owner: env::predecessor_account_id() }; insert and push; next_id += 1. complete_todo: get todo, require todo.owner == predecessor, set completed = true, insert.'],
-    JavaScript: ['add_todo: push { id, title, completed, owner: predecessor }; next_id++. complete_todo: find todo, require owner, set completed = true.'],
+    Rust: [
+      'add_todo: require! title; create Todo { id: next_id, owner: env::predecessor_account_id() }; insert and push; next_id += 1. complete_todo: get todo, require todo.owner == predecessor, set completed = true, insert.',
+    ],
+    JavaScript: [
+      'add_todo: push { id, title, completed, owner: predecessor }; next_id++. complete_todo: find todo, require owner, set completed = true.',
+    ],
   },
   'user-profiles': {
-    Rust: ['set_profile: profiles.insert(&env::predecessor_account_id(), &Profile { name, bio, created_at: env::block_timestamp() }). get_profile: profiles.get(&account).'],
-    JavaScript: ['set_profile: this.profiles[predecessor] = { name, bio, created_at: near.blockTimestamp() }. get_profile: return this.profiles[account].'],
+    Rust: [
+      'set_profile: profiles.insert(&env::predecessor_account_id(), &Profile { name, bio, created_at: env::block_timestamp() }). get_profile: profiles.get(&account).',
+    ],
+    JavaScript: [
+      'set_profile: this.profiles[predecessor] = { name, bio, created_at: near.blockTimestamp() }. get_profile: return this.profiles[account].',
+    ],
   },
   'voting-system': {
-    Rust: ['vote: require!(!voters.contains(&voter)); voters.insert(&voter); if choice { votes_yes += 1 } else { votes_no += 1 }. get_results: (votes_yes, votes_no).'],
-    JavaScript: ['vote: if (voters.includes(voter)) panic; push voter; increment votes_yes or votes_no. get_results: [votes_yes, votes_no].'],
+    Rust: [
+      'vote: require!(!voters.contains(&voter)); voters.insert(&voter); if choice { votes_yes += 1 } else { votes_no += 1 }. get_results: (votes_yes, votes_no).',
+    ],
+    JavaScript: [
+      'vote: if (voters.includes(voter)) panic; push voter; increment votes_yes or votes_no. get_results: [votes_yes, votes_no].',
+    ],
   },
   'simple-marketplace': {
-    Rust: ['list_item: insert Listing { seller, nft_contract_id, token_id, price }. buy: require deposit >= price; remove listing; Promise::new(seller).transfer(price) and function_call nft_transfer_from.'],
-    JavaScript: ['list_item: this.listings[id] = { seller_id, nft_contract_id, token_id, price }. buy: check deposit; delete listing; NearPromise.functionCall nft_transfer_from, then transfer.'],
+    Rust: [
+      'list_item: insert Listing { seller, nft_contract_id, token_id, price }. buy: require deposit >= price; remove listing; Promise::new(seller).transfer(price) and function_call nft_transfer_from.',
+    ],
+    JavaScript: [
+      'list_item: this.listings[id] = { seller_id, nft_contract_id, token_id, price }. buy: check deposit; delete listing; NearPromise.functionCall nft_transfer_from, then transfer.',
+    ],
   },
   'batch-operations': {
-    Rust: ['add_many: require!(items.len() <= MAX_BATCH); for item in items { self.items.push(&item) }. get_all: self.items.iter().collect().'],
-    JavaScript: ['add_many: if (items.length > MAX_BATCH) panic; items.forEach(i => this.items.push(i)). get_all: return this.items.'],
+    Rust: [
+      'add_many: require!(items.len() <= MAX_BATCH); for item in items { self.items.push(&item) }. get_all: self.items.iter().collect().',
+    ],
+    JavaScript: [
+      'add_many: if (items.length > MAX_BATCH) panic; items.forEach(i => this.items.push(i)). get_all: return this.items.',
+    ],
   },
   // NFTs
   'nft-standard': {
-    Rust: ['nft_transfer: require!(env::attached_deposit() == 1); get token, require token.owner_id == predecessor; token.owner_id = receiver_id; insert. nft_token: tokens.get(&token_id).'],
-    JavaScript: ['nft_transfer: if (near.attachedDeposit() !== 1n) panic; get token, check owner; set token.owner_id = receiver_id. nft_token: return this.tokens[token_id].'],
+    Rust: [
+      'nft_transfer: require!(env::attached_deposit() == 1); get token, require token.owner_id == predecessor; token.owner_id = receiver_id; insert. nft_token: tokens.get(&token_id).',
+    ],
+    JavaScript: [
+      'nft_transfer: if (near.attachedDeposit() !== 1n) panic; get token, check owner; set token.owner_id = receiver_id. nft_token: return this.tokens[token_id].',
+    ],
   },
   'nft-metadata': {
-    Rust: ['set_metadata: TokenMetadata { title: Some(title), description, media, ... }; metadata.insert(&token_id, &meta). get_metadata: metadata.get(&token_id).'],
-    JavaScript: ['set_metadata: this.metadata[token_id] = { title, description, media, ... }. get_metadata: return this.metadata[token_id].'],
+    Rust: [
+      'set_metadata: TokenMetadata { title: Some(title), description, media, ... }; metadata.insert(&token_id, &meta). get_metadata: metadata.get(&token_id).',
+    ],
+    JavaScript: [
+      'set_metadata: this.metadata[token_id] = { title, description, media, ... }. get_metadata: return this.metadata[token_id].',
+    ],
   },
   'nft-minting': {
-    Rust: ['mint: require!(env::predecessor_account_id() == self.owner_id); token_id = next_id.to_string(); insert Token { token_id, owner_id: receiver_id }; next_id += 1; return token_id.'],
-    JavaScript: ['mint: if (predecessor !== this.owner_id) panic; token_id = String(next_id); this.tokens[token_id] = { token_id, owner_id: receiver_id }; next_id++; return token_id.'],
+    Rust: [
+      'mint: require!(env::predecessor_account_id() == self.owner_id); token_id = next_id.to_string(); insert Token { token_id, owner_id: receiver_id }; next_id += 1; return token_id.',
+    ],
+    JavaScript: [
+      'mint: if (predecessor !== this.owner_id) panic; token_id = String(next_id); this.tokens[token_id] = { token_id, owner_id: receiver_id }; next_id++; return token_id.',
+    ],
   },
   'nft-approval': {
-    Rust: ['approve: get token, require token.owner_id == predecessor; token.approved_account_id = Some(account_id); insert. transfer_from: require owner or approved == predecessor; update owner, clear approval.'],
-    JavaScript: ['approve: require token.owner_id === predecessor; token.approved_account_id = account_id. transfer_from: require owner or approved; update owner, clear approval.'],
+    Rust: [
+      'approve: get token, require token.owner_id == predecessor; token.approved_account_id = Some(account_id); insert. transfer_from: require owner or approved == predecessor; update owner, clear approval.',
+    ],
+    JavaScript: [
+      'approve: require token.owner_id === predecessor; token.approved_account_id = account_id. transfer_from: require owner or approved; update owner, clear approval.',
+    ],
   },
   'nft-enumeration': {
-    Rust: ['mint: owner check; insert token; token_ids.push(&token_id); next_id += 1. nft_tokens: token_ids.iter().skip(from_index).take(limit).filter_map(|id| tokens.get(id)). nft_total_supply: token_ids.len().'],
-    JavaScript: ['mint: push to token_ids. nft_tokens: token_ids.slice(from_index, from_index + limit).map(id => tokens[id]). nft_total_supply: token_ids.length.'],
+    Rust: [
+      'mint: owner check; insert token; token_ids.push(&token_id); next_id += 1. nft_tokens: token_ids.iter().skip(from_index).take(limit).filter_map(|id| tokens.get(id)). nft_total_supply: token_ids.len().',
+    ],
+    JavaScript: [
+      'mint: push to token_ids. nft_tokens: token_ids.slice(from_index, from_index + limit).map(id => tokens[id]). nft_total_supply: token_ids.length.',
+    ],
   },
   'nft-royalties': {
-    Rust: ['set_royalty: require predecessor == owner_id; require percent_basis_points <= 10000; royalties.insert(&token_id, &percent). get_royalty: royalties.get(&token_id).'],
-    JavaScript: ['set_royalty: check owner (add if missing); require percent <= 10000; this.royalties[token_id] = percent. get_royalty: return this.royalties[token_id].'],
+    Rust: [
+      'set_royalty: require predecessor == owner_id; require percent_basis_points <= 10000; royalties.insert(&token_id, &percent). get_royalty: royalties.get(&token_id).',
+    ],
+    JavaScript: [
+      'set_royalty: check owner (add if missing); require percent <= 10000; this.royalties[token_id] = percent. get_royalty: return this.royalties[token_id].',
+    ],
   },
   'nft-marketplace': {
-    Rust: ['list: insert Sale { token_id, seller_id, nft_contract_id, price }. buy: require deposit >= price; remove sale; Promise nft_transfer_from + transfer to seller; use callback to send payment after NFT transfer.'],
-    JavaScript: ['list: sales[listing_id] = { token_id, seller_id, nft_contract_id, price }. buy: require deposit; delete sale; NearPromise nft_transfer_from then on_payment_sent to transfer.'],
+    Rust: [
+      'list: insert Sale { token_id, seller_id, nft_contract_id, price }. buy: require deposit >= price; remove sale; Promise nft_transfer_from + transfer to seller; use callback to send payment after NFT transfer.',
+    ],
+    JavaScript: [
+      'list: sales[listing_id] = { token_id, seller_id, nft_contract_id, price }. buy: require deposit; delete sale; NearPromise nft_transfer_from then on_payment_sent to transfer.',
+    ],
   },
 };

@@ -40,7 +40,7 @@ export const languageIcons = {
 // Experimental: exploratory examples; may have edge cases or need verification
 export const AUDITED_EXAMPLES = [
   // Basics (10)
-  'hello-world',
+  'greeting',
   'contract-structure',
   'view-methods',
   'change-methods',

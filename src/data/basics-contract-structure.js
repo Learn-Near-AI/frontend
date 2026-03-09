@@ -9,156 +9,180 @@ In NEARbyExample, you build **smart contracts** - the brain of your app. It live
 Think of it like a vending machine: you put in money (gas), make your selection (call a method), and get what you want (result). No middleman needed.
 
 **What you'll build:**
-A simple contract that knows which account owns it. This is the foundation for access control — deciding who can do what.
-
-**Heads up:** We're setting up owner_id now, but we won't actually use it until the "Owner Pattern" lesson. We're building the foundation early!`,
+A contract with owner control AND a greeting that only the owner can change. This is the foundation for access control — deciding who can do what.`,
     },
     {
       title: "The Naive Approach (Don't Do This!)",
-      content: `What if your contract had NO state?
+      content: `What if anyone could change your greeting?
 
 \`\`\`rust
-// BAD: No state, no owner!
+// BAD: No owner, anyone can change anything!
 struct Contract {
-    // Nothing here!
+    greeting: String,
 }
 
 impl Contract {
-    // Anyone can call anything, no ownership
-    pub fn do_something() {
-        // No way to know who called this!
+    pub fn set_greeting(&mut self, new_greeting: String) {
+        // Anyone can call this!
+        // No protection whatsoever!
+        self.greeting = new_greeting;
     }
 }
 \`\`\`
 
 **The problem:**
-- No way to track ownership
-- Anyone can do anything
-- Can't protect anything
-- Not a real app!
+- Anyone can modify your contract
+- No accountability
+- Hackers can change anything
+- Not safe!
 
-Every real contract needs state - data that persists!`,
+Every real contract needs access control!`,
     },
     {
       title: 'The Contract Brain',
       content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
 
 \`\`\`rust
-use near_sdk::{env, AccountId};
+use near_sdk::{env, AccountId, PanicOnDefault};
 
 #[near(contract_state)]      // "This is the contract's memory"
 #[derive(PanicOnDefault)]    // Safety: panics if deployed without init
 pub struct Contract {
-    owner_id: AccountId,     // Which account owns this contract
+    owner_id: AccountId,     // Who controls this contract
+    greeting: String,        // A message only owner can change
 }
 \`\`\`
 
 **What's happening:**
-- \`owner_id: AccountId\` = Stores the account ID that owns this contract
-- \`#[near(contract_state)]\` = Tells NEAR to save this struct on-chain — this is the contract's persistent memory
-- \`#[derive(PanicOnDefault)]\` = Safety net! If someone tries to use the contract without calling \`new()\`, it panics. This prevents accidentally using an uninitialized contract.
+- \`owner_id: AccountId\` = The boss account
+- \`greeting: String\` = Mutable state (but protected!)
+- \`#[near(contract_state)]\` = Persists on-chain
+- \`#[derive(PanicOnDefault)]\` = Safety net!
 
 **Why this matters:**
-The contract state (memory) is what persists between calls. Every time someone interacts with your contract, NEAR loads this data, your code runs, and the updated state gets saved back.`,
+The contract state is what persists between calls. This is your contract's memory!`,
     },
     {
-      title: 'The Constructor - Initial Setup',
-      content: `When you first deploy a contract, you need to set initial values. That's what the **constructor** does:
+      title: 'The Constructor - Your First Choice',
+      content: `When you first deploy, YOU decide who owns it:
 
 \`\`\`rust
-#[near]
-impl Contract {
-    #[init]                                    // "This sets up the contract"
-    pub fn new() -> Self {
-        Self {
-            // Set owner_id to the contract's own account
-            owner_id: env::current_account_id(),
-        }
+#[init]
+pub fn new(initial_greeting: Option<String>) -> Self {
+    // Best practice: Set owner to the DEPLOYER (predecessor), not the contract itself
+    let owner = env::predecessor_account_id();
+
+    // Optional: Allow custom greeting or use default
+    let greeting = initial_greeting.unwrap_or_else(|| "Hello from NEAR!".to_string());
+
+    Self {
+        owner_id: owner,
+        greeting,
     }
 }
 \`\`\`
 
-**Key details:**
-- \`env::current_account_id()\` = The account WHERE this contract is deployed
-- \`env::predecessor_account_id()\` = The account that CALLED this method (the signer)
+**Key distinction:**
+- \`env::predecessor_account_id()\` = WHO DEPLOYED the contract (you!)
+- \`env::current_account_id()\` = WHERE the contract lives
 
-For now, we set owner to the contract account. Later you'll learn when to use predecessor instead!
-
-**What #[init] does:**
-- Marks this as the constructor — must be called ONCE when deploying
-- \`pub fn new() -> Self\` = Creates and returns the contract instance
-- \`Self { owner_id: ... }\` = Sets the initial state`,
+**Why predecessor?**
+When YOU deploy, you're the "predecessor" — so you become the owner!`,
     },
     {
-      title: 'Reading The Owner - A View Method',
-      content: `Let's add a way to check who's the owner:
+      title: 'Reading - View Methods',
+      content: `Anyone can READ the contract (free!):
 
 \`\`\`rust
-// View method - read-only, free to call
+// View: Anyone can read the owner (free)
 pub fn get_owner(&self) -> AccountId {
     self.owner_id.clone()
+}
+
+// View: Anyone can read the greeting (free)
+pub fn get_greeting(&self) -> String {
+    self.greeting.clone()
 }
 \`\`\`
 
 **Breaking it down:**
-- \`pub fn get_owner\` = The function name (what you call from outside)
-- \`&self\` = Read-only! This method can LOOK at data but can't CHANGE anything
-- \`-> AccountId\` = Returns the owner's account ID
-- \`.clone()\` = Rust being careful — gives a copy so we don't break anything
+- \`&self\` = Read-only, no changes
+- \`.clone()\` = Returns a copy
+- View methods are **free** — no gas needed!
 
-**The View Method Superpower:**
-Methods with \`&self\` are called "view methods." They're special because:
-- They're **free** — no gas fees, no wallet needed
-- They're **read-only** — can't change blockchain state
-- Anyone can call them — like peeking through a window
+This is like a shop window — anyone can look, but only the owner can change things!`,
+    },
+    {
+      title: 'Writing - Access Control',
+      content: `Now for the magic: ONLY the owner can change the greeting:
 
-Try it! Click Run to see who the owner is.`,
+\`\`\`rust
+pub fn set_greeting(&mut self, new_greeting: String) {
+    // Access control: Who called this?
+    require!(
+        env::predecessor_account_id() == self.owner_id,
+        "Only the owner can change the greeting"
+    );
+
+    // Validation: Don't allow empty
+    require!(!new_greeting.is_empty(), "Greeting cannot be empty");
+
+    self.greeting = new_greeting;
+}
+\`\`\`
+
+**The pattern:**
+1. Get caller: \`env::predecessor_account_id()\`
+2. Compare to owner: \`== self.owner_id\`
+3. If match → proceed; if not → revert!
+
+**require!** stops bad actors cold!`,
     },
     {
       title: 'The Design Insight',
-      content: `**Why owner_id matters: Access control foundation!**
+      content: `**Why this works: The predecessor check!**
 
-The owner_id is the foundation of access control:
+Every transaction on NEAR knows who called it:
 
-\`\`\`rust
-owner_id: AccountId  // Who controls this contract?
+\`\`\`
+User A → Contract → "Who called me?" → User A!
 \`\`\`
 
-Every security pattern builds on this:
-- Owner Pattern: Check if caller == owner_id
-- RBAC: Owner adds admins
-- Multi-sig: Signers vote on actions
-- Pausable: Owner can pause
+The \`env::predecessor_account_id()\` gives you:
+- Tamper-proof identity (blockchain verifies)
+- Always available
+- Cheap to check
 
 **The flow:**
-1. Deploy contract → owner_id set in constructor
-2. Someone calls a method → env::predecessor_account_id()
-3. Compare caller to owner_id → allow or reject
+1. Someone calls \`set_greeting\`
+2. Contract asks: "Who are you?" → \`predecessor_account_id()\`
+3. Compare to \`owner_id\`
+4. Match? Update! No match? Reject!
 
-Simple but powerful!`,
+This is the foundation of ALL access control on NEAR!`,
     },
     {
       title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `Contract structure has tradeoffs:
+      content: `This pattern has tradeoffs:
 
 **Having owner gives you:**
-- ✅ Access control foundation
-- ✅ Ability to protect operations
+- ✅ Access control
+- ✅ Accountability (know who did what)
 - ✅ Foundation for all security patterns
 
 **Having owner doesn't give you:**
-- ❌ Automatic protection (you must check it!)
-- ❌ Multiple administrators
-- ❌ Consensus
+- ❌ Automatic protection (you MUST check!)
+- ❌ Multiple admins
+- ❌ Consensus for team decisions
 
 **When single owner hurts you:**
-- Owner loses key? Stuck forever.
-- Owner goes rogue? Can do anything.
-- Need team decisions? Doesn't help.
+- Owner loses key? Stuck forever!
+- Owner goes rogue? Can do anything!
+- Need team input? Doesn't help!
 
-**The insight:** Setting owner_id is just the BEGINNING. You still need to actually check it in your methods (covered in Owner Pattern lesson!)
+**The insight:** Setting owner_id is just the BEGINNING. You must check it in EVERY protected method!
 
-**When NOT to use owner:** For fully decentralized apps where no single account should have special power - but that's advanced!`,
+**When NOT to use:** For DAOs or team treasuries — you'll need multi-signature!`,
     },
     {
       title: 'Learn More',

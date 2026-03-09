@@ -516,8 +516,6 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           wasmSize={wasmSize}
         />
       )}
-        wasmSize={wasmSize}
-      />
     </div>
   );
 }

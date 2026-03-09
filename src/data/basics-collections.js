@@ -226,7 +226,7 @@ Index 2 → Item C
     },
     {
       title: 'Learn More',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections)`,
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#vector)`,
     },
   ],
 };
