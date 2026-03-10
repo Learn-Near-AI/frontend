@@ -447,6 +447,7 @@ pub struct Contract {
     required_signatures: u32,
     approvals: UnorderedSet<String>,
     last_executed_action: Option<String>,
+    stored_value: Option<String>,
 }
 
 #[near]
@@ -458,6 +459,7 @@ impl Contract {
             required_signatures: 2,
             approvals: UnorderedSet::new(b"a"),
             last_executed_action: None,
+            stored_value: None,
         }
     }
 
@@ -471,18 +473,22 @@ impl Contract {
     }
 
     pub fn approve(&mut self, action: String) {
-        // Require that the caller is a signer; record an approval for this action (e.g. action:signer key).
-        let _: u64 = ();
+        // TODO: require that the caller is a signer; record an approval for this action (e.g. action:signer key).
     }
 
     pub fn can_execute(&self, action: &String) -> bool {
-        // Return true if at least required_signatures signers have approved this action.
-        ()
+        // TODO: Return true if at least required_signatures signers have approved this action.
     }
 
     pub fn execute(&mut self, action: String) {
-        // Require can_execute for this action; then clear approvals for it and set last_executed_action.
-        let _: u64 = ();
+        // TODO: require can_execute for this action
+        // TODO: clear approvals for this action
+        // TODO: parse set_value:xxx and set stored_value
+        // TODO: set last_executed_action
+    }
+
+    pub fn get_stored_value(&self) -> Option<String> {
+        // TODO: return stored_value
     }
 
     pub fn get_last_action(&self) -> Option<String> {
@@ -767,5 +773,4 @@ class Contract {
 
 `,
   },
-}
-
+};

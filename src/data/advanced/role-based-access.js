@@ -74,7 +74,7 @@ impl Contract {
 \`\`\`
 
 **Who can do what:**
-- **Owner:** everything, including adding admins
+- **owner_id:** everything, including adding admins
 - **Admins:** certain admin tasks
 - **Everyone else:** only basic features`,
   },
@@ -99,14 +99,15 @@ And how to check for admin-only actions:
 
 \`\`\`rust
 pub fn admin_only_action(&mut self) {
-    let caller = env::predecessor_account_id();
     require!(
-        caller == self.owner_id || self.admins.contains(&caller),
-        "Only admins can do this"
+        self.is_admin(env::predecessor_account_id()),
+        "Only admins can perform this action"
     );
     // ... do the action ...
 }
 \`\`\`
+
+You can also add \`remove_admin\` later using the same permission check — keeping roles manageable.
 
 **The pattern:** checking roles BEFORE doing important things!`,
   },

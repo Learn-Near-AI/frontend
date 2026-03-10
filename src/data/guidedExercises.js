@@ -284,10 +284,10 @@ export const exerciseHints = {
   },
   'collections-map': {
     Rust: [
-      'Use UnorderedMap::new(b"b"). insert(&account, &amount), get(&account), remove(&account).',
+      'Use UnorderedMap::new(b"b"). insert/get/remove. set_balance/add_balance/subtract_balance: require!(pred == owner_id). add: checked_add, subtract: checked_sub. get_balances: keys().skip().take().map().collect().',
     ],
     JavaScript: [
-      'Use an object: this.balances[account] = amount, this.balances[account], delete this.balances[account].',
+      'Use object: this.balances[account]. set/add/subtract: check near.predecessorAccountId() === this.owner_id. add/sub: overflow/underflow check. get_balances: Object.entries, slice(start, start+limit).',
     ],
   },
   // Access Control & Security
@@ -317,10 +317,10 @@ export const exerciseHints = {
   },
   'multi-signature': {
     Rust: [
-      'approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: count approvals for action, return count >= required.',
+      'approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: count approvals for action, return count >= required. execute: clear approvals, parse set_value:xxx and set stored_value, set last_executed_action.',
     ],
     JavaScript: [
-      'approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count matching approvals >= required_signatures.',
+      'approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count matching approvals >= required_signatures. execute: clear approvals, if startsWith("set_value:") set stored_value, set last_executed_action.',
     ],
   },
   'upgrade-pattern': {

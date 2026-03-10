@@ -117,9 +117,20 @@ pub fn execute(&mut self, action: String) {
         self.approvals.remove(&key);
     }
     
-    self.last_executed_action = Some(action.clone());
+    // Example real action (for demo purposes)
+    if action.starts_with("set_value:") {
+        let value = action.trim_start_matches("set_value:").to_string();
+        // In real use, replace this with actual logic (transfer, config change, etc.)
+        env::log_str(&format!("Example action executed: set_value to {}", value));
+    } else {
+        env::log_str(&format!("Executed: {}", action));
+    }
+    
+    self.last_executed_action = Some(action);
 }
-\`\`\``,
+\`\`\`
+
+**In real use:** Replace the log with actual logic (transfer, config change, etc.).`,
   },
   {
     title: 'Multi-sig vs Other Patterns',

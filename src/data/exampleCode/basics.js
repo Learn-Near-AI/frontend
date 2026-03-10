@@ -1382,15 +1382,23 @@ class Contract {
 `,
   },
   'collections-map': {
-    RustExercise: `// Use an UnorderedMap from AccountId to u64 with a unique prefix. Implement set_balance, get_balance, remove_balance.
+    RustExercise: `// Use an UnorderedMap from AccountId to u64 with a unique prefix. Implement:
+// - set_balance (owner only, with overflow check)
+// - add_balance (owner only, with checked_add)
+// - subtract_balance (owner only, with checked_sub)  
+// - get_balance (public view)
+// - get_balances (paginated, limit & start_index)
+
 use near_sdk::near;
 use near_sdk::AccountId;
 use near_sdk::collections::UnorderedMap;
 use near_sdk::PanicOnDefault;
+use near_sdk::require;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
+    owner_id: AccountId,
     balances: UnorderedMap<AccountId, u64>,
 }
 
@@ -1399,55 +1407,82 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
+            owner_id: env::current_account_id(),
             balances: UnorderedMap::new(b"b"),
         }
     }
 
     pub fn set_balance(&mut self, account: AccountId, amount: u64) {
+        // TODO: require owner only
         self.balances.insert(&account, &amount);
     }
 
-    pub fn remove_balance(&mut self, account: AccountId) {
-        self.balances.remove(&account);
+    pub fn add_balance(&mut self, account: AccountId, amount: u64) {
+        // TODO: require owner only
+        // TODO: get current, use checked_add, insert new balance
+    }
+
+    pub fn subtract_balance(&mut self, account: AccountId, amount: u64) {
+        // TODO: require owner only
+        // TODO: get current, use checked_sub, insert new balance
     }
 
     pub fn get_balance(&self, account: AccountId) -> Option<u64> {
         // Return the balance for the account, or None if not in the map.
         ()
     }
+
+    pub fn get_balances(&self, limit: Option<u64>, start_index: Option<u64>) -> Vec<(AccountId, u64)> {
+        // TODO: paginate with skip/take, return Vec of (account, balance)
+        ()
+    }
 }`,
-    JavaScriptExercise: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ balances } = { balances: {} }) {
+  constructor({ owner_id, balances } = { owner_id: "", balances: {} }) {
+    this.owner_id = owner_id || near.currentAccountId();
     this.balances = balances || {};
   }
 
   @view({})
   get_balance({ account }) {
-    return this.balances[account] ?? null;
+    // Return balance or null
+    ()
+  }
+
+  @view({})
+  get_balances({ limit, start_index }) {
+    // TODO: paginate - convert Object.entries, slice from start_index, take limit
+    ()
   }
 
   @call({})
   set_balance({ account, amount }) {
-    // TODO: this.balances[account] = amount
+    // TODO: require predecessor == this.owner_id, then set this.balances[account]
   }
 
   @call({})
-  remove_balance({ account }) {
-    delete this.balances[account];
+  add_balance({ account, amount }) {
+    // TODO: require owner, get current, add with overflow check, set
   }
-}
-`,
+
+  @call({})
+  subtract_balance({ account, amount }) {
+    // TODO: require owner, get current, subtract with underflow check, set
+  }
+}`,
     Rust: `use near_sdk::near;
 use near_sdk::AccountId;
 use near_sdk::collections::UnorderedMap;
 use near_sdk::PanicOnDefault;
+use near_sdk::{require, env};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
+    owner_id: AccountId,
     balances: UnorderedMap<AccountId, u64>,
 }
 
@@ -1456,27 +1491,62 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
+            owner_id: env::current_account_id(),
             balances: UnorderedMap::new(b"b"),
         }
     }
 
     pub fn set_balance(&mut self, account: AccountId, amount: u64) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only owner can set balances"
+        );
         self.balances.insert(&account, &amount);
     }
 
-    pub fn remove_balance(&mut self, account: AccountId) {
-        self.balances.remove(&account);
+    pub fn add_balance(&mut self, account: AccountId, amount: u64) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only owner can add balances"
+        );
+        let current = self.balances.get(&account).unwrap_or(0);
+        let new_balance = current.checked_add(amount)
+            .expect("Overflow: balance too large");
+        self.balances.insert(&account, &new_balance);
+    }
+
+    pub fn subtract_balance(&mut self, account: AccountId, amount: u64) {
+        require!(
+            env::predecessor_account_id() == self.owner_id,
+            "Only owner can subtract balances"
+        );
+        let current = self.balances.get(&account).unwrap_or(0);
+        let new_balance = current.checked_sub(amount)
+            .expect("Underflow: insufficient balance");
+        self.balances.insert(&account, &new_balance);
     }
 
     pub fn get_balance(&self, account: AccountId) -> Option<u64> {
         self.balances.get(&account)
     }
+
+    pub fn get_balances(&self, limit: Option<u64>, start_index: Option<u64>) -> Vec<(AccountId, u64)> {
+        let limit = limit.unwrap_or(50).min(100);
+        let start = start_index.unwrap_or(0);
+        
+        self.balances.keys()
+            .skip(start as usize)
+            .take(limit as usize)
+            .map(|key| (key, self.balances.get(&key).unwrap_or(0)))
+            .collect()
+    }
 }`,
-    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ balances } = { balances: {} }) {
+  constructor({ owner_id, balances } = { owner_id: "", balances: {} }) {
+    this.owner_id = owner_id || near.currentAccountId();
     this.balances = balances || {};
   }
 
@@ -1485,14 +1555,45 @@ class Contract {
     return this.balances[account] ?? null;
   }
 
+  @view({})
+  get_balances({ limit, start_index }) {
+    const entries = Object.entries(this.balances);
+    const start = start_index ?? 0;
+    const size = Math.min(limit ?? 50, 100);
+    return entries.slice(start, start + size).map(([key, val]) => [key, val]);
+  }
+
   @call({})
   set_balance({ account, amount }) {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner can set balances");
+    }
     this.balances[account] = amount;
   }
 
   @call({})
-  remove_balance({ account }) {
-    delete this.balances[account];
+  add_balance({ account, amount }) {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner can add balances");
+    }
+    const current = this.balances[account] ?? 0;
+    const newBalance = current + amount;
+    if (newBalance > Number.MAX_SAFE_INTEGER) {
+      near.panic("Overflow: balance too large");
+    }
+    this.balances[account] = newBalance;
+  }
+
+  @call({})
+  subtract_balance({ account, amount }) {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner can subtract balances");
+    }
+    const current = this.balances[account] ?? 0;
+    if (current < amount) {
+      near.panic("Underflow: insufficient balance");
+    }
+    this.balances[account] = current - amount;
   }
 }
 
