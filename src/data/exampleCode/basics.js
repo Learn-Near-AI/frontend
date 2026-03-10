@@ -786,7 +786,6 @@ class Contract {
   },
   'input-validation': {
     RustExercise: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, require};
 use near_sdk::PanicOnDefault;
 
@@ -835,7 +834,6 @@ class Contract {
 }
 `,
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, require};
 use near_sdk::PanicOnDefault;
 
@@ -1220,7 +1218,6 @@ class Contract {
   'collections-vector': {
     RustExercise: `// Use a Vector<String> with a unique storage prefix. Implement add_item, get_item, get_items.
 use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
 use near_sdk::{require, PanicOnDefault};
 
@@ -1290,7 +1287,6 @@ class Contract {
 `,
     Rust: `// Vector + storage keys: unique prefixes (b"i", b"t") namespace collections to avoid collisions
 use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::Vector;
 use near_sdk::{require, PanicOnDefault};
 

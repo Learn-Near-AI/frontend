@@ -58,6 +58,7 @@ pub struct Contract {
 
 #[near]
 impl Contract {
+    /// Initial deployment - uses default #[init]
     #[init]
     pub fn new() -> Self {
         Self {
@@ -70,7 +71,7 @@ impl Contract {
         self.version
     }
 
-    /// Migration hook: call after code upgrade. Owner-only.
+    /// Migration: call after code upgrade when struct stays the same
     pub fn migrate(&mut self) {
         require!(
             env::predecessor_account_id() == self.owner_id,
@@ -113,7 +114,36 @@ pub fn migrate(&mut self) {
     
     self.version += 1;
 }
-\`\`\``,
+\`\`\`
+
+**⚠️ Critical: When struct shape changes (#[init(ignore_state)])**
+
+If you ADD or REMOVE fields from your struct, the default init will panic! The old state can't be deserialized into the new shape.
+
+Use \`#[init(ignore_state)]\` to skip deserialization:
+
+\`\`\`rust
+#[near]
+impl Contract {
+    /// For upgrades when struct shape changes!
+    #[init(ignore_state)]
+    pub fn migrate() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            version: 2,
+            new_field: "default".to_string(),  // Set defaults for NEW fields
+        }
+    }
+}
+\`\`\`
+
+**When you NEED ignore_state:**
+- Adding new fields (struct has more fields now)
+- Removing fields (struct has fewer fields)
+- Changing field types (incompatible)
+- Reordering fields
+
+**Warning:** With \`ignore_state\`, you lose access to old state during migration! Read it BEFORE returning the new Self, or use the \`&mut self\` migrate pattern for same-shape upgrades instead.`,
   },
   {
     title: 'When To Use Upgrade Pattern',

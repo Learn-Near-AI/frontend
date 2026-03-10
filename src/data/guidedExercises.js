@@ -317,10 +317,10 @@ export const exerciseHints = {
   },
   'multi-signature': {
     Rust: [
-      'approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: count approvals for action, return count >= required. execute: clear approvals, parse set_value:xxx and set stored_value, set last_executed_action.',
+      'approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: &str param, count approvals. execute: clear approvals, log action, set last_executed_action. get_signers/get_approvals: view methods.',
     ],
     JavaScript: [
-      'approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count matching approvals >= required_signatures. execute: clear approvals, if startsWith("set_value:") set stored_value, set last_executed_action.',
+      'approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count >= required_signatures. execute: clear approvals, log, set last_executed_action. get_signers/get_approvals: return signers/filtered signers.',
     ],
   },
   'upgrade-pattern': {

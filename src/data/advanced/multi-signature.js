@@ -63,10 +63,10 @@ pub struct Contract {
 #[near]
 impl Contract {
     #[init]
-    pub fn new() -> Self {
+    pub fn new(required_signatures: u32) -> Self {
         Self {
             signers: UnorderedSet::new(b"s"),
-            required_signatures: 2,
+            required_signatures,
             approvals: UnorderedSet::new(b"a"),
             last_executed_action: None,
         }
@@ -77,12 +77,35 @@ impl Contract {
 **Design:**
 - 3 signers, require 2 = any 2 of 3 must approve
 - Approvals stored as "action:signer" to prevent duplicates
-- Keep history (last_executed_action) for transparency`,
+- Keep history (last_executed_action) for transparency
+
+> ⚠️ **Production tip:** Pass \`required_signatures\` as a constructor parameter! Hardcoding thresholds is an anti-pattern — different teams may need different consensus levels (e.g., 3-of-5 for treasuries, 2-of-3 for operations).`,
+  },
+  {
+    title: 'Bootstrapping The Multi-Sig',
+    content: `**The initial setup flow:**
+
+When you deploy a multi-sig contract, it starts empty. Here's how to set it up:
+
+1. **Deploy** the contract with \`new(required_signatures)\`
+2. **The contract account itself** is the only "authorized" caller initially (because \`signers.is_empty()\` is true)
+3. **Call add_signer** from the contract account using \`near call\` (this is a cross-contract call where predecessor = current_account_id)
+
+\`\`\`bash
+# Deploy contract first, then add signers via the contract itself
+near deploy <account-id> --wasmFile contract.wasm
+near call <account-id> new '{"required_signatures": 2}' --accountId <account-id>
+near call <account-id> add_signer '{"account": "signer1.near"}' --accountId <account-id>
+near call <account-id> add_signer '{"account": "signer2.near"}' --accountId <account-id>
+near call <account-id> add_signer '{"account": "signer3.near"}' --accountId <account-id>
+\`\`\`
+
+After signers exist, any signer can add more signers. The contract account is the "bootstrapping key" — keep it secure or transfer control after setup!`,
   },
   {
     title: 'Multi-sig Operations',
     content: `**Adding Signers:**
-Only signers (or the first deployer) can add new signers:
+Only signers (or the contract itself during bootstrap) can add new signers:
 
 \`\`\`rust
 pub fn add_signer(&mut self, account: AccountId) {
@@ -90,7 +113,7 @@ pub fn add_signer(&mut self, account: AccountId) {
     require!(
         (self.signers.is_empty() && pred == env::current_account_id()) 
         || self.signers.contains(&pred),
-        "Only deployer (when empty) or signers can add"
+        "Only contract (bootstrapping) or signers can add"
     );
     self.signers.insert(&account);
 }
@@ -106,8 +129,17 @@ pub fn approve(&mut self, action: String) {
 }
 \`\`\`
 
-**Executing:**
+**Checking & Executing:**
 \`\`\`rust
+/// Helper to check if action has enough approvals
+pub fn can_execute(&self, action: &str) -> bool {
+    let count = self.signers.iter()
+        .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
+        .count();
+    count >= self.required_signatures as usize
+}
+
+/// Execute an approved action
 pub fn execute(&mut self, action: String) {
     require!(self.can_execute(&action), "Not enough approvals");
     
@@ -117,20 +149,38 @@ pub fn execute(&mut self, action: String) {
         self.approvals.remove(&key);
     }
     
-    // Example real action (for demo purposes)
-    if action.starts_with("set_value:") {
-        let value = action.trim_start_matches("set_value:").to_string();
-        // In real use, replace this with actual logic (transfer, config change, etc.)
-        env::log_str(&format!("Example action executed: set_value to {}", value));
-    } else {
-        env::log_str(&format!("Executed: {}", action));
-    }
+    // Demo: log the action (in production: transfer, config change, etc.)
+    env::log_str(&format!("Executed: {}", action));
     
     self.last_executed_action = Some(action);
 }
 \`\`\`
 
-**In real use:** Replace the log with actual logic (transfer, config change, etc.).`,
+> ⚠️ **Production note:** Real multi-sigs use a nonce to prevent action collision. Without nonces, two different "withdraw" actions at different times could mix approvals! In production, use: \`nonce:action:signer\` format.`,
+  },
+  {
+    title: 'Inspecting State',
+    content: `**View methods to see what's happening:**
+
+\`\`\`rust
+/// Get all signers
+pub fn get_signers(&self) -> Vec<AccountId> {
+    self.signers.iter().collect()
+}
+
+/// Get approvals for a specific action
+pub fn get_approvals(&self, action: String) -> Vec<AccountId> {
+    self.signers.iter()
+        .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
+        .collect()
+}
+
+pub fn get_last_action(&self) -> Option<String> {
+    self.last_executed_action.clone()
+}
+\`\`\`
+
+These are essential for debugging — without them, the contract is a black box!`
   },
   {
     title: 'Multi-sig vs Other Patterns',

@@ -132,7 +132,6 @@ class Contract {
   },
   'role-based-access': {
     RustExercise: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -195,7 +194,6 @@ class Contract {
 }
 `,
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -435,7 +433,6 @@ class Contract {
   },
   'multi-signature': {
     RustExercise: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -453,10 +450,10 @@ pub struct Contract {
 #[near]
 impl Contract {
     #[init]
-    pub fn new() -> Self {
+    pub fn new(required_signatures: u32) -> Self {
         Self {
             signers: UnorderedSet::new(b"s"),
-            required_signatures: 2,
+            required_signatures,
             approvals: UnorderedSet::new(b"a"),
             last_executed_action: None,
             stored_value: None,
@@ -537,7 +534,6 @@ class Contract {
 }
 `,
     Rust: `use near_sdk::near;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
@@ -555,10 +551,10 @@ pub struct Contract {
 #[near]
 impl Contract {
     #[init]
-    pub fn new() -> Self {
+    pub fn new(required_signatures: u32) -> Self {
         Self {
             signers: UnorderedSet::new(b"s"),
-            required_signatures: 2,
+            required_signatures,
             approvals: UnorderedSet::new(b"a"),
             last_executed_action: None,
         }
@@ -581,7 +577,7 @@ impl Contract {
         self.approvals.insert(&key);
     }
 
-    pub fn can_execute(&self, action: &String) -> bool {
+    pub fn can_execute(&self, action: &str) -> bool {
         let count = self.signers.iter()
             .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
             .count();
@@ -594,8 +590,19 @@ impl Contract {
             let key = format!("{}:{}", action, signer);
             self.approvals.remove(&key);
         }
-        self.last_executed_action = Some(action.clone());
+        // Demo: log the action (in production: transfer, config change, etc.)
         env::log_str(&format!("Executed: {}", action));
+        self.last_executed_action = Some(action);
+    }
+
+    pub fn get_signers(&self) -> Vec<AccountId> {
+        self.signers.iter().collect()
+    }
+
+    pub fn get_approvals(&self, action: String) -> Vec<AccountId> {
+        self.signers.iter()
+            .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
+            .collect()
     }
 
     pub fn get_last_action(&self) -> Option<String> {
@@ -650,6 +657,16 @@ class Contract {
   @view({})
   get_last_action() {
     return this.last_executed_action;
+  }
+
+  @view({})
+  get_signers() {
+    return this.signers;
+  }
+
+  @view({})
+  get_approvals({ action }) {
+    return this.signers.filter((s) => this.approvals.includes(\`\${action}:\${s}\`));
   }
 }
 

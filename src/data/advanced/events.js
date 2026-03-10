@@ -126,7 +126,6 @@ impl Contract {
     "updated_by": "user.near"
   }
 }
-}
 \`\`\`
 
 Consistent format = everyone can understand!`,
