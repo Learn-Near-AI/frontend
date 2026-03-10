@@ -444,6 +444,8 @@ pub struct Contract {
     required_signatures: u32,
     approvals: UnorderedSet<String>,
     last_executed_action: Option<String>,
+    // Note: In production, add a nonce to prevent replay attacks.
+    // Without a nonce, two actions with the same string would share approvals.
     stored_value: Option<String>,
 }
 
@@ -461,6 +463,8 @@ impl Contract {
     }
 
     pub fn add_signer(&mut self, account: AccountId) {
+        // Note: First signer must be added by calling this method from the contract account itself
+        // (e.g., via a scheduled callback). After that, existing signers can add more.
         let pred = env::predecessor_account_id();
         require!(
             (self.signers.is_empty() && pred == env::current_account_id()) || self.signers.contains(&pred),
@@ -473,7 +477,7 @@ impl Contract {
         // TODO: require that the caller is a signer; record an approval for this action (e.g. action:signer key).
     }
 
-    pub fn can_execute(&self, action: &String) -> bool {
+    pub fn can_execute(&self, action: &str) -> bool {
         // TODO: Return true if at least required_signatures signers have approved this action.
     }
 
@@ -490,6 +494,16 @@ impl Contract {
 
     pub fn get_last_action(&self) -> Option<String> {
         self.last_executed_action.clone()
+    }
+
+    pub fn get_signers(&self) -> Vec<AccountId> {
+        self.signers.to_vec()
+    }
+
+    pub fn get_approvals(&self, action: String) -> Vec<AccountId> {
+        self.signers.iter()
+            .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
+            .collect()
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -511,6 +525,8 @@ class Contract {
 
   @call({})
   add_signer({ account }) {
+    // Note: First signer must be added by calling this method from the contract account itself
+    // (e.g., via a scheduled callback). After that, existing signers can add more.
     const pred = near.predecessorAccountId();
     const ok = (this.signers.length === 0 && pred === near.currentAccountId()) || this.signers.includes(pred);
     if (!ok) near.panic("Only deployer (when empty) or signers can add");
@@ -531,6 +547,16 @@ class Contract {
   get_last_action() {
     return this.last_executed_action;
   }
+
+  @view({})
+  get_signers() {
+    return this.signers;
+  }
+
+  @view({})
+  get_approvals() {
+    return this.approvals;
+  }
 }
 `,
     Rust: `use near_sdk::near;
@@ -539,6 +565,7 @@ use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
 
 /// Approvals are scoped per action: key "action:signer" means signer approved action.
+/// Note: In production, add a nonce to prevent replay attacks.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
@@ -561,6 +588,8 @@ impl Contract {
     }
 
     pub fn add_signer(&mut self, account: AccountId) {
+        // Note: First signer must be added by calling this method from the contract account itself
+        // (e.g., via a scheduled callback). After that, existing signers can add more.
         let pred = env::predecessor_account_id();
         require!(
             (self.signers.is_empty() && pred == env::current_account_id()) || self.signers.contains(&pred),
@@ -628,6 +657,8 @@ class Contract {
 
   @call({})
   add_signer({ account }) {
+    // Note: First signer must be added by calling this method from the contract account itself
+    // (e.g., via a scheduled callback). After that, existing signers can add more.
     const pred = near.predecessorAccountId();
     const ok = (this.signers.length === 0 && pred === near.currentAccountId()) || this.signers.includes(pred);
     if (!ok) near.panic("Only deployer (when empty) or signers can add");
