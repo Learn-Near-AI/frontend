@@ -237,7 +237,7 @@ Why sets?
 The pattern is simple: "Is account X in set Y?" → if yes, they have that role. That's it!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
+    title: "Don't Do This!",
     content: `What if you only have the owner pattern, but need multiple admins?
 
 \`\`\`rust

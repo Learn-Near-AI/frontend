@@ -38,7 +38,7 @@ Call increment, then call get_counter. Does it remember? You bet it does!
 State persistence is what makes smart contracts powerful. The data survives even when you're not using the app. It's like having a database that never goes down!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if state wasn't persisted?
 
 \`\`\`rust

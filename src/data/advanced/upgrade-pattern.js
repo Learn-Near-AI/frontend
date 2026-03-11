@@ -10,7 +10,7 @@ The **Upgrade Pattern** lets you update your contract while keeping its data. It
 - Adding new features to an existing game
 - Improving performance over time
 
-> ⚠️ **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever! This is the most important rule.`,
+>  **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever! This is the most important rule.`,
   },
   {
     title: 'Tradeoffs (Nothing Is Perfect!)',
@@ -57,7 +57,7 @@ pub fn migrate(&mut self) {
 }
 \`\`\`
 
-**⚠️ Critical: The panic you're about to see on mainnet**
+** Critical: The panic you're about to see on mainnet**
 
 You added \`new_field: String\` to your struct and redeployed. Now every call panics with:
 
@@ -166,7 +166,7 @@ Old WASM + Old State → Deploy New WASM → New WASM + Same State
 This is why version tracking matters - you know what state you're in!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
+    title: "Don't Do This!",
     content: `What if you can't upgrade at all?
 
 \`\`\`rust

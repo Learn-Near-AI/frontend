@@ -68,7 +68,7 @@ self.balances.contains_key(&account_id)
 self.balances.keys().collect::<Vec<_>>()
 \`\`\`
 
-> ⚠️ **Gas trap warning:** Collecting all keys can be expensive for large maps! Works fine for small lists (~100), but for bigger ones consider pagination.`,
+>  **Gas trap warning:** Collecting all keys can be expensive for large maps! Works fine for small lists (~100), but for bigger ones consider pagination.`,
   },
   {
     title: 'Overflow Protection',
@@ -232,7 +232,7 @@ Choose based on your actual use case, not on what seems cooler.
 **When NOT to use a Map:** If you need things in a specific order or are only ever processing ALL items sequentially, just use a Vector!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
+    title: "Don't Do This!",
     content: `Imagine a newbie trying to build a leaderboard WITHOUT maps:
 
 \`\`\`rust

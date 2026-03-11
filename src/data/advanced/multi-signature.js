@@ -85,7 +85,7 @@ near call <account-id> add_signer '{"account": "signer3.near"}' --accountId <acc
 
 **To add the first signer**, you call the contract with --accountId set to THE CONTRACT ACCOUNT (not your wallet). This makes the predecessor = current_account_id. After signers exist, you can call normally with your wallet.
 
-> ⚠️ **Pro tip:** Use a batch transaction to set everything up in one go, or use a deploy script that schedules the initial signer additions as callbacks!`,
+>  **Pro tip:** Use a batch transaction to set everything up in one go, or use a deploy script that schedules the initial signer additions as callbacks!`,
   },
   {
     title: "The Safe's Data",
@@ -125,7 +125,7 @@ impl Contract {
 - Approvals stored as "action:signer" to prevent duplicates
 - Keep history (last_executed_action) for transparency
 
-> ⚠️ **Production tip:** Pass \`required_signatures\` as a constructor parameter! Hardcoding thresholds is an anti-pattern — different teams may need different consensus levels (e.g., 3-of-5 for treasuries, 2-of-3 for operations).`,
+>  **Production tip:** Pass \`required_signatures\` as a constructor parameter! Hardcoding thresholds is an anti-pattern — different teams may need different consensus levels (e.g., 3-of-5 for treasuries, 2-of-3 for operations).`,
   },
   {
     title: 'Tradeoffs (Nothing Is Perfect!)',
@@ -317,7 +317,7 @@ approvals: UnorderedSet<String>,    // "action:signer" pairs
 Simple but effective consensus mechanism!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
+    title: "Don't Do This!",
     content: `What if only ONE person controls the treasury?
 
 \`\`\`rust

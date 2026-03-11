@@ -42,7 +42,7 @@ If condition is false → panic with message!
 If condition is true → continue normally`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if you accepted ANY input?
 
 \`\`\`rust

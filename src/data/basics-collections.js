@@ -45,13 +45,13 @@ pub fn remove_item(&mut self, index: u64) {
 }
 \`\`\`
 
-> **⚠️ Important Gotcha:** \`swap_remove\` does NOT preserve order! It swaps the removed item with the LAST item, then removes the last position. So [A, B, C] removing index 0 becomes [C, B], not [B, C]. If order matters to you, use a different method or accept this behavior!
+> **Key Detail :** \`swap_remove\` does NOT preserve order! It swaps the removed item with the LAST item, then removes the last position. So [A, B, C] removing index 0 becomes [C, B], not [B, C]. If order matters to you, use a different method or accept this behavior!
 
 We MUST check bounds first - what if index is too big?
 That's why we use require! to validate!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if you only had single values?
 
 \`\`\`rust
@@ -123,7 +123,7 @@ let item = self.items.get(index);  // Option<String>
 
 **Remove by position:**
 \`\`\`rust
-self.items.swap_remove(index);  // ⚠️ Swaps with last, doesn't preserve order!
+self.items.swap_remove(index);  //  Swaps with last, doesn't preserve order!
 \`\`\`
 
 **How many items?**

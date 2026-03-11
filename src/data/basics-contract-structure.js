@@ -88,7 +88,7 @@ pub fn get_greeting(&self) -> String {
 This is like a shop window — anyone can look, but only the owner can change things!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if anyone could change your greeting?
 
 \`\`\`rust

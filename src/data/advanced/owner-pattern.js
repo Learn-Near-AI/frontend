@@ -182,7 +182,7 @@ The \`env::predecessor_account_id()\` gives you exactly that - the account that 
 The owner pattern simply asks: "Is the caller the owner?" If yes, proceed. If no, revert. Simple but effective!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
+    title: "Don't Do This!",
     content: `Imagine a castle with NO guard at all:
 
 \`\`\`rust

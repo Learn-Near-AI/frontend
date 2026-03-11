@@ -1096,7 +1096,7 @@ impl Contract {
 
     pub fn set_message(&mut self, new_message: String) {
         // TODO: Emit the MessageUpdated event BEFORE updating state
-        // ⚠️ Important: Events are fire-and-forget. If you panic after emit(),
+        //  Important: Events are fire-and-forget. If you panic after emit(),
         // the event is already written to the receipt!
         // Hint: Event::MessageUpdated { old_message, new_message, updated_by }.emit()
         
@@ -1167,7 +1167,7 @@ impl Contract {
     pub fn set_message(&mut self, new_message: String) {
         let old_message = self.message.clone();
 
-        // ⚠️ CRITICAL: Emit BEFORE state change!
+        //  CRITICAL: Emit BEFORE state change!
         // Events are fire-and-forget — if you panic after emit(),
         // the event is already written to the receipt!
         Event::MessageUpdated {

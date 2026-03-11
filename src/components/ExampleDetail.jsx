@@ -434,7 +434,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       {backendCLIConfigured === false && (
         <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <span className="text-yellow-500 text-xl">⚠️</span>
+            <span className="text-yellow-500 text-xl"></span>
             <div className="flex-1">
               <h3 className="font-semibold text-yellow-300 mb-1">
                 Backend CLI Deployment Not Configured

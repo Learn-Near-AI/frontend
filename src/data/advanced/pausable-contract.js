@@ -146,7 +146,7 @@ When paused = true, the check fails and the function reverts. That's it!
 It's like a master switch. One toggle protects everything!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
+    title: "Don't Do This!",
     content: `What if there's no pause button?
 
 \`\`\`rust

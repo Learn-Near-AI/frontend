@@ -60,7 +60,7 @@ impl Contract {
 No state needed! We're just exploring different ways to handle errors.`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if you ignored errors?
 
 \`\`\`rust

@@ -56,7 +56,7 @@ impl Contract {
     pub fn set_message(&mut self, new_message: String) {
         let old_message = self.message.clone();
 
-        // ⚠️ CRITICAL: Emit BEFORE state change!
+        //  CRITICAL: Emit BEFORE state change!
         // Events are fire-and-forget — if you panic after emit(),
         // the event is already written to the receipt!
         Event::MessageUpdated {
@@ -78,7 +78,7 @@ impl Contract {
 3. Type-safe → compiler catches mistakes
 4. NEP-297 compliant → indexers love it!
 
-> ⚠️ **Fire-and-forget warning:** Events are emitted BEFORE your function completes. If your code panics at line 20, the event at line 15 is ALREADY in the receipt. Your indexer will record "MessageUpdated" but the state never changed. Always emit first, modify state second.`,
+>  **Fire-and-forget warning:** Events are emitted BEFORE your function completes. If your code panics at line 20, the event at line 15 is ALREADY in the receipt. Your indexer will record "MessageUpdated" but the state never changed. Always emit first, modify state second.`,
   },
   {
     title: 'What Happens Behind The Scenes',
@@ -158,7 +158,7 @@ This is the full loop: Contract emits → Receipt → Indexer parses → Fronten
   },
   {
     title: 'The Versioning Trap',
-    content: `⚠️ **This is the gotcha that kills production systems.**
+    content: ` **This is the gotcha that kills production systems.**
 
 Versioning exists because developers change events and break indexers silently.
 
@@ -199,7 +199,7 @@ MessageUpdated {
 }
 \`\`\`
 
-> ⚠️ **Rule:** If you change the shape of an event — rename, add, or remove fields — you MUST bump the version. Old indexers ignore unknown versions gracefully. They crash on changed field names.`,
+>  **Rule:** If you change the shape of an event — rename, add, or remove fields — you MUST bump the version. Old indexers ignore unknown versions gracefully. They crash on changed field names.`,
   },
   {
     title: 'Why MessageReported is 1.1.0',
@@ -250,7 +250,7 @@ It's like:
 
 This separation of concerns is what makes blockchain usable!
 
-> ⚠️ **Important:** Events are notifications, NOT state. If you need authoritative data, query the contract state directly. Events do NOT replace on-chain data!`,
+>  **Important:** Events are notifications, NOT state. If you need authoritative data, query the contract state directly. Events do NOT replace on-chain data!`,
   },
   {
     title: 'Events vs Polling - When To Use Which?',
@@ -311,7 +311,7 @@ So use events for real time feeds and dashboards. But always have a fallback to 
 **When NOT to use Events:** If you're building something where every detail must be verified on-chain, or you only need occasional data — just poll the contract directly!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
+    title: "Don't Do This!",
     content: `Imagine trying to build a marketplace WITHOUT events:
 
 \`\`\`rust

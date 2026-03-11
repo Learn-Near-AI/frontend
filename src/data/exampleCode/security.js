@@ -844,7 +844,7 @@ impl Contract {
 #[near]
 impl Contract {
     /// Migration when adding new fields: struct has MORE fields now
-    /// ⚠️ CRITICAL: You must read old state BEFORE returning new Self!
+    ///  CRITICAL: You must read old state BEFORE returning new Self!
     /// After you return, old state is gone.
     #[init(ignore_state)]
     pub fn migrate_add_field() -> Self {

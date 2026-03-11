@@ -74,7 +74,7 @@ impl Contract {
 This is like having a shared sign AND personal notes!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if you could only have ONE greeting for everyone?
 
 \`\`\`rust
@@ -247,7 +247,7 @@ ARE real transactions — the signer is always known!`,
 You're now a builder! Build securely!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if ANYONE could change your message?
 
 \`\`\`rust

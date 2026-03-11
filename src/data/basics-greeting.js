@@ -83,7 +83,7 @@ In the code, you know it's a view method because of \`&self\` (one ampersand). T
 Try changing what Beep says! Click the code, change "Greetings, Adventurer!" to something else, and hit Run. You've already made your first change to a blockchain app!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
+      title: "Don't Do This!",
       content: `What if your contract couldn't remember anything?
 
 \`\`\`rust

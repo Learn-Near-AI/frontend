@@ -48,7 +48,7 @@ function AITab({ code, example, activeLanguage }) {
     if (!API_KEY || !ai) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: '⚠️ AI feature is not configured. Please set VITE_GEMINI_API_KEY environment variable.'
+        content: ' AI feature is not configured. Please set VITE_GEMINI_API_KEY environment variable.'
       }])
       return
     }
