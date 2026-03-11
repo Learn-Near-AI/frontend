@@ -146,33 +146,6 @@ When paused = true, the check fails and the function reverts. That's it!
 It's like a master switch. One toggle protects everything!`,
   },
   {
-    title: "Don't Do This!",
-    content: `What if there's no pause button?
-
-\`\`\`rust
-// BAD: No emergency stop!
-struct BadContract {
-    funds: u128,
-    // No pause flag!
-}
-
-impl BadContract {
-    pub fn transfer(&mut self, to: AccountId, amount: u128) {
-        // If there's a bug, attackers keep draining funds
-        // No way to stop!
-        // Just watch your money disappear...
-    }
-}
-\`\`\`
-
-**The problem:**
-- Bug found? Too bad, keep getting exploited
-- Hacker draining funds? Can't stop them
-- Need maintenance? Can't do it safely
-
-This is why pausable contracts exist! When things go wrong, you need a way to stop the bleeding.`,
-  },
-  {
     title: 'Learn More',
     content: `[Learn more about this topic →](https://docs.rs/near-contract-tools/latest/near_contract_tools/pause/index.html)`,
   },

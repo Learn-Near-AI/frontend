@@ -38,27 +38,6 @@ Call increment, then call get_counter. Does it remember? You bet it does!
 State persistence is what makes smart contracts powerful. The data survives even when you're not using the app. It's like having a database that never goes down!`,
     },
     {
-      title: "Don't Do This!",
-      content: `What if state wasn't persisted?
-
-\`\`\`rust
-// BAD: State resets every call!
-fn increment(counter: u64) -> u64 {
-    counter + 1
-}
-// Every time you call, counter is 0!
-// Like a game that never saves!
-\`\`\`
-
-**The problem:**
-- No memory between calls
-- Can't build anything useful
-- Every call starts fresh
-- Not a real smart contract!
-
-You NEED persisted state to build real apps!`,
-    },
-    {
       title: 'The Contract Brain - Counter Edition',
       content: `Here's a contract with state:
 

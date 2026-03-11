@@ -317,34 +317,6 @@ approvals: UnorderedSet<String>,    // "action:signer" pairs
 Simple but effective consensus mechanism!`,
   },
   {
-    title: "Don't Do This!",
-    content: `What if only ONE person controls the treasury?
-
-\`\`\`rust
-// BAD: Single point of failure!
-struct BadTreasury {
-    owner: AccountId,
-    balance: u128,
-}
-
-impl BadTreasury {
-    pub fn withdraw(&mut self, to: AccountId, amount: u128) {
-        // ONE person can drain everything!
-        // No checks, no consensus!
-        // If owner goes rogue or gets hacked → game over!
-    }
-}
-\`\`\`
-
-**The problem:**
-- One compromised key → all funds lost
-- No accountability
-- No trustlessness
-- Single point of failure
-
-This is why multi-signature exists - no single person should control valuable assets!`,
-  },
-  {
     title: 'Learn More',
     content: `[Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
   },

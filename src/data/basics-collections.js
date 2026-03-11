@@ -51,29 +51,6 @@ We MUST check bounds first - what if index is too big?
 That's why we use require! to validate!`,
     },
     {
-      title: "Don't Do This!",
-      content: `What if you only had single values?
-
-\`\`\`rust
-// BAD: Can't store lists!
-struct Contract {
-    item1: String,
-    item2: String,
-    item3: String,
-    // Limited to 3 items!
-    // What about item4, item5...?
-}
-\`\`\`
-
-**The problem:**
-- Fixed size - can't grow
-- Wasteful if you only use a few
-- Clunky to manage
-- Not scalable!
-
-Vectors solve this - dynamic, unlimited lists!`,
-    },
-    {
       title: 'The Contract Setup',
       content: `Here's how you create vectors in NEAR:
 

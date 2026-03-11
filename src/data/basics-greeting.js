@@ -83,27 +83,6 @@ In the code, you know it's a view method because of \`&self\` (one ampersand). T
 Try changing what Beep says! Click the code, change "Greetings, Adventurer!" to something else, and hit Run. You've already made your first change to a blockchain app!`,
     },
     {
-      title: "Don't Do This!",
-      content: `What if your contract couldn't remember anything?
-
-\`\`\`rust
-// BAD: No contract at all!
-fn greet() -> String {
-    "Greetings, Adventurer!".to_string()
-}
-\`\`\`
-
-This is just a regular function - it lives in your code, runs when YOU run it, and disappears when done.
-
-**The problem:**
-- Lives on your computer, not blockchain
-- No one else can call it
-- No persistence - every call starts fresh
-- Not a "smart contract" at all!
-
-You NEED a contract to be a smart contract. That's what we're building!`,
-    },
-    {
       title: 'The Contract Brain',
       content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
 

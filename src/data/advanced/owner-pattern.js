@@ -182,33 +182,6 @@ The \`env::predecessor_account_id()\` gives you exactly that - the account that 
 The owner pattern simply asks: "Is the caller the owner?" If yes, proceed. If no, revert. Simple but effective!`,
   },
   {
-    title: "Don't Do This!",
-    content: `Imagine a castle with NO guard at all:
-
-\`\`\`rust
-// BAD: No access control at all!
-struct BadContract {
-    value: u64,
-    // No owner_id! Anyone can do anything!
-}
-
-impl BadContract {
-    pub fn withdraw(&mut self, amount: u64) {
-        // Anyone can call this!
-        // Anyone can drain all the funds!
-        // No checks whatsoever!
-    }
-}
-\`\`\`
-
-**The problem:**
-- One hacker finds a bug → game over!
-- No accountability → anyone can wreck things
-- No way to pause or fix when attacked
-
-This is what happens when you skip access control entirely. Every vulnerable contract looks like this!`,
-  },
-  {
     title: 'Learn More',
     content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
   },
