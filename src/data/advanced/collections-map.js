@@ -15,42 +15,6 @@ Unlike vectors (where you find things by position: 0, 1, 2...), maps let you fin
 **Super fast:** Finding a value by key takes the same time no matter how big the list is!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
-    content: `Imagine a newbie trying to build a leaderboard WITHOUT maps:
-
-\`\`\`rust
-// BAD: Using a vector for lookups!
-struct BadLeaderboard {
-    players: Vec<Player>,  // Just a list!
-}
-
-struct Player {
-    name: String,
-    score: u64,
-}
-
-impl BadLeaderboard {
-    fn find_score(&self, name: &str) -> Option<u64> {
-        // Every single time, scan the ENTIRE list!
-        for player in &self.players {
-            if player.name == name {
-                return Some(player.score);
-            }
-        }
-        None
-    }
-}
-\`\`\`
-
-**The problem:**
-- 10 players? Okay, maybe tolerable.
-- 100 players? Getting slow...
-- 1,000 players? Painful.
-- 1,000,000 players? Game over!
-
-This is O(n) - time grows with size. Maps are O(1) - instant regardless of size!`,
-  },
-  {
     title: 'The Scoreboard Structure',
     content: `Here's a map in action:
 
@@ -134,20 +98,26 @@ pub fn subtract_balance(&mut self, account: AccountId, amount: u64) {
   },
   {
     title: 'Pagination for Large Maps',
-    content: `Listing all keys crashes on big maps. Use pagination!
+    content: `Listing all keys crashes on big maps. Use pagination — but do it RIGHT.
 
-**Paginated key listing:**
+**Wrong way (O(n) — defeats the purpose):**
+\`\`\`rust
+// BAD: This collects ALL keys first, then skips!
+// Still iterates entire map every time.
+let keys: Vec<AccountId> = self.balances.keys().collect();
+keys[start..start+limit]  // Terrible!
+\`\`\`
+
+**Right way (O(k) — true pagination):**
 \`\`\`rust
 pub fn get_balances(&self, limit: Option<u64>, start_index: Option<u64>) -> Vec<(AccountId, u64)> {
     let limit = limit.unwrap_or(50).min(100);  // Cap at 100
     let start = start_index.unwrap_or(0);
     
-    let keys: Vec<AccountId> = self.balances.keys()
+    // Skip and take BEFORE collecting = O(k) not O(n)!
+    self.balances.keys()
         .skip(start as usize)
         .take(limit as usize)
-        .collect();
-    
-    keys.into_iter()
         .map(|key| {
             let value = self.balances.get(&key).unwrap_or(0);
             (key, value)
@@ -156,7 +126,9 @@ pub fn get_balances(&self, limit: Option<u64>, start_index: Option<u64>) -> Vec<
 }
 \`\`\`
 
-**The pattern:** Use \`skip\` + \`take\` to paginate. Frontend calls with increasing \`start_index\` to load more!`,
+**The key insight:** Call \`skip()\` and \`take()\` on the **iterator**, not on a collected Vec. The iterator lazily skips — it stops reading after reaching your offset. This is O(k) where k = limit, not O(n) where n = total keys!
+
+Frontend calls with increasing \`start_index\` to load more pages.`,
   },
   {
     title: 'Access Control on Maps',
@@ -201,6 +173,34 @@ pub fn set_balance(&mut self, account: AccountId, amount: u64) {
 Choose wisely!`,
   },
   {
+    title: 'Benchmark: Solana vs NEAR',
+    content: `**How Solana handles maps:**
+
+Solana uses Account Models where each "map" is a separate account with serialized key-value data:
+
+\`\`\`rust
+// Solana: Account data is raw bytes you deserialize
+struct TokenAccount {
+    pub mint: Pubkey,
+    pub owner: Pubkey,
+    pub amount: u64,
+}
+\`\`\`
+
+**Key differences:**
+- **NEAR:** UnorderedMap is built-in, automatic serialization
+- **Solana:** You define the data structure manually, manage rent
+
+**When Solana wins:**
+- Very high throughput (65k TPS theory)
+- Parallel execution if accounts don't conflict
+
+**When NEAR wins:**
+- Developer experience (maps just work!)
+- Automatic storage management
+- Lower learning curve`,
+  },
+  {
     title: 'The Design Insight',
     content: `**Why maps are so fast: Hashing!**
 
@@ -221,28 +221,51 @@ That hash becomes the STORAGE LOCATION. It's like:
   },
   {
     title: 'Tradeoffs (Nothing Is Perfect!)',
-    content: `Maps are awesome, but know the costs:
+    content: `A leaderboard gives you instant lookups. It doesn't matter how many players are in your arcade, finding a score by player name takes the same time. Adding new high scores is fast too. But here's the catch: there's no guaranteed leaderboard order, and reading through every single score to rank everyone is more expensive than just scanning a simple list.
 
-**MAP gives you:**
-- ⚡ Instant lookups (same speed no matter size)
-- Fast inserts
-- ❌ No order guarantee
-- ⚠️ More expensive to iterate everything
+A simple high score list is the opposite. It preserves the order scores were submitted, which matters for some use cases, and it's easy to iterate when you need to see everything. But looking up a specific player's score is slow, because you have to scan through the whole list to find it.
 
-**VECTOR gives you:**
-- Fast inserts
-- ✅ Order preserved
-- ✅ Easy to iterate everything
-- 🐢 Slow lookups (scan through everything)
+So when do you use which? If you're constantly looking up individual player stats by name, the leaderboard wins. If you need things in submission order or you're showing all recent scores, the simple list wins. For very small datasets with just a few scores, the simple list is easier. And if storage is super tight, the list uses less space.
 
-**When maps hurt you:**
-- Need to process everything in order? Vectors win!
-- Storage is super tight? Vectors use less.
-- Very small datasets? Vectors simpler!
+Choose based on your actual use case, not on what seems cooler.
 
-**The insight:** Maps shine when you have data to look up by key. Vectors shine when order matters or you're processing everything. Choose based on YOUR use case!
+**When NOT to use a Map:** If you need things in a specific order or are only ever processing ALL items sequentially, just use a Vector!`,
+  },
+  {
+    title: "The Naive Approach (Don't Do This!)",
+    content: `Imagine a newbie trying to build a leaderboard WITHOUT maps:
 
-**When NOT to use a Map:** If you need things in a specific order or are only ever processing ALL items sequentially - just use a Vector!`,
+\`\`\`rust
+// BAD: Using a vector for lookups!
+struct BadLeaderboard {
+    players: Vec<Player>,  // Just a list!
+}
+
+struct Player {
+    name: String,
+    score: u64,
+}
+
+impl BadLeaderboard {
+    fn find_score(&self, name: &str) -> Option<u64> {
+        // Every single time, scan the ENTIRE list!
+        for player in &self.players {
+            if player.name == name {
+                return Some(player.score);
+            }
+        }
+        None
+    }
+}
+\`\`\`
+
+**The problem:**
+- 10 players? Okay, maybe tolerable.
+- 100 players? Getting slow...
+- 1,000 players? Painful.
+- 1,000,000 players? Game over!
+
+This is O(n) - time grows with size. Maps are O(1) - instant regardless of size!`,
   },
   {
     title: 'Learn More',

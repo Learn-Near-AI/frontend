@@ -17,31 +17,29 @@ The **Pausable Pattern** adds a big red button to your contract. When paused:
 It's like an emergency stop in a factory. You hope never to use it, but you're glad it's there.`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
-    content: `What if there's no pause button?
+    title: 'War Story: Ronin Bridge — $625M Heist',
+    content: `In March 2022, the Ronin Bridge (Axie Infinity's cross-chain bridge) was hacked for $625M — one of the biggest DeFi exploits ever.
 
-\`\`\`rust
-// BAD: No emergency stop!
-struct BadContract {
-    funds: u128,
-    // No pause flag!
-}
+**What happened:**
+- Attackers compromised 5 of 9 validator keys (the root cause)
+- No pause mechanism = no way to stop the drain once discovered
+- Validators couldn't freeze the bridge even after detecting the breach
+- $625M in ETH and USDC drained in a single transaction
 
-impl BadContract {
-    pub fn transfer(&mut self, to: AccountId, amount: u128) {
-        // If there's a bug, attackers keep draining funds
-        // No way to stop!
-        // Just watch your money disappear...
-    }
-}
-\`\`\`
+**The consequence:**
+- Axie Infinity's DAO treasury lost nearly all its funds
+- Sky Mavis had to personally repay users $225M
+- The team spent months recovering, eventually raising $125M to make users whole
+- Faith in cross-chain bridges shattered
 
-**The problem:**
-- Bug found? Too bad, keep getting exploited
-- Hacker draining funds? Can't stop them
-- Need maintenance? Can't do it safely
+**The lesson:**
+- The root cause was key compromise, not missing pause — but a pause mechanism would have limited the damage window
+- Centralized bridges with few validators are honeypots
+- ALWAYS have a pause mechanism for large-value bridges
+- Multi-sig isn't enough — you need time-locks so users can exit during suspicious activity
+- The cost of NOT having a pause button is orders of magnitude higher than the inconvenience of having one
 
-This is why pausable contracts exist! When things go wrong, you need a way to stop the bleeding.`,
+This is why pausable exists — it's your emergency brake when everything goes wrong.`,
   },
   {
     title: 'The Pause Button',
@@ -95,13 +93,20 @@ pub fn unpause(&mut self) {
 \`\`\`
 
 **What should be guarded?**
-- ✅ Transfers, withdrawals
-- ✅ State changes
-- ✅ Anything valuable
+Transfers, withdrawals, state changes, and anything valuable.
 
 **What should NOT be guarded?**
-- ❌ View methods (reading is always safe)
-- ❌ Public information`,
+View methods are always safe to call since they don't modify anything, and public information doesn't need protection.`,
+  },
+  {
+    title: 'Tradeoffs (Nothing Is Perfect!)',
+    content: `An emergency stop button gives you a powerful brake. When something goes wrong, you can hit the button and stop everything instantly to buy time to fix the bug or respond to an attack. Factory workers feel safer knowing there's a way to protect themselves during a crisis.
+
+But here's the catch: the button doesn't actually fix anything. It just stops the machines. If something already broke, hitting the button doesn't undo the damage. And the owner has all the power — they can keep the factory shut down forever if they go rogue or just decide not to restart it. False alarms are also costly, because every time you hit the button for the wrong reason, workers lose trust in management.
+
+So treat pausable as a safety net, not a solution. You still need to fix the actual problem. And for more trust, consider time locks instead of instant pause.
+
+**When NOT to use Pausable:** If your contract is purely informational (no funds, no state changes), or if you want true decentralization where no single person can freeze it - skip the pause button!`,
   },
   {
     title: 'When To Use Pausable Pattern',
@@ -141,27 +146,31 @@ When paused = true, the check fails and the function reverts. That's it!
 It's like a master switch. One toggle protects everything!`,
   },
   {
-    title: 'Tradeoffs (Nothing Is Perfect!)',
-    content: `Pausable is powerful, but know the costs:
+    title: "The Naive Approach (Don't Do This!)",
+    content: `What if there's no pause button?
 
-**PAUSABLE gives you:**
-- ✅ Emergency response capability
-- ✅ Time to fix bugs
-- ✅ User protection during crises
+\`\`\`rust
+// BAD: No emergency stop!
+struct BadContract {
+    funds: u128,
+    // No pause flag!
+}
 
-**PAUSABLE doesn't give you:**
-- ❌ Automatic bug fixing (just stops usage)
-- ❌ Loss recovery (pausing doesn't restore funds)
-- ❌ Decentralized control (owner has the button)
+impl BadContract {
+    pub fn transfer(&mut self, to: AccountId, amount: u128) {
+        // If there's a bug, attackers keep draining funds
+        // No way to stop!
+        // Just watch your money disappear...
+    }
+}
+\`\`\`
 
-**When pausable hurts you:**
-- Owner goes rogue? They can freeze indefinitely!
-- Pause stuck on? Users can't use contract!
-- False alarm? Pausing damages trust.
+**The problem:**
+- Bug found? Too bad, keep getting exploited
+- Hacker draining funds? Can't stop them
+- Need maintenance? Can't do it safely
 
-**The insight:** Pausable is a safety net, not a solution. You still need to fix the actual problem. And consider time-locks instead of instant pause for more trust!
-
-**When NOT to use Pausable:** If your contract is purely informational (no funds, no state changes), or if you want true decentralization where no single person can freeze it - skip the pause button!`,
+This is why pausable contracts exist! When things go wrong, you need a way to stop the bleeding.`,
   },
   {
     title: 'Learn More',

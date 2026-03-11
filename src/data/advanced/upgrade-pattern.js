@@ -13,32 +13,79 @@ The **Upgrade Pattern** lets you update your contract while keeping its data. It
 > ⚠️ **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever! This is the most important rule.`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
-    content: `What if you can't upgrade at all?
+    title: 'Tradeoffs (Nothing Is Perfect!)',
+    content: `A game character that can evolve is essential for long-term play. You can fix bugs without starting over, add new abilities over time, maintain your progress because the same character keeps leveling up, and push emergency balance patches fast.
 
+But here's the thing: you lose true predictability. The developer controls evolution, so players have to trust they won't change things in bad ways. You also lose immutable guarantees, and players can't rely on their builds being forever viable because the meta might change.
+
+If the developer goes rogue, they can change anything about how characters evolve. And players might lose trust if they feel like the rules can change anytime. Complex skill tree migrations between expansions can also break builds if you're not careful.
+
+One more thing: never delete abilities from the skill tree. Always keep old skills and transform them if needed. That's the golden rule.
+
+For maximum trust, consider time locks on major evolutions or eventually making characters immutable.
+
+**When NOT to use Upgrade Pattern:** If you want true immutability where no one can ever change it, skip the upgrade pattern. Some games want to be forever unchanged, and that's when you lock the character at max level!`,
+  },
+  {
+    title: 'Upgrade Operations',
+    content: `**The upgrade flow:**
+
+1. **Deploy contract** → Same account, new WASM
+2. **State preserved** → All your data stays!
+3. **Call migrate()** → Increment version, run transformations
+4. **Done!** → Users don't even notice
+
+**Adding new fields:**
 \`\`\`rust
-// BAD: Can't upgrade, can't fix bugs!
-struct BadContract {
-    data: Vec<u8>,
-    // Once deployed, you're stuck with it!
-    // Bug found? Too bad!
-    // Need new feature? Deploy NEW contract, migrate manually!
-}
-
-impl BadContract {
-    // No migrate function!
-    // No version tracking!
-    // Just hope nothing goes wrong...
+pub fn migrate(&mut self) {
+    require!(env::predecessor_account_id() == self.owner_id, "Only owner");
+    
+    // New field gets default value
+    // self.new_field = "default".to_string();
+    
+    self.version += 1;
 }
 \`\`\`
 
-**The problem:**
-- Bug in production? Deploy from scratch!
-- Want new features? New contract, new address!
-- Lose all users, history, trust!
-- Expensive migration every time
+**Transforming data:**
+\`\`\`rust
+pub fn migrate(&mut self) {
+    // Example: rename field in storage
+    // self.new_name = self.old_name;
+    
+    self.version += 1;
+}
+\`\`\`
 
-This is why upgrade pattern exists! Contracts MUST be able to evolve!`,
+**⚠️ Critical: The panic you're about to see on mainnet**
+
+You added \`new_field: String\` to your struct and redeployed. Now every call panics with:
+
+\`\`\`
+Thread 'main' panicked at 'Cannot deserialize the contract state.'
+\`\`\`
+
+Here's the fix — before/after:
+
+\`\`\`rust
+// BEFORE: No ignore_state → PANIC on every call!
+pub fn migrate(&mut self) {
+    self.version += 1;  // 💥 "Cannot deserialize the contract state."
+}
+
+// AFTER: Use ignore_state to bypass broken deserialization
+#[init(ignore_state)]
+pub fn migrate() -> Self {
+    let old: OldContract = env::state_read().expect("No state");
+    Self {
+        owner_id: old.owner_id,                 // preserve old data
+        version: old.version + 1,               // bump version
+        new_field: "default".to_string(),        // initialize new field
+    }
+}
+\`\`\`
+
+This is the exact error and fix — bookmark this page if you're deploying to mainnet!`,
   },
   {
     title: 'The Actual Code',
@@ -86,66 +133,6 @@ impl Contract {
 That's it! No proxy pattern, no Promise::new().deploy_contract(). Just a version number that increments!`,
   },
   {
-    title: 'Upgrade Operations',
-    content: `**The upgrade flow:**
-
-1. **Deploy contract** → Same account, new WASM
-2. **State preserved** → All your data stays!
-3. **Call migrate()** → Increment version, run transformations
-4. **Done!** → Users don't even notice
-
-**Adding new fields:**
-\`\`\`rust
-pub fn migrate(&mut self) {
-    require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-    
-    // New field gets default value
-    // self.new_field = "default".to_string();
-    
-    self.version += 1;
-}
-\`\`\`
-
-**Transforming data:**
-\`\`\`rust
-pub fn migrate(&mut self) {
-    // Example: rename field in storage
-    // self.new_name = self.old_name;
-    
-    self.version += 1;
-}
-\`\`\`
-
-**⚠️ Critical: When struct shape changes (#[init(ignore_state)])**
-
-If you ADD or REMOVE fields from your struct, the default init will panic! The old state can't be deserialized into the new shape.
-
-Use \`#[init(ignore_state)]\` to skip deserialization:
-
-\`\`\`rust
-#[near]
-impl Contract {
-    /// For upgrades when struct shape changes!
-    #[init(ignore_state)]
-    pub fn migrate() -> Self {
-        Self {
-            owner_id: env::current_account_id(),
-            version: 2,
-            new_field: "default".to_string(),  // Set defaults for NEW fields
-        }
-    }
-}
-\`\`\`
-
-**When you NEED ignore_state:**
-- Adding new fields (struct has more fields now)
-- Removing fields (struct has fewer fields)
-- Changing field types (incompatible)
-- Reordering fields
-
-**Warning:** With \`ignore_state\`, you lose access to old state during migration! Read it BEFORE returning the new Self, or use the \`&mut self\` migrate pattern for same-shape upgrades instead.`,
-  },
-  {
     title: 'When To Use Upgrade Pattern',
     content: `Quick guide:
 
@@ -179,30 +166,32 @@ Old WASM + Old State → Deploy New WASM → New WASM + Same State
 This is why version tracking matters - you know what state you're in!`,
   },
   {
-    title: 'Tradeoffs (Nothing Is Perfect!)',
-    content: `Upgrade pattern is powerful, but know the costs:
+    title: "The Naive Approach (Don't Do This!)",
+    content: `What if you can't upgrade at all?
 
-**UPGRADE gives you:**
-- ✅ Fix bugs without redeploying
-- ✅ Add features over time
-- ✅ Maintain user relationships
-- ✅ Fast emergency patches
+\`\`\`rust
+// BAD: Can't upgrade, can't fix bugs!
+struct BadContract {
+    data: Vec<u8>,
+    // Once deployed, you're stuck with it!
+    // Bug found? Too bad!
+    // Need new feature? Deploy NEW contract, migrate manually!
+}
 
-**UPGRADE doesn't give you:**
-- ❌ True decentralization (owner controls upgrades)
-- ❌ Immutable guarantees
-- ❌ Predictable behavior forever
+impl BadContract {
+    // No migrate function!
+    // No version tracking!
+    // Just hope nothing goes wrong...
+}
+\`\`\`
 
-**When upgrade hurts you:**
-- Owner goes rogue? Can change anything!
-- Users lose trust? "Can change anytime"
-- Complex migrations? Break data!
+**The problem:**
+- Bug in production? Deploy from scratch!
+- Want new features? New contract, new address!
+- Lose all users, history, trust!
+- Expensive migration every time
 
-> ⚠️ **THE GOLDEN RULE:** NEVER delete fields! Always keep old data and transform it if needed.
-
-**The insight:** Upgrade pattern is essential for production contracts. But for maximum trust, consider time-locks on upgrades or eventually making the contract immutable!
-
-**When NOT to use Upgrade Pattern:** If you want true immutability (no one can ever change it), skip the upgrade pattern. Some projects want to be forever unchanged - that's when you remove the migrate function entirely!`,
+This is why upgrade pattern exists! Contracts MUST be able to evolve!`,
   },
   {
     title: 'Learn More',

@@ -1095,8 +1095,10 @@ impl Contract {
     }
 
     pub fn set_message(&mut self, new_message: String) {
-        // TODO: Emit the MessageUpdated event before updating
-        // Hint: Use self.emit(Event::MessageUpdated { ... })
+        // TODO: Emit the MessageUpdated event BEFORE updating state
+        // ⚠️ Important: Events are fire-and-forget. If you panic after emit(),
+        // the event is already written to the receipt!
+        // Hint: Event::MessageUpdated { old_message, new_message, updated_by }.emit()
         
         self.message = new_message;
     }
@@ -1165,7 +1167,9 @@ impl Contract {
     pub fn set_message(&mut self, new_message: String) {
         let old_message = self.message.clone();
 
-        // Emit clean NEP-297 event (macro handles everything!)
+        // ⚠️ CRITICAL: Emit BEFORE state change!
+        // Events are fire-and-forget — if you panic after emit(),
+        // the event is already written to the receipt!
         Event::MessageUpdated {
             old_message,
             new_message: new_message.clone(),
@@ -1173,6 +1177,7 @@ impl Contract {
         }
         .emit();
 
+        // NOW update state
         self.message = new_message;
     }
 

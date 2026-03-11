@@ -12,55 +12,30 @@ Think of it like a vending machine: you put in money (gas), make your selection 
 A contract with owner control AND a greeting that only the owner can change. This is the foundation for access control — deciding who can do what.`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
-      content: `What if anyone could change your greeting?
+      title: 'Writing - Access Control',
+      content: `Now for the magic: ONLY the owner can change the greeting:
 
 \`\`\`rust
-// BAD: No owner, anyone can change anything!
-struct Contract {
-    greeting: String,
-}
+pub fn set_greeting(&mut self, new_greeting: String) {
+    // Access control: Who called this?
+    require!(
+        env::predecessor_account_id() == self.owner_id,
+        "Only the owner can change the greeting"
+    );
 
-impl Contract {
-    pub fn set_greeting(&mut self, new_greeting: String) {
-        // Anyone can call this!
-        // No protection whatsoever!
-        self.greeting = new_greeting;
-    }
+    // Validation: Don't allow empty
+    require!(!new_greeting.is_empty(), "Greeting cannot be empty");
+
+    self.greeting = new_greeting;
 }
 \`\`\`
 
-**The problem:**
-- Anyone can modify your contract
-- No accountability
-- Hackers can change anything
-- Not safe!
+**The pattern:**
+1. Get caller: \`env::predecessor_account_id()\`
+2. Compare to owner: \`== self.owner_id\`
+3. If match → proceed; if not → revert!
 
-Every real contract needs access control!`,
-    },
-    {
-      title: 'The Contract Brain',
-      content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
-
-\`\`\`rust
-use near_sdk::{env, AccountId, PanicOnDefault};
-
-#[near(contract_state)]      // "This is the contract's memory"
-#[derive(PanicOnDefault)]    // Safety: panics if deployed without init
-pub struct Contract {
-    owner_id: AccountId,     // Who controls this contract
-    greeting: String,        // A message only owner can change
-}
-\`\`\`
-
-**What's happening:**
-- \`owner_id: AccountId\` = The boss account
-- \`greeting: String\` = Mutable state (but protected!)
-- \`#[near(contract_state)]\` = Persists on-chain
-- \`#[derive(PanicOnDefault)]\` = Safety net!
-
-**Why this matters:**
-The contract state is what persists between calls. This is your contract's memory!`,
+**require!** stops bad actors cold!`,
     },
     {
       title: 'The Constructor - Your First Choice',
@@ -113,76 +88,55 @@ pub fn get_greeting(&self) -> String {
 This is like a shop window — anyone can look, but only the owner can change things!`,
     },
     {
-      title: 'Writing - Access Control',
-      content: `Now for the magic: ONLY the owner can change the greeting:
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if anyone could change your greeting?
 
 \`\`\`rust
-pub fn set_greeting(&mut self, new_greeting: String) {
-    // Access control: Who called this?
-    require!(
-        env::predecessor_account_id() == self.owner_id,
-        "Only the owner can change the greeting"
-    );
+// BAD: No owner, anyone can change anything!
+struct Contract {
+    greeting: String,
+}
 
-    // Validation: Don't allow empty
-    require!(!new_greeting.is_empty(), "Greeting cannot be empty");
-
-    self.greeting = new_greeting;
+impl Contract {
+    pub fn set_greeting(&mut self, new_greeting: String) {
+        // Anyone can call this!
+        // No protection whatsoever!
+        self.greeting = new_greeting;
+    }
 }
 \`\`\`
 
-**The pattern:**
-1. Get caller: \`env::predecessor_account_id()\`
-2. Compare to owner: \`== self.owner_id\`
-3. If match → proceed; if not → revert!
+**The problem:**
+- Anyone can modify your contract
+- No accountability
+- Hackers can change anything
+- Not safe!
 
-**require!** stops bad actors cold!`,
+Every real contract needs access control!`,
     },
     {
-      title: 'The Design Insight',
-      content: `**Why this works: The predecessor check!**
+      title: 'The Contract Brain',
+      content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
 
-Every transaction on NEAR knows who called it:
+\`\`\`rust
+use near_sdk::{env, AccountId, PanicOnDefault};
 
+#[near(contract_state)]      // "This is the contract's memory"
+#[derive(PanicOnDefault)]    // Safety: panics if deployed without init
+pub struct Contract {
+    owner_id: AccountId,     // Who controls this contract
+    greeting: String,        // A message only owner can change
+}
 \`\`\`
-User A → Contract → "Who called me?" → User A!
-\`\`\`
 
-The \`env::predecessor_account_id()\` gives you:
-- Tamper-proof identity (blockchain verifies)
-- Always available
-- Cheap to check
+**What's happening:**
+- \`owner_id: AccountId\` = The boss account
+- \`greeting: String\` = Mutable state (but protected!)
+- \`#[near(contract_state)]\` = Persists on-chain
+- \`#[derive(PanicOnDefault)]\` = Safety net!
 
-**The flow:**
-1. Someone calls \`set_greeting\`
-2. Contract asks: "Who are you?" → \`predecessor_account_id()\`
-3. Compare to \`owner_id\`
-4. Match? Update! No match? Reject!
-
-This is the foundation of ALL access control on NEAR!`,
-    },
-    {
-      title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `This pattern has tradeoffs:
-
-**Having owner gives you:**
-- ✅ Access control
-- ✅ Accountability (know who did what)
-- ✅ Foundation for all security patterns
-
-**Having owner doesn't give you:**
-- ❌ Automatic protection (you MUST check!)
-- ❌ Multiple admins
-- ❌ Consensus for team decisions
-
-**When single owner hurts you:**
-- Owner loses key? Stuck forever!
-- Owner goes rogue? Can do anything!
-- Need team input? Doesn't help!
-
-**The insight:** Setting owner_id is just the BEGINNING. You must check it in EVERY protected method!
-
-**When NOT to use:** For DAOs or team treasuries — you'll need multi-signature!`,
+**Why this matters:**
+The contract state is what persists between calls. This is your contract's memory!`,
     },
     {
       title: 'Learn More',

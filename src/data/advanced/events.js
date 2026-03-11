@@ -12,34 +12,6 @@ When something important happens (a transfer, a purchase, a message), your contr
 Without events, apps would have to scan EVERY transaction ever made. With events? They just listen for the shouts!`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
-    content: `Imagine trying to build a marketplace WITHOUT events:
-
-\`\`\`rust
-// BAD: No events, force everyone to scan!
-struct BadMarketplace {
-    items: Vector<Item>,
-}
-
-impl BadMarketplace {
-    // Every time someone wants to know "what was sold lately?"
-    // They have to scan EVERY transaction, ever!
-    fn get_recent_sales(&self) -> Vec<Sale> {
-        // Would need access to blockchain history
-        // Scan millions of transactions...
-        // Hope you have time to wait!
-    }
-}
-\`\`\`
-
-**The problem:**
-- 10 transactions? Okay, maybe tolerable.
-- 1,000 transactions? Getting slow...
-- 1,000,000 transactions? Game over!
-
-This is what apps did before events - scan everything. Expensive, slow, painful!`,
-  },
-  {
     title: 'How To Shout (The Easy Way)',
     content: `Modern NEAR contracts use a special macro:
 
@@ -70,6 +42,7 @@ pub enum Event {
         deleted_by: AccountId,
     },
 
+    // This is a NEW event added in v1.1.0 — old indexers gracefully ignore it!
     #[event_version("1.1.0")]
     MessageReported {
         reported_message: String,
@@ -83,7 +56,9 @@ impl Contract {
     pub fn set_message(&mut self, new_message: String) {
         let old_message = self.message.clone();
 
-        // Emit clean NEP-297 event (macro handles everything!)
+        // ⚠️ CRITICAL: Emit BEFORE state change!
+        // Events are fire-and-forget — if you panic after emit(),
+        // the event is already written to the receipt!
         Event::MessageUpdated {
             old_message,
             new_message: new_message.clone(),
@@ -91,6 +66,7 @@ impl Contract {
         }
         .emit();
 
+        // NOW update state — if this panics, indexer still has the event
         self.message = new_message;
     }
 }
@@ -100,7 +76,9 @@ impl Contract {
 1. \`#[near(event_json(...))]\` macro → auto-generates \`emit()\` method
 2. \`#[event_version(...)]\` → versions each event variant
 3. Type-safe → compiler catches mistakes
-4. NEP-297 compliant → indexers love it!`,
+4. NEP-297 compliant → indexers love it!
+
+> ⚠️ **Fire-and-forget warning:** Events are emitted BEFORE your function completes. If your code panics at line 20, the event at line 15 is ALREADY in the receipt. Your indexer will record "MessageUpdated" but the state never changed. Always emit first, modify state second.`,
   },
   {
     title: 'What Happens Behind The Scenes',
@@ -131,22 +109,127 @@ impl Contract {
 Consistent format = everyone can understand!`,
   },
   {
-    title: 'Events vs Polling - When To Use Which?',
-    content: `Quick guide:
+    title: 'Consuming Events (The Missing Link)',
+    content: `Here's where most tutorials stop — but here's what happens NEXT:
 
-**Use EVENTS when:**
-- You need real-time updates
-- Many users need the same data (wallets, marketplaces)
-- You want to notify external systems
-- Speed matters
+**JavaScript indexer that reads your events:**
+\`\`\`javascript
+// This is what your indexer does when it sees a NEAR receipt
+function processReceipt(receipt) {
+  // Look for event JSON in the receipt logs
+  const logs = receipt.receipt.outcome.logs;
+  
+  for (const log of logs) {
+    try {
+      const event = JSON.parse(log);
+      
+      if (event.standard === 'learn-near-message') {
+        // Version-aware parsing!
+        if (event.version === '1.0.0' && event.event === 'MessageUpdated') {
+          const { old_message, new_message, updated_by } = event.data;
+          console.log(\`\${updated_by} changed message: \${old_message} → \${new_message}\`);
+          // Store in your database...
+        }
+        
+        // v1.1.0+ indexer handles new event types
+        if (event.version === '1.1.0' && event.event === 'MessageReported') {
+          // Gracefully ignore or handle new event
+          console.log(\`Report: \${event.data.reason}\`);
+        }
+      }
+    } catch (e) {
+      // Not an event, skip
+    }
+  }
+}
+\`\`\`
 
-**Use POLLING (direct contract calls) when:**
-- You only need occasional data
-- Exact on-chain data is critical
-- The data changes rarely
-- Simplicity is more important than speed
+**Frontend queries the indexer, not the chain:**
+\`\`\`javascript
+// React component subscribing to events
+useEffect(() => {
+  subscribe('MessageUpdated', (event) => {
+    setMessages(prev => [...prev, event.data]);
+  });
+}, []);
+\`\`\`
 
-**The insight:** Events = push (be told when things happen). Polling = pull (go check yourself). Events scale better for popular dApps!`,
+This is the full loop: Contract emits → Receipt → Indexer parses → Frontend subscribes.`,
+  },
+  {
+    title: 'The Versioning Trap',
+    content: `⚠️ **This is the gotcha that kills production systems.**
+
+Versioning exists because developers change events and break indexers silently.
+
+**The scenario:**
+\`\`\`rust
+// You deploy v1.0.0
+#[event_version("1.0.0")]
+MessageUpdated {
+    old_message: String,
+    new_message: String,
+}
+
+// Later, you refactor (without bumping version!)
+#[event_version("1.0.0")]  // Still 1.0.0 — BIG MISTAKE
+MessageUpdated {
+    previous_message: String,  // Renamed!
+    new_message: String,
+}
+\`\`\`
+
+**What breaks:**
+\`\`\`json
+// Old indexer expects:
+{ "old_message": "Hello", "new_message": "Hi" }
+
+// But receives:
+{ "previous_message": "Hello", "new_message": "Hi" }
+
+// Result: old_message is UNDEFINED → indexer crashes or stores null
+\`\`\`
+
+**The fix:**
+\`\`\`rust
+#[event_version("2.0.0")]  // Bump the version!
+MessageUpdated {
+    previous_message: String,  // Now safe — different version
+    new_message: String,
+}
+\`\`\`
+
+> ⚠️ **Rule:** If you change the shape of an event — rename, add, or remove fields — you MUST bump the version. Old indexers ignore unknown versions gracefully. They crash on changed field names.`,
+  },
+  {
+    title: 'Why MessageReported is 1.1.0',
+    content: `Look at this line in the code:
+
+\`\`\`rust
+#[event_version("1.1.0")]
+MessageReported {
+    reported_message: String,
+    reason: String,
+    reported_by: AccountId,
+},
+\`\`\`
+
+**This is exactly why versioning exists.**
+
+You deployed v1.0.0 with MessageUpdated and MessageDeleted. Months later, you add a new feature: MessageReported. 
+
+**Without versioning:**
+- Old indexers try to parse MessageReported
+- They don't know the fields
+- They crash or store garbage
+
+**With versioning (1.1.0):**
+- Old indexers see version "1.1.0"
+- They don't understand it → **gracefully skip it**
+- Your new v1.1.0 indexer picks it up
+- Everyone keeps working!
+
+That's the whole point: **versioning lets you add new events without breaking old indexers.** The version field isn't decoration — it's a compatibility contract.`,
   },
   {
     title: 'The Design Insight',
@@ -170,27 +253,90 @@ This separation of concerns is what makes blockchain usable!
 > ⚠️ **Important:** Events are notifications, NOT state. If you need authoritative data, query the contract state directly. Events do NOT replace on-chain data!`,
   },
   {
+    title: 'Events vs Polling - When To Use Which?',
+    content: `Quick guide:
+
+**Use EVENTS when:**
+- You need real-time updates
+- Many users need the same data (wallets, marketplaces)
+- You want to notify external systems
+- Speed matters
+
+**Use POLLING (direct contract calls) when:**
+- You only need occasional data
+- Exact on-chain data is critical
+- The data changes rarely
+- Simplicity is more important than speed
+
+**The insight:** Events = push (be told when things happen). Polling = pull (go check yourself). Events scale better for popular dApps!`,
+  },
+  {
+    title: 'Benchmark: Solidity Events vs NEAR',
+    content: `**How Solidity handles events:**
+
+Solidity has native event emission that looks similar:
+
+\`\`\`solidity
+// Solidity
+emit Transfer(msg.sender, to, amount);
+\`\`\`
+
+Indexed fields go into a bloom filter for searching:
+
+\`\`\`solidity
+event Transfer(address indexed from, address indexed to, uint256 amount);
+\`\`\`
+
+**Key differences:**
+- **NEAR:** NEP-297 standard, versioned enums, auto-serialization
+- **Solidity:** Indexed fields = bloom filter optimization, manual topics
+
+**When Solidity wins:**
+- EVM ecosystem compatibility
+- Many existing tools (Ethers.js, Hardhat)
+
+**When NEAR wins:**
+- Versioned events (1.0.0, 1.1.0) = easy migrations
+- Type-safe event definitions
+- Built-in standard = indexers work out of box`,
+  },
+  {
     title: 'Tradeoffs (Nothing Is Perfect!)',
-    content: `Events are powerful, but know the costs:
+    content: `A town crier is how you bridge blockchain with real time applications. The big win is speed: you listen for the shouts, not search through every record yourself, so it's way faster. You get real time updates through subscriptions, and one town crier can serve many citizens, so it scales well.
 
-**EVENTS give you:**
-- ⚡ Fast queries (from indexer, not chain)
-- Real-time updates via subscriptions
-- Scalability (one indexer serves many apps)
+But you're not reading directly from the source. You go through the crier, who might miss an announcement or take a break. And you have no historical news from before the crier started working. If the crier has a day off, you're out of the loop until they come back.
 
-**EVENTS don't give you:**
-- ❌ Direct on-chain access (go through indexer)
-- ❌ Guaranteed delivery (indexer might miss)
-- ❌ Historical data before event was added
+So use events for real time feeds and dashboards. But always have a fallback to direct contract calls when precision matters. If you're building something where every detail must be verified on chain, or you only need occasional data, just poll the contract directly.
 
-**When events hurt you:**
-- Need guaranteed accuracy? Query contract directly.
-- Historical data from before you started emitting? Can't get it.
-- Indexer downtime? You're blind until it recovers.
+**When NOT to use Events:** If you're building something where every detail must be verified on-chain, or you only need occasional data — just poll the contract directly!`,
+  },
+  {
+    title: "The Naive Approach (Don't Do This!)",
+    content: `Imagine trying to build a marketplace WITHOUT events:
 
-**The insight:** Events are the bridge between blockchain and real-time apps. But always have a fallback to direct contract calls when precision matters!
+\`\`\`rust
+// BAD: No events, force everyone to scan!
+struct BadMarketplace {
+    items: Vector<Item>,
+}
 
-**When NOT to use Events:** If you're building something where every detail must be verified on-chain, or you only need occasional data - just poll the contract directly!`,
+impl BadMarketplace {
+    // Every time someone wants to know "what was sold lately?"
+    // They have to scan EVERY transaction, ever!
+    fn get_recent_sales(&self) -> Vec<Sale> {
+        // Would need access to blockchain history
+        // Scan millions of transactions...
+        // Hope you have time to wait!
+    }
+}
+\`\`\`
+
+**The problem:**
+- 10 transactions? Okay, maybe tolerable.
+- 1,000 transactions? Getting slow...
+- 1,000,000 transactions? Game over!
+
+This is what apps did before events - scan everything. Expensive, slow, painful!`,
   },
   {
     title: 'Learn More',

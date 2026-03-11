@@ -18,48 +18,20 @@ This is the "Hello World" of smart contracts. It's the simplest thing you can bu
 Your journey starts here. Let's make Beep say something cool!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
-      content: `What if your contract couldn't remember anything?
+      title: 'Your Turn!',
+      content: `Here's your mission:
 
-\`\`\`rust
-// BAD: No contract at all!
-fn greet() -> String {
-    "Greetings, Adventurer!".to_string()
-}
-\`\`\`
+1. Find the line that says \`"Greetings, Adventurer!".to_string()\`
+2. Change it to your own greeting
+3. Click the Run button
+4. See what Beep says now!
 
-This is just a regular function - it lives in your code, runs when YOU run it, and disappears when done.
+**Ideas for greetings:**
+- "Welcome to my app!"
+- "Greetings, traveler!"
+- "Beep boop - I'm a robot!"
 
-**The problem:**
-- Lives on your computer, not blockchain
-- No one else can call it
-- No persistence - every call starts fresh
-- Not a "smart contract" at all!
-
-You NEED a contract to be a smart contract. That's what we're building!`,
-    },
-    {
-      title: 'The Contract Brain',
-      content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
-
-\`\`\`rust
-use near_sdk::near;
-use near_sdk::PanicOnDefault;
-
-#[near(contract_state)]      // "This is the contract's memory"
-#[derive(PanicOnDefault)]      // Safety: panics if deployed without init
-pub struct Contract {}          // The brain - empty for now!
-\`\`\`
-
-> **Note:** You'll see \`use near_sdk::...\` at the top of each code snippet. These imports bring in the NEAR SDK types you need. Don't worry about memorizing them — you'll see them repeated often enough that they'll become familiar!
-
-**What's happening:**
-- \`pub struct Contract {}\` = The contract's brain (currently empty)
-- \`#[near(contract_state)]\` = Tells NEAR "save this struct's data on-chain"
-- \`#[derive(PanicOnDefault)]\` = Safety net! If someone tries to use the contract without calling \`new()\`, it panics. This prevents accidentally using an uninitialized contract.
-
-**Why does this matter?**
-Think of it like a car without a key. You don't want someone driving it by accident! This pattern ensures the contract is properly set up before anyone can use it.`,
+Go ahead. Make it yours!`,
     },
     {
       title: 'The Constructor - Waking Up Beep',
@@ -111,59 +83,48 @@ In the code, you know it's a view method because of \`&self\` (one ampersand). T
 Try changing what Beep says! Click the code, change "Greetings, Adventurer!" to something else, and hit Run. You've already made your first change to a blockchain app!`,
     },
     {
-      title: 'Your Turn!',
-      content: `Here's your mission:
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if your contract couldn't remember anything?
 
-1. Find the line that says \`"Greetings, Adventurer!".to_string()\`
-2. Change it to your own greeting
-3. Click the Run button
-4. See what Beep says now!
-
-**Ideas for greetings:**
-- "Welcome to my app!"
-- "Greetings, traveler!"
-- "Beep boop - I'm a robot!"
-
-Go ahead. Make it yours!`,
-    },
-    {
-      title: 'The Design Insight',
-      content: `**Why this works: The NEAR runtime!**
-
-When you deploy a contract:
-- Code gets stored on-chain (as WASM)
-- State gets stored separately
-- Anyone can call methods
-
-The magic: \`#[near(contract_state)]\` tells NEAR to save your struct's data. Your contract's state persists between calls!
-
-\`\`\`
-Deploy → Code on chain → State stored separately → Methods can read/write state
+\`\`\`rust
+// BAD: No contract at all!
+fn greet() -> String {
+    "Greetings, Adventurer!".to_string()
+}
 \`\`\`
 
-This is what makes it a "smart contract" - it has its own data that lives on the blockchain!`,
+This is just a regular function - it lives in your code, runs when YOU run it, and disappears when done.
+
+**The problem:**
+- Lives on your computer, not blockchain
+- No one else can call it
+- No persistence - every call starts fresh
+- Not a "smart contract" at all!
+
+You NEED a contract to be a smart contract. That's what we're building!`,
     },
     {
-      title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `Even simple contracts have tradeoffs:
+      title: 'The Contract Brain',
+      content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
 
-**HELLO WORLD gives you:**
-- ✅ Easy to understand
-- ✅ Free to call view methods
-- ✅ Lives forever on blockchain
+\`\`\`rust
+use near_sdk::near;
+use near_sdk::PanicOnDefault;
 
-**HELLO WORLD doesn't give you:**
-- ❌ Any state (can't remember anything)
-- ❌ User interactions
-- ❌ Real functionality
+#[near(contract_state)]      // "This is the contract's memory"
+#[derive(PanicOnDefault)]      // Safety: panics if deployed without init
+pub struct Contract {}          // The brain - empty for now!
+\`\`\`
 
-**When hello world hurts you:**
-- Can't build anything useful with just it
-- Need state for real apps
+> **Note:** You'll see \`use near_sdk::...\` at the top of each code snippet. These imports bring in the NEAR SDK types you need. Don't worry about memorizing them — you'll see them repeated often enough that they'll become familiar!
 
-**The insight:** Hello World is the START, not the end. Every real contract adds state, methods, and logic on top of this foundation!
+**What's happening:**
+- \`pub struct Contract {}\` = The contract's brain (currently empty)
+- \`#[near(contract_state)]\` = Tells NEAR "save this struct's data on-chain"
+- \`#[derive(PanicOnDefault)]\` = Safety net! If someone tries to use the contract without calling \`new()\`, it panics. This prevents accidentally using an uninitialized contract.
 
-**When NOT to use this pattern:** If you need to store any data or allow user interactions - you need state (covered in later lessons!)`,
+**Why does this matter?**
+Think of it like a car without a key. You don't want someone driving it by accident! This pattern ensures the contract is properly set up before anyone can use it.`,
     },
     {
       title: 'Learn More',

@@ -14,6 +14,34 @@ Why does this matter? Because on the blockchain, anyone can call your contract. 
 A message board where users can set a message - but with rules! Messages must be 1-100 characters.`,
     },
     {
+      title: 'Common Guard Patterns',
+      content: `Here are moves every gatekeeper should know:
+
+**Check if empty (using length):**
+\`\`\`rust
+require!(string.len() > 0, "Required field");
+\`\`\`
+
+**Check the size:**
+\`\`\`rust
+require!(amount <= max_limit, "Too big!");
+\`\`\`
+
+**Check for valid numbers:**
+\`\`\`rust
+require!(value > 0, "Must be positive");
+\`\`\`
+
+**Check account IDs:**
+For account IDs, use NEAR's built-in validation — no manual string checks needed! You'll see this in the Owner Pattern lesson.
+
+**The pattern:**
+\`require!(condition, "error message")\`
+
+If condition is false → panic with message!
+If condition is true → continue normally`,
+    },
+    {
       title: "The Naive Approach (Don't Do This!)",
       content: `What if you accepted ANY input?
 
@@ -70,6 +98,28 @@ impl Contract {
 We have a simple message field and a getter. Now let's add the validation!`,
     },
     {
+      title: 'Why Validation Matters',
+      content: `On the blockchain, validation is your best friend:
+
+**Security:**
+- Prevent hackers from injecting malicious data
+- Stop users from breaking your contract's logic
+- Protect user funds
+
+**Data Quality:**
+- No empty messages cluttering your app
+- No massive strings eating up storage
+- Consistent data makes your app reliable
+
+**Cost Savings:**
+- Validation happens BEFORE saving
+- Invalid data doesn't get stored
+- Saves users gas!
+
+**Your turn:**
+Try setting an empty message or one that's too long. See how the contract protects itself!`,
+    },
+    {
       title: 'The Guard Code - Using require!',
       content: `Here's how you guard your contract:
 
@@ -96,98 +146,6 @@ It's like the gatekeeper saying "Sorry, that won't fit through the gate!"
 
 **Why require!?**
 It's the standard way to validate in Rust NEAR contracts. Simple, clear, and stops bad data before it gets saved!`,
-    },
-    {
-      title: 'Common Guard Patterns',
-      content: `Here are moves every gatekeeper should know:
-
-**Check if empty (using length):**
-\`\`\`rust
-require!(string.len() > 0, "Required field");
-\`\`\`
-
-**Check the size:**
-\`\`\`rust
-require!(amount <= max_limit, "Too big!");
-\`\`\`
-
-**Check for valid numbers:**
-\`\`\`rust
-require!(value > 0, "Must be positive");
-\`\`\`
-
-**Check account IDs:**
-For account IDs, use NEAR's built-in validation — no manual string checks needed! You'll see this in the Owner Pattern lesson.
-
-**The pattern:**
-\`require!(condition, "error message")\`
-
-If condition is false → panic with message!
-If condition is true → continue normally`,
-    },
-    {
-      title: 'Why Validation Matters',
-      content: `On the blockchain, validation is your best friend:
-
-**Security:**
-- Prevent hackers from injecting malicious data
-- Stop users from breaking your contract's logic
-- Protect user funds
-
-**Data Quality:**
-- No empty messages cluttering your app
-- No massive strings eating up storage
-- Consistent data makes your app reliable
-
-**Cost Savings:**
-- Validation happens BEFORE saving
-- Invalid data doesn't get stored
-- Saves users gas!
-
-**Your turn:**
-Try setting an empty message or one that's too long. See how the contract protects itself!`,
-    },
-    {
-      title: 'The Design Insight',
-      content: `**Why require! works: Panic vs Continue!**
-
-\`require!\` is simple:
-
-\`\`\`
-Condition true → continue normally
-Condition false → PANIC (revert transaction)
-\`\`\`
-
-When it panics:
-- Transaction reverts
-- No state changes saved
-- User sees error message
-- Gas spent but nothing changes
-
-This is perfect for validation - fail fast, fail clear!`,
-    },
-    {
-      title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `Validation has tradeoffs:
-
-**VALIDATION gives you:**
-- ✅ Security
-- ✅ Data quality
-- ✅ Cost savings
-
-**VALIDATION doesn't give you:**
-- ❌ More code to write
-- ❌ Slightly higher gas (minimal)
-- ❌ Can't catch everything
-
-**When validation hurts you:**
-- Too strict? Users frustrated!
-- Too loose? Security risk!
-- Balance is key!
-
-**The insight:** Validate early, validate often, fail fast with clear messages!
-
-**When NOT to validate:** For internal functions where you know the data is valid - but always validate at public boundaries!`,
     },
     {
       title: 'Learn More',

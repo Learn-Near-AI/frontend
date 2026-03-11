@@ -18,6 +18,26 @@ A counter contract - the simplest example of state that changes! This pattern is
 - Anything that counts!`,
     },
     {
+      title: 'How State Persists',
+      content: `Here's the magic: the counter STICKS AROUND.
+
+Every time someone calls your contract, it remembers. That's because:
+
+1. Someone calls the contract
+2. NEAR loads up the contract's state (counter = 5, for example)
+3. Your code runs with that state
+4. If it's a change method, NEAR saves the new state back
+5. Next time, it loads the updated value!
+
+It's like a game that auto-saves after every action. Pretty cool, right?
+
+**Try it:**
+Call increment, then call get_counter. Does it remember? You bet it does!
+
+**Why does this matter?**
+State persistence is what makes smart contracts powerful. The data survives even when you're not using the app. It's like having a database that never goes down!`,
+    },
+    {
       title: "The Naive Approach (Don't Do This!)",
       content: `What if state wasn't persisted?
 
@@ -75,6 +95,28 @@ impl Contract {
 Think of it like a save file in a game. The contract loads this up every time someone calls it!`,
     },
     {
+      title: 'Real World Inventories',
+      content: `Big apps have HUGE inventories:
+
+**A banking app might track:**
+- User balances (millions of accounts!)
+- Total money in system
+- Is the bank paused?
+
+**An NFT game might track:**
+- Player's characters
+- Each character's stats
+- Items in inventory
+- Quest progress
+
+**A voting system might track:**
+- Total votes
+- Who voted (to prevent double-voting)
+- Proposal status
+
+Understanding state is key to building anything useful. Your inventory is your power!`,
+    },
+    {
       title: 'Reading And Changing The Counter',
       content: `Here's the full contract with methods:
 
@@ -105,93 +147,6 @@ pub fn increment(&mut self) {
 
 **Why does this matter?**
 The counter pattern is everywhere! Token supplies, vote counts, user scores - they all work this way. One method reads, one method changes. Simple!`,
-    },
-    {
-      title: 'How State Persists',
-      content: `Here's the magic: the counter STICKS AROUND.
-
-Every time someone calls your contract, it remembers. That's because:
-
-1. Someone calls the contract
-2. NEAR loads up the contract's state (counter = 5, for example)
-3. Your code runs with that state
-4. If it's a change method, NEAR saves the new state back
-5. Next time, it loads the updated value!
-
-It's like a game that auto-saves after every action. Pretty cool, right?
-
-**Try it:**
-Call increment, then call get_counter. Does it remember? You bet it does!
-
-**Why does this matter?**
-State persistence is what makes smart contracts powerful. The data survives even when you're not using the app. It's like having a database that never goes down!`,
-    },
-    {
-      title: 'The Design Insight',
-      content: `**Why state persists: NEAR's storage!**
-
-NEAR automatically persists your state:
-
-\`\`\`
-Call → Load state → Modify → Save → Receipt
-\`\`\`
-
-The \`#[near(contract_state)]\` macro handles:
-- Serializing state to bytes
-- Saving to blockchain storage
-- Deserializing back when needed
-
-Your contract state is:
-- Backed by the blockchain
-- Survives contract calls
-- Tied to the contract account
-
-This is what makes it "persistent"!`,
-    },
-    {
-      title: 'Real World Inventories',
-      content: `Big apps have HUGE inventories:
-
-**A banking app might track:**
-- User balances (millions of accounts!)
-- Total money in system
-- Is the bank paused?
-
-**An NFT game might track:**
-- Player's characters
-- Each character's stats
-- Items in inventory
-- Quest progress
-
-**A voting system might track:**
-- Total votes
-- Who voted (to prevent double-voting)
-- Proposal status
-
-Understanding state is key to building anything useful. Your inventory is your power!`,
-    },
-    {
-      title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `State management has tradewrites:
-
-**STATE gives you:**
-- ✅ Persistent data
-- ✅ Real functionality
-- ✅ Build any app
-
-**STATE doesn't give you:**
-- ❌ Free storage (costs gas)
-- ❌ Unlimited size
-- ❌ Always fast
-
-**When state hurts you:**
-- Too much data = expensive
-- Complex queries = slow
-- Need indexing = use events/indexers
-
-**The insight:** State is essential, but use it wisely. Store what's needed, not everything!
-
-**When NOT to store in state:** Temporary calculations, cached data, things you can compute on-demand!`,
     },
     {
       title: 'Learn More',

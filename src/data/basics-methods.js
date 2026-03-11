@@ -17,28 +17,26 @@ Free to use. No cost. Just looking.
 A contract with default + user-specific greetings — THREE view methods showing different ways to read data!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
-      content: `What if you could only have ONE greeting for everyone?
+      title: 'View vs Change - Big Difference',
+      content: `This is super important:
 
-\`\`\`rust
-// BAD: One size fits all!
-struct Contract {
-    greeting: String,  // Same for everyone!
-}
+**VIEW methods:**
+- Use \`&self\` (one ampersand)
+- Only read data
+- Free to call (no gas fees!)
+- Can call from browser directly
 
-impl Contract {
-    // Every user sees the SAME greeting
-    // No personalization possible!
-}
-\`\`\`
+**CHANGE methods:**
+- Use \`&mut self\` (one ampersand + mut)
+- Modify data
+- Cost gas (tiny fee!)
+- Requires wallet signature
 
-**The problem:**
-- Can't personalize for users
-- Everyone sees identical content
-- Not realistic for real apps
-- Like a billboard, not an app!
+**Why this matters:**
+- View = checking a map (free!)
+- Change = picking up an item (costs something!)
 
-Real apps need user-specific data!`,
+NEAR separates these because reading doesn't burden the network, but writing does!`,
     },
     {
       title: 'The Contract With User Data',
@@ -46,7 +44,7 @@ Real apps need user-specific data!`,
 
 \`\`\`rust
 use near_sdk::near;
-use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::{AccountId, PanicOnDefault};
 use near_sdk::collections::LookupMap;
 
 #[near(contract_state)]
@@ -76,15 +74,39 @@ impl Contract {
 This is like having a shared sign AND personal notes!`,
     },
     {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you could only have ONE greeting for everyone?
+
+\`\`\`rust
+// BAD: One size fits all!
+struct Contract {
+    greeting: String,  // Same for everyone!
+}
+
+impl Contract {
+    // Every user sees the SAME greeting
+    // No personalization possible!
+}
+\`\`\`
+
+**The problem:**
+- Can't personalize for users
+- Everyone sees identical content
+- Not realistic for real apps
+- Like a billboard, not an app!
+
+Real apps need user-specific data!`,
+    },
+    {
       title: 'The Scout Code - View Methods',
       content: `Now the view methods that read the data:
 
 \`\`\`rust
-// Get caller's greeting (or default)
-pub fn get_my_greeting(&self) -> String {
-    let caller = env::predecessor_account_id();
+// Get a specific account's greeting (or the default)
+// ✅ Takes account as a parameter — view methods have no real "caller"
+pub fn get_greeting(&self, account: AccountId) -> String {
     self.user_greetings
-        .get(&caller)
+        .get(&account)
         .unwrap_or_else(|| self.default_greeting.clone())
 }
 
@@ -93,89 +115,26 @@ pub fn get_default_greeting_length(&self) -> u64 {
     self.default_greeting.len() as u64
 }
 
-// Check if user has custom greeting
+// Check if a specific account has a custom greeting
 pub fn has_custom_greeting(&self, account: AccountId) -> bool {
     self.user_greetings.contains_key(&account)
 }
 \`\`\`
 
+**Why \`account: AccountId\` instead of \`env::predecessor_account_id()\`?**
+
+This is a common trap. View methods are called off-chain — no transaction, no signer.
+\`env::predecessor_account_id()\` inside a view call returns the **contract's own account**,
+not the person asking. So if you want "whose greeting is this?", you must ask the caller
+to tell you their account ID as a parameter.
+
 **Breaking it down:**
-- \`env::predecessor_account_id()\` = Who called (the user!)
-- \`.get(&key)\` = Lookup in map
+- \`account: AccountId\` = The account to look up (passed by the caller)
+- \`.get(&account)\` = Lookup in map
 - \`unwrap_or_else(|| default)\` = Use default if not found
-- \`.len()\` = String length (computed!)
+- \`.len()\` = String length (computed, no storage read!)
 
 These are ALL free to call — no gas needed!`,
-    },
-    {
-      title: 'View vs Change - Big Difference',
-      content: `This is super important:
-
-**VIEW methods:**
-- Use \`&self\` (one ampersand)
-- Only read data
-- Free to call (no gas fees!)
-- Can call from browser directly
-
-**CHANGE methods:**
-- Use \`&mut self\` (one ampersand + mut)
-- Modify data
-- Cost gas (tiny fee!)
-- Requires wallet signature
-
-**Why this matters:**
-- View = checking a map (free!)
-- Change = picking up an item (costs something!)
-
-NEAR separates these because reading doesn't burden the network, but writing does!`,
-    },
-    {
-      title: 'The Design Insight',
-      content: `**Why LookupMap for user data!**
-
-\`\`\`rust
-user_greetings: LookupMap<AccountId, String>
-\`\`\`
-
-LookupMap = Key-Value store:
-- Fast: O(1) lookups by key
-- Efficient: Only loads what you need
-- Scalable: Works for millions of users
-
-**Why not Vector?**
-- Vector = ordered list (find by position)
-- LookupMap = dictionary (find by key)
-
-**The pattern:**
-\`\`\`
-User calls → Get their key → Lookup in map → Return value
-\`\`\`
-
-This is how real apps work — personalized data per user!`,
-    },
-    {
-      title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `View methods have tradeoffs:
-
-**VIEW gives you:**
-- ✅ Free to call
-- ✅ Fast responses
-- ✅ Anyone can verify state
-- ✅ Personalization via LookupMap
-
-**VIEW doesn't give you:**
-- ❌ Can't modify anything
-- ❌ Stale data (might be slightly outdated)
-- ❌ Can't trigger complex logic
-
-**When view methods hurt you:**
-- Need real-time updates? Use events!
-- Complex calculations? Make them change methods
-- Need to write? That's what change methods are for!
-
-**The insight:** View methods for reading, change methods for writing. Pair them together!
-
-**When NOT to use view methods:** If you need to modify state or perform complex logic - use change methods!`,
     },
     {
       title: 'Learn More',
@@ -200,43 +159,39 @@ They cost a tiny bit of NEAR (like gas in a car) because you're actually changin
 A contract with OWNER-PROTECTED change methods — only the owner can modify the message!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
-      content: `What if ANYONE could change your message?
+      title: 'What Happens When You Call It',
+      content: `Here's the journey of a protected change method:
 
-\`\`\`rust
-// BAD: No protection at all!
-struct Contract {
-    message: String,
-}
+1. **Your wallet signs** the transaction
+2. **NEAR finds** the contract
+3. **Contract checks** — "Are you the owner?"
+4. **If YES:** Update the message, save state
+5. **If NO:** Revert immediately, message unchanged
+6. **Receipt arrives** — proof of result
 
-impl Contract {
-    // ANYONE can change it!
-    pub fn set_message(&mut self, new_message: String) {
-        self.message = new_message;  // No checks!
-    }
-}
-\`\`\`
+**The magic of require!:**
+- Stops bad actors cold
+- Clear error message for users
+- Nothing gets saved if check fails!
 
-**The problem:**
-- Anyone can vandalize your contract
-- No accountability
-- No security at all!
-- Like leaving your front door wide open!
-
-Every real contract needs access control!`,
+This is how real contracts stay secure!`,
     },
     {
       title: 'The Contract With Protection',
       content: `Here's a contract with owner protection:
 
 \`\`\`rust
-use near_sdk::{env, require, AccountId};
+use near_sdk::near;
+use near_sdk::{env, require, AccountId, PanicOnDefault};
 
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
     message: String,
 }
 
+#[near]
 impl Contract {
     #[init]
     pub fn new(initial_message: Option<String>) -> Self {
@@ -265,62 +220,11 @@ impl Contract {
 
 **Key additions:**
 - \`owner_id\` stored in state
-- \`require!\" for access control
-- \`require!\" for validation`,
-    },
-    {
-      title: 'The Protected Code',
-      content: `Three change methods, all protected:
+- \`require!\` for access control
+- \`require!\` for validation
 
-\`\`\`rust
-// Replace entire message — owner only
-pub fn set_message(&mut self, new_message: String) {
-    require!(
-        env::predecessor_account_id() == self.owner_id,
-        "Only the owner can change the message"
-    );
-    require!(!new_message.is_empty(), "Message cannot be empty");
-    self.message = new_message;
-}
-
-// Append to message — owner only
-pub fn append_to_message(&mut self, addition: String) {
-    require!(env::predecessor_account_id() == self.owner_id, "...");
-    require!(!addition.is_empty(), "...");
-    self.message.push_str(&addition);
-}
-
-// Reset to default — owner only
-pub fn reset_message(&mut self) {
-    require!(env::predecessor_account_id() == self.owner_id, "...");
-    self.message = "Welcome, traveler!".to_string();
-}
-\`\`\`
-
-**The pattern:**
-1. \`env::predecessor_account_id()\` — Who called?
-2. Compare to \`self.owner_id\` — Are they the boss?
-3. If yes → proceed; if no → revert!
-
-**require!** is your bouncer!`,
-    },
-    {
-      title: 'What Happens When You Call It',
-      content: `Here's the journey of a protected change method:
-
-1. **Your wallet signs** the transaction
-2. **NEAR finds** the contract
-3. **Contract checks** — "Are you the owner?"
-4. **If YES:** Update the message, save state
-5. **If NO:** Revert immediately, message unchanged
-6. **Receipt arrives** — proof of result
-
-**The magic of require!:**
-- Stops bad actors cold
-- Clear error message for users
-- Nothing gets saved if check fails!
-
-This is how real contracts stay secure!`,
+Note: \`env::predecessor_account_id()\` is safe here because change methods
+ARE real transactions — the signer is always known!`,
     },
     {
       title: 'Gas - The Fuel Of Blockchain',
@@ -343,52 +247,72 @@ This is how real contracts stay secure!`,
 You're now a builder! Build securely!`,
     },
     {
-      title: 'The Design Insight',
-      content: `**Why require! works: The bouncer pattern!**
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if ANYONE could change your message?
 
 \`\`\`rust
-require!(condition, "error message")
+// BAD: No protection at all!
+struct Contract {
+    message: String,
+}
+
+impl Contract {
+    // ANYONE can change it!
+    pub fn set_message(&mut self, new_message: String) {
+        self.message = new_message;  // No checks!
+    }
+}
 \`\`\`
 
-**How it works:**
-- Condition TRUE → continue normally
-- Condition FALSE → PANIC with message!
+**The problem:**
+- Anyone can vandalize your contract
+- No accountability
+- No security at all!
+- Like leaving your front door wide open!
 
-**The flow:**
-\`\`\`
-Caller → Check owner → Pass? → Update → Save
-                  → Fail? → Revert! → Error message
-\`\`\`
-
-**Why this matters:**
-- Stops unauthorized changes
-- Clear feedback to users
-- Atomic: either ALL changes or NONE
-
-This is the foundation of secure contracts!`,
+Every real contract needs access control!`,
     },
     {
-      title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `Change methods with protection have tradeoffs:
+      title: 'The Protected Code',
+      content: `Three change methods, all protected:
 
-**PROTECTED CHANGE gives you:**
-- ✅ Security (only owner can modify)
-- ✅ Accountability (know who called)
-- ✅ Validation (prevent bad data)
+\`\`\`rust
+// Replace entire message — owner only
+pub fn set_message(&mut self, new_message: String) {
+    require!(
+        env::predecessor_account_id() == self.owner_id,
+        "Only the owner can change the message"
+    );
+    require!(!new_message.is_empty(), "Message cannot be empty");
+    self.message = new_message;
+}
 
-**PROTECTED CHANGE doesn't give you:**
-- ❌ Free (costs gas)
-- ❌ Multi-user editing
-- ❌ Decentralized control
+// Append to message — owner only
+pub fn append_to_message(&mut self, addition: String) {
+    require!(
+        env::predecessor_account_id() == self.owner_id,
+        "Only the owner can modify the message"
+    );
+    require!(!addition.is_empty(), "Addition cannot be empty");
+    self.message.push_str(&addition);
+}
 
-**When protection hurts you:**
-- Owner loses key? Stuck forever!
-- Need team input? Doesn't help!
-- Want open editing? Too restrictive!
+// Reset to default — owner only
+pub fn reset_message(&mut self) {
+    require!(
+        env::predecessor_account_id() == self.owner_id,
+        "Only the owner can reset the message"
+    );
+    self.message = "Welcome, traveler!".to_string();
+}
+\`\`\`
 
-**The insight:** Use protection when needed. For open apps, use other patterns!
+**The pattern:**
+1. \`env::predecessor_account_id()\` — Who called?
+2. Compare to \`self.owner_id\` — Are they the boss?
+3. If yes → proceed; if no → revert!
 
-**When NOT to use:** For DAOs or community apps - you'll need more flexible access control!`,
+**require!** is your bouncer!`,
     },
     {
       title: 'Learn More',

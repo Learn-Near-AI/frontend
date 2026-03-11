@@ -15,24 +15,26 @@ That's where **error handling** comes in. It's your safety net - catching proble
 A contract with different error handling patterns - returning Option, using require!, and panicking when needed!`,
     },
     {
-      title: "The Naive Approach (Don't Do This!)",
-      content: `What if you ignored errors?
+      title: 'Which One To Use?',
+      content: `Here's when to use each approach:
 
-\`\`\`rust
-// BAD: No error handling!
-pub fn divide(&self, a: u64, b: u64) -> u64 {
-    // b could be 0 → PANIC!
-    a / b
-}
-\`\`\`
+**Option<T> (return None):**
+- Expected failures - might work, might not
+- Caller decides what to do
+- Parsing, looking up data
 
-**The problem:**
-- Division by zero crashes contract
-- No graceful failure
-- User gets cryptic error
-- Bad UX!
+**require! (panic with message):**
+- Contract rules that must be followed
+- User's fault
+- "You can't do that" situations
 
-Handle errors explicitly!`,
+**env::panic_str (hard panic):**
+- Critical failures
+- Something is seriously wrong
+- The contract should NOT continue
+
+**Golden rule:**
+Fail gracefully when you can. Panic when you must. Always give clear error messages!`,
     },
     {
       title: 'The Contract Setup',
@@ -56,6 +58,26 @@ impl Contract {
 \`\`\`
 
 No state needed! We're just exploring different ways to handle errors.`,
+    },
+    {
+      title: "The Naive Approach (Don't Do This!)",
+      content: `What if you ignored errors?
+
+\`\`\`rust
+// BAD: No error handling!
+pub fn divide(&self, a: u64, b: u64) -> u64 {
+    // b could be 0 → PANIC!
+    a / b
+}
+\`\`\`
+
+**The problem:**
+- Division by zero crashes contract
+- No graceful failure
+- User gets cryptic error
+- Bad UX!
+
+Handle errors explicitly!`,
     },
     {
       title: 'Option<T> - The Graceful Way',
@@ -92,31 +114,6 @@ if let Some(number) = result {
 - Perfect for expected failures!`,
     },
     {
-      title: 'Safe Division - Avoiding Crashes',
-      content: `Division by zero is a classic error. Here's how to handle it:
-
-\`\`\`rust
-// Returns None if b is 0, otherwise Some(a / b)
-pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
-    if b == 0 { return None; }
-    Some(a / b)
-}
-\`\`\`
-
-**Why not just divide?**
-In Rust, division by zero PANICS - the whole contract crashes! That's bad.
-
-**The solution:** Check first, then divide. Return None if we can't do it safely.
-
-**Alternative - with unwrap_or:**
-\`\`\`rust
-pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
-    s.parse().unwrap_or(default)
-}
-\`\`\`
-If parsing fails, use the default value instead!`,
-    },
-    {
       title: 'require! - Panic With A Message',
       content: `Sometimes you WANT to panic - when something should NEVER happen:
 
@@ -151,75 +148,29 @@ pub fn strict_check(&self, value: u64) {
 - Critical failures that need attention`,
     },
     {
-      title: 'Which One To Use?',
-      content: `Here's when to use each approach:
+      title: 'Safe Division - Avoiding Crashes',
+      content: `Division by zero is a classic error. Here's how to handle it:
 
-**Option<T> (return None):**
-- Expected failures - might work, might not
-- Caller decides what to do
-- Parsing, looking up data
+\`\`\`rust
+// Returns None if b is 0, otherwise Some(a / b)
+pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
+    if b == 0 { return None; }
+    Some(a / b)
+}
+\`\`\`
 
-**require! (panic with message):**
-- Contract rules that must be followed
-- User's fault
-- "You can't do that" situations
+**Why not just divide?**
+In Rust, division by zero PANICS - the whole contract crashes! That's bad.
 
-**env::panic_str (hard panic):**
-- Critical failures
-- Something is seriously wrong
-- The contract should NOT continue
+**The solution:** Check first, then divide. Return None if we can't do it safely.
 
-**Golden rule:**
-Fail gracefully when you can. Panic when you must. Always give clear error messages!`,
-    },
-    {
-      title: 'The Design Insight',
-      content: `**Why different error types?**
-
-Different situations need different handling:
-
-**Option<T>:**
-- Expected to sometimes fail
-- Caller handles None case
-- Like searching: might find, might not
-
-**require!:**
-- Should not happen if input is valid
-- But user might give bad input
-- Clear message helps them fix it
-
-**panic_str:**
-- Should NEVER happen
-- Bug in contract
-- Need to investigate
-
-Match the error type to the situation!`,
-    },
-    {
-      title: 'Tradeoffs (Nothing Is Perfect!)',
-      content: `Error handling has tradeoffs:
-
-**OPTION gives you:**
-- ✅ Graceful failures
-- ✅ Caller decides what to do
-- ✅ No crashes
-
-**OPTION doesn't give you:**
-- ❌ More code to handle None
-- ❌ Might forget to check!
-
-**REQUIRE gives you:**
-- ✅ Clear error messages
-- ✅ Stops bad data
-- ✅ Simple to use
-
-**PANIC gives you:**
-- ✅ Catches critical bugs
-- ✅ No continuing in bad state
-
-**The insight:** Match error handling to the situation. Don't over-handle or under-handle!
-
-**When NOT to use error handling:** When you're 100% sure the input is valid (internal calls) - but always at public boundaries!`,
+**Alternative - with unwrap_or:**
+\`\`\`rust
+pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
+    s.parse().unwrap_or(default)
+}
+\`\`\`
+If parsing fails, use the default value instead!`,
     },
     {
       title: 'Learn More',

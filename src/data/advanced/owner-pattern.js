@@ -15,31 +15,88 @@ In your contract, you designate ONE account as the owner. Only that account can 
 Everyone else? They can only use the regular features.`,
   },
   {
-    title: "The Naive Approach (Don't Do This!)",
-    content: `Imagine a castle with NO guard at all:
+    title: 'Guard Operations',
+    content: `Here's how to protect your functions:
 
 \`\`\`rust
-// BAD: No access control at all!
-struct BadContract {
-    value: u64,
-    // No owner_id! Anyone can do anything!
+fn assert_owner(&self) {
+    require!(
+        env::predecessor_account_id() == self.owner_id,
+        "Only the owner can do this!"
+    );
 }
 
-impl BadContract {
-    pub fn withdraw(&mut self, amount: u64) {
-        // Anyone can call this!
-        // Anyone can drain all the funds!
-        // No checks whatsoever!
+// Use it to protect sensitive operations:
+pub fn withdraw(&mut self, amount: u128) {
+    self.assert_owner();  // Guard check!
+    // ... withdrawal logic ...
+}
+
+pub fn set_config(&mut self, new_value: String) {
+    self.assert_owner();  // Guard check!
+    self.config = new_value;
+}
+\`\`\`
+
+**The pattern:** assert_owner() at the START of any sensitive function!`,
+  },
+  {
+    title: 'Transfer Ownership',
+    content: `**Every production owner pattern needs this:**
+
+Without it, if the owner key is compromised or the team changes, the contract is permanently locked to the wrong owner.
+
+\`\`\`rust
+pub fn transfer_ownership(&mut self, new_owner: AccountId) {
+    self.assert_owner();
+    self.owner_id = new_owner;
+}
+\`\`\`
+
+**Usage:**
+\`\`\`bash
+near call <contract-id> transfer_ownership '{"new_owner": "new_owner.near"}' --accountId <current-owner>
+\`\`\`
+
+This 6-line function moves the module from tutorial to production-usable.`,
+  },
+  {
+    title: 'The current_account_id Trap',
+    content: `**The mistake developers make:**
+
+\`\`\`rust
+// WRONG: Using predecessor in new()
+#[init]
+pub fn new() -> Self {
+    Self {
+        // This makes the DEPLOYER the owner, not the contract!
+        owner_id: env::predecessor_account_id(),
+        value: 0,
     }
 }
 \`\`\`
 
-**The problem:**
-- One hacker finds a bug → game over!
-- No accountability → anyone can wreck things
-- No way to pause or fix when attacked
+**What happens:** Whoever deploys the contract becomes owner. Later, if you call the contract with a different account, the owner check fails because predecessor != stored owner.
 
-This is what happens when you skip access control entirely. Every vulnerable contract looks like this!`,
+---
+
+\`\`\`rust
+// CORRECT: Using current_account_id in new()
+#[init]
+pub fn new() -> Self {
+    Self {
+        // The contract account itself is the owner
+        owner_id: env::current_account_id(),
+        value: 0,
+    }
+}
+\`\`\`
+
+**Why this matters:**
+- \`current_account_id()\` = the account WHERE this contract lives
+- \`predecessor_account_id()\` = whoever called the function (the deployer at initialization)
+
+Use \`current_account_id()\` in \`new()\` so the contract owns itself. Then anyone can call owner-protected methods using the contract account as --accountId.`,
   },
   {
     title: 'How The Guard Works',
@@ -83,32 +140,6 @@ impl Contract {
 In most cases, you want the contract account as owner (using current_account_id), not the deployer's wallet. This is simpler for single-admin contracts.`,
   },
   {
-    title: 'Guard Operations',
-    content: `Here's how to protect your functions:
-
-\`\`\`rust
-fn assert_owner(&self) {
-    require!(
-        env::predecessor_account_id() == self.owner_id,
-        "Only the owner can do this!"
-    );
-}
-
-// Use it to protect sensitive operations:
-pub fn withdraw(&mut self, amount: u128) {
-    self.assert_owner();  // Guard check!
-    // ... withdrawal logic ...
-}
-
-pub fn set_config(&mut self, new_value: String) {
-    self.assert_owner();  // Guard check!
-    self.config = new_value;
-}
-\`\`\`
-
-**The pattern:** assert_owner() at the START of any sensitive function!`,
-  },
-  {
     title: 'When To Use Owner Pattern',
     content: `Quick guide:
 
@@ -124,6 +155,14 @@ pub fn set_config(&mut self, new_value: String) {
 - Community governance → DAO
 
 Start simple. Add complexity only when you need it!`,
+  },
+  {
+    title: 'Tradeoffs (Nothing Is Perfect!)',
+    content: `A castle with one guard is simple to manage but has real tradeoffs. The owner pattern is dead simple to implement and easy to understand. One guard has full control, which makes decisions fast and clear. But here's the thing: you only get one guard. If that person loses their key, the castle is frozen forever with no way in. If they go rogue, there's nothing stopping them from opening the gates to anyone. And when your team grows, you can't just give everyone guard level access — that's a security nightmare.
+
+So use this for personal projects and simple contracts where you truly are the only one who should make calls. But the moment you need multiple trusted people involved, or different access levels for different roles, you need something more sophisticated. That's where role based access or multi signature comes in.
+
+**When NOT to use Owner Pattern:** If you're building a DAO, team treasury, or any project where multiple people should have different access levels — use RBAC or multi signature instead!`,
   },
   {
     title: 'The Design Insight',
@@ -143,27 +182,31 @@ The \`env::predecessor_account_id()\` gives you exactly that - the account that 
 The owner pattern simply asks: "Is the caller the owner?" If yes, proceed. If no, revert. Simple but effective!`,
   },
   {
-    title: 'Tradeoffs (Nothing Is Perfect!)',
-    content: `Owner pattern is simple, but has limits:
+    title: "The Naive Approach (Don't Do This!)",
+    content: `Imagine a castle with NO guard at all:
 
-**OWNER PATTERN gives you:**
-- ✅ Simple to implement
-- ✅ Easy to understand
-- ✅ Single point of control
+\`\`\`rust
+// BAD: No access control at all!
+struct BadContract {
+    value: u64,
+    // No owner_id! Anyone can do anything!
+}
 
-**OWNER PATTERN doesn't give you:**
-- ❌ Multiple administrators
-- ❌ Role-based flexibility
-- ❌ Consensus (one person can make mistakes)
+impl BadContract {
+    pub fn withdraw(&mut self, amount: u64) {
+        // Anyone can call this!
+        // Anyone can drain all the funds!
+        // No checks whatsoever!
+    }
+}
+\`\`\`
 
-**When owner pattern hurts you:**
-- Owner loses their key? You're stuck.
-- Owner goes rogue? No checks.
-- Team grows? Everyone needs owner-level access → risky!
+**The problem:**
+- One hacker finds a bug → game over!
+- No accountability → anyone can wreck things
+- No way to pause or fix when attacked
 
-**The insight:** Owner pattern is perfect for personal projects and simple contracts. But as soon as multiple trusted people need access, consider RBAC or multi-signature!
-
-**When NOT to use Owner Pattern:** If you're building a DAO, team treasury, or any project where multiple people should have different access levels - use RBAC or multi-signature instead!`,
+This is what happens when you skip access control entirely. Every vulnerable contract looks like this!`,
   },
   {
     title: 'Learn More',
