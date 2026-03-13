@@ -1,38 +1,40 @@
-import React, { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { difficultyColors, languageIcons } from '../data/examples'
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { difficultyColors, languageIcons } from '../data/examples';
 
 function FeaturedCarousel({ examples, onExampleSelect }) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const itemsPerPage = 3
-  const totalPages = Math.ceil(examples.length / itemsPerPage)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(examples.length / itemsPerPage);
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % totalPages)
-  }
+    setCurrentIndex((prev) => (prev + 1) % totalPages);
+  };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + totalPages) % totalPages)
-  }
+    setCurrentIndex((prev) => (prev - 1 + totalPages) % totalPages);
+  };
 
   const currentExamples = examples.slice(
     currentIndex * itemsPerPage,
     currentIndex * itemsPerPage + itemsPerPage
-  )
+  );
 
-  if (examples.length === 0) return null
+  if (examples.length === 0) return null;
 
   return (
     <div className="relative">
       {/* Carousel Container */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {currentExamples.map((example) => {
-          const difficultyClass = difficultyColors[example.difficulty] || difficultyColors['Beginner']
-          const languageIcon = languageIcons[example.language] || '📄'
+          const difficultyClass =
+            difficultyColors[example.difficulty] || difficultyColors['Beginner'];
+          const languageIcon = languageIcons[example.language] || '📄';
 
           return (
             <button
               key={example.id}
+              id={example.id}
               onClick={() => onExampleSelect(example)}
               className="bg-white dark:bg-[#111216] rounded-xl p-6 border border-gray-200 dark:border-[#3e3e42] hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-300 transform hover:-translate-y-2 text-left group"
             >
@@ -42,21 +44,17 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
                     {example.name}
                   </h3>
                 </div>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full border ${difficultyClass}`}
-                >
+                <span className={`text-xs px-2 py-1 rounded-full border ${difficultyClass}`}>
                   {example.difficulty}
                 </span>
               </div>
-              <p className="text-sm text-gray-400 mb-4">
-                {example.category}
-              </p>
+              <p className="text-sm text-gray-400 mb-4">{example.category}</p>
               <div className="flex items-center justify-end text-gray-600 dark:text-gray-500 text-xs font-medium group-hover:gap-2 transition-all">
                 View example
                 <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
-          )
+          );
         })}
       </div>
 
@@ -98,13 +96,7 @@ function FeaturedCarousel({ examples, onExampleSelect }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default FeaturedCarousel
-
-
-
-
-
-
+export default FeaturedCarousel;
