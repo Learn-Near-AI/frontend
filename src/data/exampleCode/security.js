@@ -437,6 +437,7 @@ class Contract {
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
+use near_sdk::Promise;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -445,6 +446,7 @@ pub struct Contract {
     required_signatures: u32,
     approvals: UnorderedSet<String>,
     last_executed_action: Option<String>,
+    proposal_id: u64,
 }
 
 #[near]
@@ -456,6 +458,7 @@ impl Contract {
             required_signatures,
             approvals: UnorderedSet::new(b"a"),
             last_executed_action: None,
+            proposal_id: 0,
         }
     }
 
@@ -471,18 +474,28 @@ impl Contract {
         self.signers.insert(&account);
     }
 
-    pub fn approve(&mut self, action: String) {
+    pub fn propose(&mut self, action: String) -> u64 {
         // TODO: require that the caller is a signer
-        // TODO: record an approval for this action (e.g., format!("{}:{}", action, signer))
+        // TODO: get current proposal_id, increment it
+        // TODO: log and return the new proposal_id
+        0
     }
 
-    fn can_execute(&self, action: &str) -> bool {
-        // TODO: Return true if at least required_signatures signers have approved this action.
+    pub fn approve(&mut self, proposal_id: u64, action: String) {
+        // TODO: require that the caller is a signer
+        // TODO: require proposal_id is valid (less than current proposal_id)
+        // TODO: record approval with key format "proposal_id:action:signer"
     }
 
-    pub fn execute(&mut self, action: String) {
-        // TODO: require can_execute for this action
-        // TODO: clear approvals for this action after execution
+    fn can_execute(&self, proposal_id: u64, action: &str) -> bool {
+        // TODO: Return true if at least required_signatures signers have approved this proposal_id
+        false
+    }
+
+    pub fn execute(&mut self, proposal_id: u64, action: String) {
+        // TODO: require can_execute for this proposal_id
+        // TODO: clear approvals for this proposal_id after execution
+        // TODO: parse action (format: "transfer:amount:recipient") and execute Promise transfer
         // TODO: set last_executed_action
     }
 
@@ -490,10 +503,8 @@ impl Contract {
         self.signers.to_vec()
     }
 
-    pub fn get_approvals(&self, action: String) -> Vec<AccountId> {
-        self.signers.iter()
-            .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
-            .collect()
+    pub fn get_proposal_count(&self) -> u64 {
+        self.proposal_id
     }
 
     pub fn get_last_action(&self) -> Option<String> {
@@ -504,24 +515,22 @@ impl Contract {
 
 @NearBindgen({})
 class Contract {
-  constructor({ signers = [], required_signatures = 2, approvals = [], last_executed_action = null } = {}) {
+  constructor({ signers = [], required_signatures = 2, approvals = [], last_executed_action = null, proposal_id = 0 } = {}) {
     this.signers = signers;
     this.required_signatures = required_signatures;
     this.approvals = approvals;
     this.last_executed_action = last_executed_action;
+    this.proposal_id = proposal_id;
   }
 
-  // Internal helper - not exposed as a view method
-  can_execute({ action }) {
-    // TODO: count this.signers where approvals includes action:signer; return count >= required_signatures
+  can_execute({ proposal_id, action }) {
+    // TODO: count approvals with key format "proposal_id:action:signer"
+    // return count >= required_signatures
     return false;
   }
 
   @call({})
   add_signer({ account }) {
-    // Note: First signer must be added using the contract account as --accountId
-    // (e.g., near call <contract> add_signer ... --accountId <contract>)
-    // This makes predecessor = currentAccountId, allowing bootstrapping.
     const pred = near.predecessorAccountId();
     const ok = (this.signers.length === 0 && pred === near.currentAccountId()) || this.signers.includes(pred);
     if (!ok) near.panic("Only deployer (when empty) or signers can add");
@@ -529,13 +538,20 @@ class Contract {
   }
 
   @call({})
-  approve({ action }) {
-    // TODO: require signer; push action:signer to approvals
+  propose({ action }) {
+    // TODO: require signer; get current proposal_id, increment; log and return
+    return 0;
   }
 
   @call({})
-  execute({ action }) {
-    // TODO: require can_execute; remove approvals for action; set last_executed_action
+  approve({ proposal_id, action }) {
+    // TODO: require signer; require valid proposal_id; push "proposal_id:action:signer" to approvals
+  }
+
+  @call({})
+  execute({ proposal_id, action }) {
+    // TODO: require can_execute; parse "transfer:amount:recipient"; execute Promise transfer
+    // set last_executed_action
   }
 
   @view({})
@@ -549,8 +565,8 @@ class Contract {
   }
 
   @view({})
-  get_approvals() {
-    return this.approvals;
+  get_proposal_count() {
+    return this.proposal_id;
   }
 }
 `,
@@ -558,9 +574,8 @@ class Contract {
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
+use near_sdk::Promise;
 
-/// Approvals are scoped per action: key "action:signer" means signer approved action.
-/// Note: In production, add a nonce to prevent replay attacks.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
@@ -568,6 +583,7 @@ pub struct Contract {
     required_signatures: u32,
     approvals: UnorderedSet<String>,
     last_executed_action: Option<String>,
+    proposal_id: u64,
 }
 
 #[near]
@@ -579,12 +595,11 @@ impl Contract {
             required_signatures,
             approvals: UnorderedSet::new(b"a"),
             last_executed_action: None,
+            proposal_id: 0,
         }
     }
 
     pub fn add_signer(&mut self, account: AccountId) {
-        // Note: First signer must be added by calling this method from the contract account itself
-        // (e.g., via a scheduled callback). After that, existing signers can add more.
         let pred = env::predecessor_account_id();
         require!(
             (self.signers.is_empty() && pred == env::current_account_id()) || self.signers.contains(&pred),
@@ -593,29 +608,52 @@ impl Contract {
         self.signers.insert(&account);
     }
 
-    /// Approve a specific action. Each action requires its own approvals.
-    pub fn approve(&mut self, action: String) {
+    pub fn propose(&mut self, action: String) -> u64 {
+        let pred = env::predecessor_account_id();
+        require!(self.signers.contains(&pred), "Not a signer");
+        
+        let proposal_id = self.proposal_id;
+        self.proposal_id += 1;
+        
+        env::log_str(&format!("Proposal {} created: {}", proposal_id, action));
+        proposal_id
+    }
+
+    pub fn approve(&mut self, proposal_id: u64, action: String) {
         let signer = env::predecessor_account_id();
         require!(self.signers.contains(&signer), "Not a signer");
-        let key = format!("{}:{}", action, signer);
+        require!(proposal_id < self.proposal_id, "Invalid proposal");
+        
+        let key = format!("{}:{}:{}", proposal_id, action, signer);
         self.approvals.insert(&key);
     }
 
-    fn can_execute(&self, action: &str) -> bool {
+    fn can_execute(&self, proposal_id: u64, action: &str) -> bool {
         let count = self.signers.iter()
-            .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
+            .filter(|s| self.approvals.contains(&format!("{}:{}:{}", proposal_id, action, s)))
             .count();
         count >= self.required_signatures as usize
     }
 
-    pub fn execute(&mut self, action: String) {
-        require!(self.can_execute(&action), "Not enough approvals for this action");
+    pub fn execute(&mut self, proposal_id: u64, action: String) {
+        require!(self.can_execute(proposal_id, &action), "Not enough approvals");
+        
         for signer in self.signers.iter() {
-            let key = format!("{}:{}", action, signer);
+            let key = format!("{}:{}:{}", proposal_id, action, signer);
             self.approvals.remove(&key);
         }
-        // Demo: log the action (in production: transfer, config change, etc.)
-        env::log_str(&format!("Executed: {}", action));
+        
+        let parts: Vec<&str> = action.split(':').collect();
+        
+        if parts.len() == 3 && parts[0] == "transfer" {
+            let amount: u128 = parts[1].parse().expect("Invalid amount");
+            let recipient: AccountId = parts[2].parse().expect("Invalid recipient");
+            Promise::new(recipient).transfer(amount);
+            env::log_str(&format!("Executed transfer of {} NEAR to {}", amount, recipient));
+        } else {
+            env::log_str(&format!("Executed proposal {}: {}", proposal_id, action));
+        }
+        
         self.last_executed_action = Some(action);
     }
 
@@ -623,10 +661,8 @@ impl Contract {
         self.signers.iter().collect()
     }
 
-    pub fn get_approvals(&self, action: String) -> Vec<AccountId> {
-        self.signers.iter()
-            .filter(|s| self.approvals.contains(&format!("{}:{}", action, s)))
-            .collect()
+    pub fn get_proposal_count(&self) -> u64 {
+        self.proposal_id
     }
 
     pub fn get_last_action(&self) -> Option<String> {
@@ -637,23 +673,21 @@ impl Contract {
 
 @NearBindgen({})
 class Contract {
-  constructor({ signers = [], required_signatures = 2, approvals = [], last_executed_action = null } = {}) {
+  constructor({ signers = [], required_signatures = 2, approvals = [], last_executed_action = null, proposal_id = 0 } = {}) {
     this.signers = signers;
     this.required_signatures = required_signatures;
     this.approvals = approvals;
     this.last_executed_action = last_executed_action;
+    this.proposal_id = proposal_id;
   }
 
-  can_execute({ action }) {
-    const count = this.signers.filter((s) => this.approvals.includes(\`\${action}:\${s}\`)).length;
+  can_execute({ proposal_id, action }) {
+    const count = this.signers.filter((s) => this.approvals.includes(\`\${proposal_id}:\${action}:\${s}\`)).length;
     return count >= this.required_signatures;
   }
 
   @call({})
   add_signer({ account }) {
-    // Note: First signer must be added using the contract account as --accountId
-    // (e.g., near call <contract> add_signer ... --accountId <contract>)
-    // This makes predecessor = currentAccountId, allowing bootstrapping.
     const pred = near.predecessorAccountId();
     const ok = (this.signers.length === 0 && pred === near.currentAccountId()) || this.signers.includes(pred);
     if (!ok) near.panic("Only deployer (when empty) or signers can add");
@@ -661,23 +695,48 @@ class Contract {
   }
 
   @call({})
-  approve({ action }) {
+  propose({ action }) {
+    const pred = near.predecessorAccountId();
+    if (!this.signers.includes(pred)) near.panic("Not a signer");
+    
+    const proposal_id = this.proposal_id;
+    this.proposal_id += 1;
+    
+    near.log("Proposal " + proposal_id + " created: " + action);
+    return proposal_id;
+  }
+
+  @call({})
+  approve({ proposal_id, action }) {
     const signer = near.predecessorAccountId();
     if (!this.signers.includes(signer)) near.panic("Not a signer");
-    const key = \`\${action}:\${signer}\`;
+    if (proposal_id >= this.proposal_id) near.panic("Invalid proposal");
+    
+    const key = \`\${proposal_id}:\${action}:\${signer}\`;
     if (!this.approvals.includes(key)) this.approvals.push(key);
   }
 
   @call({})
-  execute({ action }) {
-    if (!this.can_execute({ action })) near.panic("Not enough approvals for this action");
+  execute({ proposal_id, action }) {
+    if (!this.can_execute({ proposal_id, action })) near.panic("Not enough approvals");
+    
     for (const signer of this.signers) {
-      const key = \`\${action}:\${signer}\`;
+      const key = \`\${proposal_id}:\${action}:\${signer}\`;
       const idx = this.approvals.indexOf(key);
       if (idx >= 0) this.approvals.splice(idx, 1);
     }
+    
+    const parts = action.split(':');
+    if (parts.length === 3 && parts[0] === "transfer") {
+      const amount = parts[1];
+      const recipient = parts[2];
+      near.log("Executed transfer of " + amount + " NEAR to " + recipient);
+    } else {
+      near.log("Executed proposal " + proposal_id + ": " + action);
+    }
+    }
+    
     this.last_executed_action = action;
-    near.log("Executed: " + action);
   }
 
   @view({})
@@ -691,8 +750,8 @@ class Contract {
   }
 
   @view({})
-  get_approvals({ action }) {
-    return this.signers.filter((s) => this.approvals.includes(\`\${action}:\${s}\`));
+  get_proposal_count() {
+    return this.proposal_id;
   }
 }
 `,
