@@ -32,7 +32,7 @@ A contract with default + user-specific greetings — THREE view methods showing
 - Cost gas (tiny fee!)
 - Requires wallet signature
 
-**Why this matters:**
+Why this matters:
 - View = checking a map (free!)
 - Change = picking up an item (costs something!)
 
@@ -66,7 +66,7 @@ impl Contract {
 }
 \`\`\`
 
-**What's happening:**
+What's happening:
 - \`default_greeting\` = Same for everyone
 - \`user_greetings: LookupMap\` = Per-user storage (like a personalized dictionary!)
 - \`LookupMap::new(b"g")\` = Storage prefix "g"
@@ -89,7 +89,7 @@ impl Contract {
 }
 \`\`\`
 
-**The problem:**
+The problem:
 - Can't personalize for users
 - Everyone sees identical content
 - Not realistic for real apps
@@ -103,7 +103,6 @@ Real apps need user-specific data!`,
 
 \`\`\`rust
 // Get a specific account's greeting (or the default)
-// ✅ Takes account as a parameter — view methods have no real "caller"
 pub fn get_greeting(&self, account: AccountId) -> String {
     self.user_greetings
         .get(&account)
@@ -121,16 +120,13 @@ pub fn has_custom_greeting(&self, account: AccountId) -> bool {
 }
 \`\`\`
 
-**Why \`account: AccountId\` instead of \`env::predecessor_account_id()\`?**
+Here's the thing that trips up beginners: why \`account: AccountId\` instead of \`env::predecessor_account_id()\`?
 
-This is a common trap. View methods are called off-chain — no transaction, no signer.
-\`env::predecessor_account_id()\` inside a view call returns the **contract's own account**,
-not the person asking. So if you want "whose greeting is this?", you must ask the caller
-to tell you their account ID as a parameter.
+View methods are called off-chain — no transaction, no signer. \`env::predecessor_account_id()\` inside a view call returns the **contract's own account**, not the person asking. So if you want "whose greeting is this?", you must ask the caller to tell you their account ID as a parameter.
 
-**Breaking it down:**
+Breaking it down:
 - \`account: AccountId\` = The account to look up (passed by the caller)
-- \`.get(&account)\` = Lookup in map
+- \`get(&account)\` = Lookup in map
 - \`unwrap_or_else(|| default)\` = Use default if not found
 - \`.len()\` = String length (computed, no storage read!)
 
@@ -144,9 +140,7 @@ These are ALL free to call — no gas needed!`,
   'change-methods': [
     {
       title: 'Time To Build!',
-      content: `Token transfers are change methods that modify user balances.
-
-Scouts are great, but sometimes you need to actually DO stuff. That's where **change methods** come in.
+      content: `Scouts are great, but sometimes you need to actually DO stuff. That's where **change methods** come in.
 
 Change methods are like:
 - Picking up items in a game
@@ -169,7 +163,7 @@ A contract with OWNER-PROTECTED change methods — only the owner can modify the
 5. **If NO:** Revert immediately, message unchanged
 6. **Receipt arrives** — proof of result
 
-**The magic of require!:**
+The magic of require!:
 - Stops bad actors cold
 - Clear error message for users
 - Nothing gets saved if check fails!
@@ -218,31 +212,29 @@ impl Contract {
 }
 \`\`\`
 
-**Key additions:**
+Key additions:
 - \`owner_id\` stored in state
 - \`require!\` for access control
 - \`require!\` for validation
 
-Note: \`env::predecessor_account_id()\` is safe here because change methods
-ARE real transactions — the signer is always known!`,
+Note: \`env::predecessor_account_id()\` is safe here because change methods ARE real transactions — the signer is always known!`,
     },
     {
       title: 'Gas - The Fuel Of Blockchain',
       content: `Every change costs **gas** - a small fee for the validators.
 
-**What affects gas:**
+What affects gas:
 - How much data you read/write
 - How complex your code is
 - How busy the network is
 
-**The good news:**
+The good news:
 - NEAR fees are super low (fractions of a cent!)
 - View methods are FREE
 - require! checks are cheap
 
-**The insight:**
-- View = checking a map (free!)
-- Change = updating the map (small fee!)
+View = checking a map (free!)
+Change = updating the map (small fee!)
 
 You're now a builder! Build securely!`,
     },
@@ -264,7 +256,7 @@ impl Contract {
 }
 \`\`\`
 
-**The problem:**
+The problem:
 - Anyone can vandalize your contract
 - No accountability
 - No security at all!
@@ -307,7 +299,7 @@ pub fn reset_message(&mut self) {
 }
 \`\`\`
 
-**The pattern:**
+The pattern:
 1. \`env::predecessor_account_id()\` — Who called?
 2. Compare to \`self.owner_id\` — Are they the boss?
 3. If yes → proceed; if no → revert!

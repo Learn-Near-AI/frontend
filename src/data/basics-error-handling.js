@@ -71,7 +71,7 @@ pub fn divide(&self, a: u64, b: u64) -> u64 {
 }
 \`\`\`
 
-**The problem:**
+The problem:
 - Division by zero crashes contract
 - No graceful failure
 - User gets cryptic error
@@ -90,12 +90,12 @@ pub fn try_parse_number(&self, s: String) -> Option<u64> {
 }
 \`\`\`
 
-**What's happening:**
+What's happening:
 - \`Option<u64>\` means "maybe a number, maybe nothing"
 - \`.parse().ok()\` tries to parse the string; if it fails, returns None
 - Caller can check: \`if let Some(n) = result { ... }\`
 
-**How to use Option in your code:**
+How to use Option in your code:
 \`\`\`rust
 let result = contract.try_parse_number("42".to_string());
 
@@ -108,10 +108,7 @@ if let Some(number) = result {
 }
 \`\`\`
 
-**Why Option?**
-- Graceful failure - doesn't crash, just says "I couldn't do that"
-- Caller decides what to do with nothing
-- Perfect for expected failures!`,
+Why Option? Graceful failure - doesn't crash, just says "I couldn't do that". Caller decides what to do with nothing. Perfect for expected failures!`,
     },
     {
       title: 'require! - Panic With A Message',
@@ -133,16 +130,16 @@ pub fn strict_check(&self, value: u64) {
 }
 \`\`\`
 
-> **Why i64 here?** We use \`i64\` (signed integer) for \`assert_positive\` because it allows NEGATIVE values! This lets us catch when someone accidentally passes a negative number. All other examples use \`u64\` (unsigned) because negative numbers don't make sense for counters, balances, etc.
+> Why i64 here? We use \`i64\` (signed integer) for \`assert_positive\` because it allows NEGATIVE values! This lets us catch when someone accidentally passes a negative number. All other examples use \`u64\` (unsigned) because negative numbers don't make sense for counters, balances, etc.
 
-**When to use each:**
+When to use each:
 
-**require!(condition, "message"):**
+require!(condition, "message"):
 - For validation errors
 - User's fault - they gave bad input
 - Clear message helps them fix it
 
-**env::panic_str("message"):**
+env::panic_str("message"):
 - For programmer errors
 - Something that should NEVER happen
 - Critical failures that need attention`,
@@ -159,12 +156,12 @@ pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
 }
 \`\`\`
 
-**Why not just divide?**
+Why not just divide?
 In Rust, division by zero PANICS - the whole contract crashes! That's bad.
 
-**The solution:** Check first, then divide. Return None if we can't do it safely.
+The solution: Check first, then divide. Return None if we can't do it safely.
 
-**Alternative - with unwrap_or:**
+Alternative - with unwrap_or:
 \`\`\`rust
 pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
     s.parse().unwrap_or(default)

@@ -21,7 +21,7 @@ export const basicsDetailedExplanations = {
 **What is this place?**
 Think of NEARbyExample like a giant shared notebook that everyone can see, but only you can write in (for your own pages). Once you write something, it stays there forever. No one can rip out the page or change what you wrote.
 
-**Why should you care?**
+Why should you care?
 - Build apps that work like magic - no server needed
 - Your code runs on computers all over the world
 - Users don't need to trust you - the math protects them

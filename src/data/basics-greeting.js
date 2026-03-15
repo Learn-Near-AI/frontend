@@ -47,12 +47,11 @@ impl Contract {
 }
 \`\`\`
 
-**What's happening:**
+What's happening:
 - \`#[init]\` = Marks this as the constructor - must be called ONCE when deploying
 - \`pub fn new() -> Self\` = Creates and returns the contract instance
 - \`Self {}\` = The empty struct we defined earlier
 
-**Why does this matter?**
 In later lessons, you'll add real state here - like setting an owner, initial balance, or default message. The constructor is your one chance to set up the contract's initial values.`,
     },
     {
@@ -66,7 +65,7 @@ pub fn greet(&self) -> String {
 }
 \`\`\`
 
-**Breaking it down:**
+Breaking it down:
 - \`pub fn greet\` = The function name (what you call from outside)
 - \`&self\` = Read-only! This method can LOOK at data but can't CHANGE anything
 - \`-> String\` = Returns text
@@ -95,14 +94,13 @@ use near_sdk::PanicOnDefault;
 pub struct Contract {}          // The brain - empty for now!
 \`\`\`
 
-> **Note:** You'll see \`use near_sdk::...\` at the top of each code snippet. These imports bring in the NEAR SDK types you need. Don't worry about memorizing them — you'll see them repeated often enough that they'll become familiar!
+> You'll see \`use near_sdk::...\` at the top of each code snippet. These imports bring in the NEAR SDK types you need. Don't worry about memorizing them — you'll see them repeated often enough that they'll become familiar!
 
-**What's happening:**
+What's happening:
 - \`pub struct Contract {}\` = The contract's brain (currently empty)
 - \`#[near(contract_state)]\` = Tells NEAR "save this struct's data on-chain"
 - \`#[derive(PanicOnDefault)]\` = Safety net! If someone tries to use the contract without calling \`new()\`, it panics. This prevents accidentally using an uninitialized contract.
 
-**Why does this matter?**
 Think of it like a car without a key. You don't want someone driving it by accident! This pattern ensures the contract is properly set up before anyone can use it.`,
     },
     {

@@ -17,26 +17,24 @@ A message board where users can set a message - but with rules! Messages must be
       title: 'Common Guard Patterns',
       content: `Here are moves every gatekeeper should know:
 
-**Check if empty (using length):**
+Check if empty (using length):
 \`\`\`rust
 require!(string.len() > 0, "Required field");
 \`\`\`
 
-**Check the size:**
+Check the size:
 \`\`\`rust
 require!(amount <= max_limit, "Too big!");
 \`\`\`
 
-**Check for valid numbers:**
+Check for valid numbers:
 \`\`\`rust
 require!(value > 0, "Must be positive");
 \`\`\`
 
-**Check account IDs:**
-For account IDs, use NEAR's built-in validation — no manual string checks needed! You'll see this in the Owner Pattern lesson.
+For account IDs, use NEAR's built-in validation — no manual string checks needed!
 
-**The pattern:**
-\`require!(condition, "error message")\`
+The pattern: \`require!(condition, "error message")\`
 
 If condition is false → panic with message!
 If condition is true → continue normally`,
@@ -55,7 +53,7 @@ pub fn set_message(&mut self, message: String) {
 }
 \`\`\`
 
-**The problem:**
+The problem:
 - Empty messages clutter your app
 - Massive strings eat storage
 - Hackers can exploit bad data
@@ -93,7 +91,7 @@ impl Contract {
 }
 \`\`\`
 
-**Note:** \`String::new()\` is just Rust's way of creating an empty string — same thing as \`"".to_string()\` that you saw in earlier lessons.
+Note: \`String::new()\` is just Rust's way of creating an empty string — same thing as \`"".to_string()\`.
 
 We have a simple message field and a getter. Now let's add the validation!`,
     },
@@ -116,7 +114,7 @@ We have a simple message field and a getter. Now let's add the validation!`,
 - Invalid data doesn't get stored
 - Saves users gas!
 
-**Your turn:**
+Your turn:
 Try setting an empty message or one that's too long. See how the contract protects itself!`,
     },
     {
@@ -136,7 +134,7 @@ pub fn set_message(&mut self, message: String) {
 }
 \`\`\`
 
-**How require! works:**
+How require! works:
 - If the check FAILS, the whole transaction stops
 - The error message tells the user what went wrong
 - Nothing gets saved to state
@@ -144,8 +142,7 @@ pub fn set_message(&mut self, message: String) {
 
 It's like the gatekeeper saying "Sorry, that won't fit through the gate!"
 
-**Why require!?**
-It's the standard way to validate in Rust NEAR contracts. Simple, clear, and stops bad data before it gets saved!`,
+Why require!? It's the standard way to validate in Rust NEAR contracts. Simple, clear, and stops bad data before it gets saved!`,
     },
     {
       title: 'Learn More',

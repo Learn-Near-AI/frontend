@@ -30,12 +30,12 @@ pub fn set_greeting(&mut self, new_greeting: String) {
 }
 \`\`\`
 
-**The pattern:**
+The pattern:
 1. Get caller: \`env::predecessor_account_id()\`
 2. Compare to owner: \`== self.owner_id\`
 3. If match → proceed; if not → revert!
 
-**require!** stops bad actors cold!`,
+require! stops bad actors cold!`,
     },
     {
       title: 'The Constructor - Your First Choice',
@@ -57,12 +57,11 @@ pub fn new(initial_greeting: Option<String>) -> Self {
 }
 \`\`\`
 
-**Key distinction:**
+Key distinction:
 - \`env::predecessor_account_id()\` = WHO DEPLOYED the contract (you!)
 - \`env::current_account_id()\` = WHERE the contract lives
 
-**Why predecessor?**
-When YOU deploy, you're the "predecessor" — so you become the owner!`,
+Why predecessor? When YOU deploy, you're the "predecessor" — so you become the owner!`,
     },
     {
       title: 'Reading - View Methods',
@@ -80,7 +79,7 @@ pub fn get_greeting(&self) -> String {
 }
 \`\`\`
 
-**Breaking it down:**
+Breaking it down:
 - \`&self\` = Read-only, no changes
 - \`.clone()\` = Returns a copy
 - View methods are **free** — no gas needed!
@@ -106,7 +105,7 @@ impl Contract {
 }
 \`\`\`
 
-**The problem:**
+The problem:
 - Anyone can modify your contract
 - No accountability
 - Hackers can change anything
@@ -129,13 +128,13 @@ pub struct Contract {
 }
 \`\`\`
 
-**What's happening:**
+What's happening:
 - \`owner_id: AccountId\` = The boss account
 - \`greeting: String\` = Mutable state (but protected!)
 - \`#[near(contract_state)]\` = Persists on-chain
 - \`#[derive(PanicOnDefault)]\` = Safety net!
 
-**Why this matters:**
+Why this matters:
 The contract state is what persists between calls. This is your contract's memory!`,
     },
     {

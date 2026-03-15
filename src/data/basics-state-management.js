@@ -34,7 +34,6 @@ It's like a game that auto-saves after every action. Pretty cool, right?
 **Try it:**
 Call increment, then call get_counter. Does it remember? You bet it does!
 
-**Why does this matter?**
 State persistence is what makes smart contracts powerful. The data survives even when you're not using the app. It's like having a database that never goes down!`,
     },
     {
@@ -60,13 +59,13 @@ impl Contract {
 }
 \`\`\`
 
-> **Fun fact:** u64 can store values from 0 to 18,446,744,073,709,551,615 — that's 18 quintillion! Plenty for any counter.
+> Fun fact: u64 can store values from 0 to 18,446,744,073,709,551,615 — that's 18 quintillion! Plenty for any counter.
 
-**What's happening:**
+What's happening:
 - \`counter: u64\` = An unsigned 64-bit integer
 - In the constructor, we initialize it to 0
 
-**Why u64?**
+Why u64?
 - It can store HUGE numbers (sufficient for most counters)
 - It's efficient - NEAR knows exactly how much space it takes
 - No negative numbers (use i64 if you need negatives)
@@ -77,18 +76,18 @@ Think of it like a save file in a game. The contract loads this up every time so
       title: 'Real World Inventories',
       content: `Big apps have HUGE inventories:
 
-**A banking app might track:**
+A banking app might track:
 - User balances (millions of accounts!)
 - Total money in system
 - Is the bank paused?
 
-**An NFT game might track:**
+An NFT game might track:
 - Player's characters
 - Each character's stats
 - Items in inventory
 - Quest progress
 
-**A voting system might track:**
+A voting system might track:
 - Total votes
 - Who voted (to prevent double-voting)
 - Proposal status
@@ -111,20 +110,17 @@ pub fn increment(&mut self) {
 }
 \`\`\`
 
-**Breaking it down:**
-
 **View method (\`get_counter\`):**
 - Uses \`&self\` - read-only, no changes
 - Returns \`u64\` - just the number
 - Free to call!
-- **Note:** No \`.clone()\` needed here! Numbers copy automatically in Rust, but strings need \`.clone()\` to avoid moving them. (Remember that from the View Methods lesson?)
+- No \`.clone()\` needed here! Numbers copy automatically in Rust, but strings need \`.clone()\`. (Remember that from the View Methods lesson?)
 
 **Change method (\`increment\`):**
 - Uses \`&mut self\` - can modify state
 - \`+= 1\` means "add 1 to myself"
 - Same as \`self.counter = self.counter + 1\`
 
-**Why does this matter?**
 The counter pattern is everywhere! Token supplies, vote counts, user scores - they all work this way. One method reads, one method changes. Simple!`,
     },
     {

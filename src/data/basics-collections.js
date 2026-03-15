@@ -31,13 +31,13 @@ pub fn add_tag(&mut self, tag: String) {
 }
 \`\`\`
 
-**How it works:**
+How it works:
 - \`push(&item)\` adds to the END of the list
 - \`&\` is required - we're borrowing the data
 - Items are added in order: first push goes to index 0, second to index 1, etc.
 - Tags work exactly the same way — just with a different storage prefix!
 
-**What about removing?**
+What about removing?
 \`\`\`rust
 pub fn remove_item(&mut self, index: u64) {
     require!(index < self.items.len(), "Index out of bounds");
@@ -45,10 +45,9 @@ pub fn remove_item(&mut self, index: u64) {
 }
 \`\`\`
 
-> **Key Detail :** \`swap_remove\` does NOT preserve order! It swaps the removed item with the LAST item, then removes the last position. So [A, B, C] removing index 0 becomes [C, B], not [B, C]. If order matters to you, use a different method or accept this behavior!
+> Key detail: \`swap_remove\` does NOT preserve order! It swaps the removed item with the LAST item, then removes the last position. So [A, B, C] removing index 0 becomes [C, B], not [B, C]. If order matters to you, use a different method or accept this behavior!
 
-We MUST check bounds first - what if index is too big?
-That's why we use require! to validate!`,
+We MUST check bounds first - what if index is too big? That's why we use require! to validate!`,
     },
     {
       title: 'The Contract Setup',
@@ -78,7 +77,7 @@ impl Contract {
 }
 \`\`\`
 
-**What's happening:**
+What's happening:
 - \`Vector<String>\` = A list that holds strings
 - \`Vector::new(b"i")\` = Creates the vector with storage prefix "i"
 - Each collection needs its OWN unique prefix — "i" for items, "t" for tags
@@ -88,27 +87,27 @@ impl Contract {
       title: 'Vector Toolkit - Quick Reference',
       content: `Here's what you can do with vectors:
 
-**Add to the end:**
+Add to the end:
 \`\`\`rust
 self.items.push(&new_item);
 \`\`\`
 
-**Get by position:**
+Get by position:
 \`\`\`rust
 let item = self.items.get(index);  // Option<String>
 \`\`\`
 
-**Remove by position:**
+Remove by position:
 \`\`\`rust
-self.items.swap_remove(index);  //  Swaps with last, doesn't preserve order!
+self.items.swap_remove(index);  // Swaps with last, doesn't preserve order!
 \`\`\`
 
-**How many items?**
+How many items?
 \`\`\`rust
 let count = self.items.len();
 \`\`\`
 
-**Loop through all:**
+Loop through all:
 \`\`\`rust
 for item in self.items.iter() {
     // do something with each item
@@ -138,21 +137,20 @@ pub fn get_tags(&self) -> Vec<String> {
 }
 \`\`\`
 
-**get_item:**
+get_item:
 - Returns \`Option<String>\` - might have a value, might be None
 - If index is out of bounds, returns None
 - Uses borrowing (\`&self\`) - free to call!
 
-**get_items:**
+get_items:
 - Returns a regular Rust \`Vec<String>\`
 - Uses \`.iter().collect()\` to convert
 - Makes a copy of all items
-- **Warning:** This is a gas trap for large lists! Works fine for small lists (under ~100 items), but for bigger ones you'll want pagination.
+- Warning: This is a gas trap for large lists! Works fine for small lists (under ~100 items), but for bigger ones you'll want pagination.
 
-**get_tags:**
-- Works exactly like get_items — same pattern, different collection!
+get_tags: Works exactly like get_items — same pattern, different collection!
 
-**Why two methods?**
+Why two methods?
 - \`get_item\` is efficient - just one item
 - \`get_items\` gets everything - more work, but sometimes you need it!`,
     },
