@@ -1095,9 +1095,7 @@ impl Contract {
     }
 
     pub fn set_message(&mut self, new_message: String) {
-        // TODO: Emit the MessageUpdated event BEFORE updating state
-        //  Important: Events are fire-and-forget. If you panic after emit(),
-        // the event is already written to the receipt!
+        // TODO: Update state first, then emit the MessageUpdated event AFTER
         // Hint: Event::MessageUpdated { old_message, new_message, updated_by }.emit()
         
         self.message = new_message;
@@ -1167,30 +1165,30 @@ impl Contract {
     pub fn set_message(&mut self, new_message: String) {
         let old_message = self.message.clone();
 
-        //  CRITICAL: Emit BEFORE state change!
-        // Events are fire-and-forget — if you panic after emit(),
-        // the event is already written to the receipt!
+        // Update state first
+        self.message = new_message.clone();
+
+        // Then emit event AFTER state change
         Event::MessageUpdated {
             old_message,
-            new_message: new_message.clone(),
+            new_message,
             updated_by: near_sdk::env::predecessor_account_id(),
         }
         .emit();
-
-        // NOW update state
-        self.message = new_message;
     }
 
     pub fn delete_message(&mut self) {
         let deleted_message = self.message.clone();
 
+        // Update state first
+        self.message = String::new();
+
+        // Then emit event AFTER state change
         Event::MessageDeleted {
             deleted_message,
             deleted_by: near_sdk::env::predecessor_account_id(),
         }
         .emit();
-
-        self.message = String::new();
     }
 }`,
     JavaScript: `import { NearBindgen, call, near } from "near-sdk-js";
@@ -1203,18 +1201,22 @@ class Contract {
 
   @call({})
   set_message({ message }) {
+    // Update state first
+    const old_message = this.message;
+    this.message = message;
+    
+    // Then emit event AFTER state change
     const event = {
       standard: "learn-near-message",
       version: "1.0.0",
       event: "MessageUpdated",
       data: { 
-        old_message: this.message,
+        old_message,
         new_message: message,
         updated_by: near.sender,
       },
     };
     near.log("EVENT_JSON:" + JSON.stringify(event));
-    this.message = message;
   }
 }
 

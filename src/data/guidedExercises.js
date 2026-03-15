@@ -89,7 +89,7 @@ export const putItToTheTest = {
   events: `### Put it to the test
 
 - Define a **\`#[near(event_json(standard = "learn-near-message"))]\`** enum with **\`MessageUpdated\`** variant containing \`old_message\`, \`new_message\`, and \`updated_by\`.
-- In **\`set_message\`**, emit the event using **\`self.emit()\`** BEFORE updating state.
+- In **\`set_message\`**, update state first, then emit the event using **\`self.emit()\`** AFTER.
 - Add the **\`updated_by: AccountId\`** field using **\`near_sdk::env::predecessor_account_id()\`**.
 - Run to compile; calling set_message should emit the NEP-297 event.`,
 
@@ -266,12 +266,12 @@ export const exerciseHints = {
   },
   events: {
     Rust: [
-      'Define #[near(event_json(standard = "learn-near-message"))] enum Event with #[event_version("1.0.0")] MessageUpdated { old_message, new_message, updated_by }.',
-      'Use Event::MessageUpdated { old_message: ..., new_message: ..., updated_by: near_sdk::env::predecessor_account_id() }.emit() in set_message.',
+      'Define #[near(event_json(standard: "learn-near-message"))] enum Event with #[event_version("1.0.0")] MessageUpdated { old_message, new_message, updated_by }.',
+      'In set_message: update state first, then emit Event::MessageUpdated { old_message, new_message, updated_by }.emit().',
       'Remember to import near_sdk::env if using predecessor_account_id().',
     ],
     JavaScript: [
-      'Use near.log("EVENT_JSON:" + JSON.stringify({ standard: "learn-near-message", version: "1.0.0", event: "MessageUpdated", data: { ... } })).',
+      'In set_message: update this.message first, then emit using near.log("EVENT_JSON:" + JSON.stringify(...)).',
     ],
   },
   'collections-vector': {
