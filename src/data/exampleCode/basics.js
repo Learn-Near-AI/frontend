@@ -1383,24 +1383,32 @@ class Contract {
 `,
   },
   'collections-map': {
-    RustExercise: `// Use an UnorderedMap from AccountId to u64 with a unique prefix. Implement:
-// - set_balance (owner only, with overflow check)
+    RustExercise: `// Use IterableMap with StorageKey enum. Implement:
+// - set_balance (owner only)
 // - add_balance (owner only, with checked_add)
-// - subtract_balance (owner only, with checked_sub)  
+// - subtract_balance (owner only, with checked_sub)
+// - transfer (caller transfers their own tokens)
 // - get_balance (public view)
-// - get_balances (paginated, limit & start_index)
+// - get_balances (paginated with iter().skip().take())
 
+use borsh::BorshSerialize;
 use near_sdk::near;
 use near_sdk::AccountId;
-use near_sdk::collections::UnorderedMap;
+use near_sdk::store::IterableMap;
 use near_sdk::PanicOnDefault;
-use near_sdk::require;
+use near_sdk::BorshStorageKey;
+use near_sdk::{require, env};
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Balances,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
-    balances: UnorderedMap<AccountId, u64>,
+    balances: IterableMap<AccountId, u64>,
 }
 
 #[near]
@@ -1409,33 +1417,34 @@ impl Contract {
     pub fn new() -> Self {
         Self {
             owner_id: env::current_account_id(),
-            balances: UnorderedMap::new(b"b"),
+            balances: IterableMap::new(StorageKey::Balances),
         }
     }
 
     pub fn set_balance(&mut self, account: AccountId, amount: u64) {
-        // TODO: require owner only
-        self.balances.insert(&account, &amount);
+        // TODO: require owner only, then insert
     }
 
     pub fn add_balance(&mut self, account: AccountId, amount: u64) {
-        // TODO: require owner only
-        // TODO: get current, use checked_add, insert new balance
+        // TODO: require owner only, get current, checked_add, insert
     }
 
     pub fn subtract_balance(&mut self, account: AccountId, amount: u64) {
-        // TODO: require owner only
-        // TODO: get current, use checked_sub, insert new balance
+        // TODO: require owner only, get current, checked_sub, insert
+    }
+
+    pub fn transfer(&mut self, receiver_id: AccountId, amount: u64) {
+        // TODO: caller transfers their own tokens to receiver
     }
 
     pub fn get_balance(&self, account: AccountId) -> Option<u64> {
-        // Return the balance for the account, or None if not in the map.
-        ()
+        // TODO: return balance or None
+        None
     }
 
     pub fn get_balances(&self, limit: Option<u64>, start_index: Option<u64>) -> Vec<(AccountId, u64)> {
-        // TODO: paginate with skip/take, return Vec of (account, balance)
-        ()
+        // TODO: paginate with iter().skip().take()
+        Vec::new()
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -1474,17 +1483,24 @@ class Contract {
     // TODO: require owner, get current, subtract with underflow check, set
   }
 }`,
-    Rust: `use near_sdk::near;
+    Rust: `use borsh::BorshSerialize;
+use near_sdk::near;
 use near_sdk::AccountId;
-use near_sdk::collections::UnorderedMap;
+use near_sdk::store::IterableMap;
 use near_sdk::PanicOnDefault;
+use near_sdk::BorshStorageKey;
 use near_sdk::{require, env};
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Balances,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
-    balances: UnorderedMap<AccountId, u64>,
+    balances: IterableMap<AccountId, u64>,
 }
 
 #[near]
@@ -1493,7 +1509,7 @@ impl Contract {
     pub fn new() -> Self {
         Self {
             owner_id: env::current_account_id(),
-            balances: UnorderedMap::new(b"b"),
+            balances: IterableMap::new(StorageKey::Balances),
         }
     }
 
@@ -1502,7 +1518,7 @@ impl Contract {
             env::predecessor_account_id() == self.owner_id,
             "Only owner can set balances"
         );
-        self.balances.insert(&account, &amount);
+        self.balances.insert(account, amount);
     }
 
     pub fn add_balance(&mut self, account: AccountId, amount: u64) {
@@ -1510,10 +1526,10 @@ impl Contract {
             env::predecessor_account_id() == self.owner_id,
             "Only owner can add balances"
         );
-        let current = self.balances.get(&account).unwrap_or(0);
+        let current = *self.balances.get(&account).unwrap_or(&0);
         let new_balance = current.checked_add(amount)
             .expect("Overflow: balance too large");
-        self.balances.insert(&account, &new_balance);
+        self.balances.insert(account, new_balance);
     }
 
     pub fn subtract_balance(&mut self, account: AccountId, amount: u64) {
@@ -1521,24 +1537,41 @@ impl Contract {
             env::predecessor_account_id() == self.owner_id,
             "Only owner can subtract balances"
         );
-        let current = self.balances.get(&account).unwrap_or(0);
+        let current = *self.balances.get(&account).unwrap_or(&0);
         let new_balance = current.checked_sub(amount)
             .expect("Underflow: insufficient balance");
-        self.balances.insert(&account, &new_balance);
+        self.balances.insert(account, new_balance);
+    }
+
+    pub fn transfer(&mut self, receiver_id: AccountId, amount: u64) {
+        let sender = env::predecessor_account_id();
+        let sender_balance = *self.balances.get(&sender).unwrap_or(&0);
+
+        require!(sender_balance >= amount, "Insufficient balance");
+
+        let new_sender_balance = sender_balance.checked_sub(amount)
+            .expect("Underflow");
+        self.balances.insert(sender, new_sender_balance);
+
+        let receiver_balance = *self.balances.get(&receiver_id).unwrap_or(&0);
+        let new_receiver_balance = receiver_balance.checked_add(amount)
+            .expect("Overflow");
+        self.balances.insert(receiver_id, new_receiver_balance);
     }
 
     pub fn get_balance(&self, account: AccountId) -> Option<u64> {
-        self.balances.get(&account)
+        self.balances.get(&account).copied()
     }
 
     pub fn get_balances(&self, limit: Option<u64>, start_index: Option<u64>) -> Vec<(AccountId, u64)> {
-        let limit = limit.unwrap_or(50).min(100);
-        let start = start_index.unwrap_or(0);
-        
-        self.balances.keys()
-            .skip(start as usize)
-            .take(limit as usize)
-            .map(|key| (key, self.balances.get(&key).unwrap_or(0)))
+        let limit = limit.unwrap_or(50).min(100) as usize;
+        let start = start_index.unwrap_or(0) as usize;
+
+        self.balances
+            .iter()
+            .skip(start)
+            .take(limit)
+            .map(|(k, v)| (k.clone(), *v))
             .collect()
     }
 }`,

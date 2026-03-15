@@ -284,7 +284,7 @@ export const exerciseHints = {
   },
   'collections-map': {
     Rust: [
-      'Use UnorderedMap::new(b"b"). insert/get/remove. set_balance/add_balance/subtract_balance: require!(pred == owner_id). add: checked_add, subtract: checked_sub. get_balances: keys().skip().take().map().collect().',
+      'Use IterableMap::new(StorageKey::Balances). insert/get/remove. set_balance/add_balance/subtract_balance: require!(pred == owner_id). add: checked_add, subtract: checked_sub. transfer: check caller balance >= amount, subtract from sender, add to receiver. get_balances: iter().skip().take().collect().',
     ],
     JavaScript: [
       'Use object: this.balances[account]. set/add/subtract: check near.predecessorAccountId() === this.owner_id. add/sub: overflow/underflow check. get_balances: Object.entries, slice(start, start+limit).',
@@ -317,10 +317,10 @@ export const exerciseHints = {
   },
   'multi-signature': {
     Rust: [
-      'approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}", action, signer)). can_execute: &str param, count approvals. execute: clear approvals, log action, set last_executed_action. get_signers/get_approvals: view methods.',
+      'propose: increment proposal_id, return id. approve: require signers.contains(&predecessor); approvals.insert(&format!("{}:{}:{}", proposal_id, action, signer)). can_execute: count approvals. execute: clear approvals, log action, set last_executed_action. get_signers/get_approvals: view methods.',
     ],
     JavaScript: [
-      'approve: require signers.includes(signer); push `${action}:${signer}`. can_execute: count >= required_signatures. execute: clear approvals, log, set last_executed_action. get_signers/get_approvals: return signers/filtered signers.',
+      'propose: this.proposal_id++, return id. approve: signers.includes(signer); push `${proposal_id}:${action}:${signer}`. can_execute: count >= required_signatures. execute: clear approvals, log, set last_executed_action. get_signers/get_approvals: return signers/filtered signers.',
     ],
   },
   'upgrade-pattern': {

@@ -15,29 +15,89 @@ Unlike vectors (where you find things by position: 0, 1, 2...), maps let you fin
 **Super fast:** Finding a value by key takes the same time no matter how big the list is!`,
   },
   {
+    title: 'Which Collections API?',
+    content: `NEAR has two generations of collections:
+
+**near_sdk::collections** — older API, still works, uses \`b"prefix"\` byte literals
+**near_sdk::store** — newer API, lazy caching, uses BorshStorageKey enums, supports true pagination
+
+This lesson uses near_sdk::store because:
+- Official docs recommend it for pagination
+- Safer (Drop flush behavior catches more bugs)
+- What new NEAR contracts should use going forward
+
+If you see \`collections::UnorderedMap\` in older examples, the concepts are the same but initialization differs.
+
+Honestly, the old \`collections\` API isn't going anywhere — it's stable and tons of live contracts use it. But for LEARNING? Start with \`store\`. It's what the docs push, it makes pagination actually work efficiently, and you'll thank yourself later when your leaderboard doesn't burn all your gas on iteration.`,
+  },
+  {
     title: 'The Scoreboard Structure',
     content: `Here's a map in action:
 
 \`\`\`rust
 use near_sdk::near;
 use near_sdk::AccountId;
-use near_sdk::collections::UnorderedMap;
+use near_sdk::store::IterableMap;
 use near_sdk::PanicOnDefault;
+use near_sdk::BorshStorageKey;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Balances,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    balances: UnorderedMap<AccountId, u64>,
+    balances: IterableMap<AccountId, u64>,
+}
+
+impl Default for Contract {
+    fn default() -> Self {
+        Self {
+            balances: IterableMap::new(StorageKey::Balances),
+        }
+    }
 }
 \`\`\`
 
 **Translation:**
-- \`UnorderedMap<AccountId, u64>\` = the leaderboard type
+- \`IterableMap<AccountId, u64>\` = the leaderboard type (supports true O(k) pagination!)
 - Key: AccountId (like "player123.near")
 - Value: u64 (their balance/score)
-- \`UnorderedMap::new(b"b")\` = storage prefix "b" for "balances"
+- \`IterableMap::new(StorageKey::Balances)\` = storage prefix from enum
 
 Think of it like: "For each account ID, store a number."`,
+  },
+  {
+    title: 'Watch Out: Prefix Collisions!',
+    content: `NEAR stores all contract state in a flat key-value store. Each collection's storage prefix becomes part of every key it writes. Two collections sharing a prefix = silent data corruption. No compiler error. No panic. Just wrong values appearing in your contract and no idea why.
+
+This is the most insidious bug in NEAR development. It literally compiles, deploys, runs — and your balances map starts returning completely wrong numbers. Debugging this is a nightmare.
+
+**BAD — collision ahead:**
+\`\`\`rust
+struct Contract {
+    balances: UnorderedMap<AccountId, u64>,  // prefix b"b"
+    bids: UnorderedMap<AccountId, u64>,      // also b"b" ← BOOM!
+}
+\`\`\`
+
+**GOOD — unique prefixes:**
+\`\`\`rust
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Balances,
+    Bids,
+}
+
+struct Contract {
+    balances: IterableMap<AccountId, u64>,  // StorageKey::Balances
+    bids: IterableMap<AccountId, u64>,      // StorageKey::Bids
+}
+\`\`\`
+
+Why StorageKey enum? The derive macro guarantees each variant serializes to a unique byte sequence. Just... always use it. Don't try to be clever with \`b"b"\`, \`b"c"\`, \`b"d"\`. You'll forget one day and then boom.`,
   },
   {
     title: 'Leaderboard Operations',
@@ -68,7 +128,7 @@ self.balances.contains_key(&account_id)
 self.balances.keys().collect::<Vec<_>>()
 \`\`\`
 
->  **Gas trap warning:** Collecting all keys can be expensive for large maps! Works fine for small lists (~100), but for bigger ones consider pagination.`,
+⚠️ Gas trap warning: Collecting all keys with \`keys().collect()\` is expensive for large maps. Fine for ~100 items. After that? Pagination. Your frontend will thank you.`,
   },
   {
     title: 'Overflow Protection',
@@ -94,41 +154,40 @@ pub fn subtract_balance(&mut self, account: AccountId, amount: u64) {
 }
 \`\`\`
 
-**Why this matters:** In Rust, u64 wrapping is disabled in debug mode (panics) but allowed in release. Use \`checked_add\`, \`checked_sub\`, \`saturating_add\`, or \`overflowing_add\` for safety!`,
+In Rust, unchecked integer overflow has undefined behavior. Always use \`checked_add\`, \`checked_sub\`, \`saturating_add\`, or \`overflowing_add\`.
+
+Here's the fun part: in debug mode, overflow panics (nice, catches bugs early). In release mode? It wraps around silently. Your balance of 100 + 10 might become 14. For a financial contract, that's not a bug — it's a security vulnerability. Someone just stole 96 tokens from you without even trying hard.
+
+So: always check. Always.`,
   },
   {
     title: 'Pagination for Large Maps',
     content: `Listing all keys crashes on big maps. Use pagination — but do it RIGHT.
 
-**Wrong way (O(n) — defeats the purpose):**
+Wrong way (O(n) — defeats the purpose):
 \`\`\`rust
-// BAD: This collects ALL keys first, then skips!
-// Still iterates entire map every time.
+// BAD: Collects ALL keys first, then slices
 let keys: Vec<AccountId> = self.balances.keys().collect();
-keys[start..start+limit]  // Terrible!
+keys[start..start+limit]
 \`\`\`
 
-**Right way (O(k) — true pagination):**
+Right way (O(k) — true pagination):
 \`\`\`rust
 pub fn get_balances(&self, limit: Option<u64>, start_index: Option<u64>) -> Vec<(AccountId, u64)> {
-    let limit = limit.unwrap_or(50).min(100);  // Cap at 100
-    let start = start_index.unwrap_or(0);
+    let limit = limit.unwrap_or(50).min(100);
+    let start = start_index.unwrap_or(0) as usize;
     
-    // Skip and take BEFORE collecting = O(k) not O(n)!
-    self.balances.keys()
-        .skip(start as usize)
-        .take(limit as usize)
-        .map(|key| {
-            let value = self.balances.get(&key).unwrap_or(0);
-            (key, value)
-        })
+    self.balances
+        .iter()
+        .skip(start)
+        .take(limit)
         .collect()
 }
 \`\`\`
 
-**The key insight:** Call \`skip()\` and \`take()\` on the **iterator**, not on a collected Vec. The iterator lazily skips — it stops reading after reaching your offset. This is O(k) where k = limit, not O(n) where n = total keys!
+The key insight: \`IterableMap\` from \`near_sdk::store\` has lazy iterators that cache reads. Call \`skip()\` and \`take()\` on the iterator (NOT on a collected Vec). It lazily skips — stops reading after reaching your offset. This is O(k) where k = limit, not O(n) where n = total keys.
 
-Frontend calls with increasing \`start_index\` to load more pages.`,
+Frontend calls with increasing \`start_index\` to load pages.`,
   },
   {
     title: 'Access Control on Maps',
@@ -147,12 +206,27 @@ pub fn set_balance(&mut self, account: AccountId, amount: u64) {
 }
 \`\`\`
 
-**Public read, owner write:**
+**Public read, owner/minter write:**
 - \`get_balance\`: \`&self\` (view method, anyone can call)
-- \`set_balance\`: \`&mut self\` + owner check (callable by owner only)
+- \`set_balance\`: \`&mut self\` + owner check (minting tokens)
+- \`transfer\`: \`&mut self\` + caller verification (anyone can transfer their own tokens)
+
+**Token contract pattern:**
+\`\`\`rust
+pub fn ft_transfer(&mut self, receiver_id: AccountId, amount: u128) {
+    let caller = env::predecessor_account_id();
+    let caller_balance = self.balances.get(&caller).unwrap_or(0);
+    
+    require!(caller_balance >= amount, "Insufficient balance");
+    
+    self.balances.insert(&caller, &(caller_balance - amount));
+    let receiver_balance = self.balances.get(&receiver_id).unwrap_or(0);
+    self.balances.insert(&receiver_id, &(receiver_balance + amount));
+}
+\`\`\`
 
 **Common patterns:**
-- Token contracts: owner mints, anyone transfers
+- Token contracts: owner mints, anyone transfers their own tokens
 - Scoreboards: owner sets scores
 - Voting: anyone votes, owner tallies`,
   },
@@ -171,34 +245,6 @@ pub fn set_balance(&mut self, account: AccountId, amount: u64) {
 - It's a "for each X, there's a Y" situation
 
 Choose wisely!`,
-  },
-  {
-    title: 'Benchmark: Solana vs NEAR',
-    content: `**How Solana handles maps:**
-
-Solana uses Account Models where each "map" is a separate account with serialized key-value data:
-
-\`\`\`rust
-// Solana: Account data is raw bytes you deserialize
-struct TokenAccount {
-    pub mint: Pubkey,
-    pub owner: Pubkey,
-    pub amount: u64,
-}
-\`\`\`
-
-**Key differences:**
-- **NEAR:** UnorderedMap is built-in, automatic serialization
-- **Solana:** You define the data structure manually, manage rent
-
-**When Solana wins:**
-- Very high throughput (65k TPS theory)
-- Parallel execution if accounts don't conflict
-
-**When NEAR wins:**
-- Developer experience (maps just work!)
-- Automatic storage management
-- Lower learning curve`,
   },
   {
     title: 'The Design Insight',
