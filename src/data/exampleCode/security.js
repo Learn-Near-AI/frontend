@@ -761,13 +761,20 @@ class Contract {
     RustExercise: `use near_sdk::near;
 use near_sdk::{env, require};
 use near_sdk::PanicOnDefault;
+use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: near_sdk::AccountId,
+    username: String,
+    settings: String,  // Added in v3
     version: u32,
 }
+
+// TODO: Define OldContract struct (user_name instead of username, no settings)
+// TODO: Define OldContractWithSettings struct (has username, no settings)
+// Both need BorshDeserialize, BorshSerialize derives
 
 #[near]
 impl Contract {
@@ -775,6 +782,8 @@ impl Contract {
     pub fn new() -> Self {
         Self {
             owner_id: env::current_account_id(),
+            username: "".to_string(),
+            settings: "".to_string(),
             version: 1,
         }
     }
@@ -783,7 +792,7 @@ impl Contract {
         self.version
     }
 
-    /// Simple migration: struct shape stays the same (just increment version)
+    /// Simple migration: struct shape stays the same
     pub fn migrate(&mut self) {
         // TODO: require that the caller is the owner
         // Hint: require!(env::predecessor_account_id() == self.owner_id, "Only owner");
@@ -792,28 +801,23 @@ impl Contract {
     }
 }
 
-// If you ADD new fields to the struct (breaking change), use ignore_state:
-// Note: This requires a separate impl block with #[init(ignore_state)]
-
+// ============================================================
+// Second impl block for #[init(ignore_state)] - struct shape changed!
+// ============================================================
 #[near]
 impl Contract {
-    /// Migration with ignore_state: struct shape changed (added new fields)
-    /// IMPORTANT: You lose access to old state! Read it BEFORE returning new Self.
+    /// Migration: rename field (user_name -> username)
     #[init(ignore_state)]
-    pub fn migrate_add_field() -> Self {
-        // TODO: Read old state using env::state_read::<OldContract>()
-        // TODO: Extract old fields you want to preserve
-        // TODO: Return new Self with old data + new default fields + bumped version
+    pub fn migrate_rename() -> Self {
+        // TODO: Read old state: let old = env::state_read::<OldContract>();
+        // TODO: Map old.user_name to username, add settings with default, bump version
     }
 
-    /// Real-world example: renaming a field
-    /// Old: user_name: String -> New: username: String
+    /// Migration: add brand new field (settings)
     #[init(ignore_state)]
-    pub fn migrate_rename_field() -> Self {
-        // TODO: Define OldContract struct with old field names
-        // TODO: Read old state: let old = env::state_read::<OldContract>();
-        // TODO: Create new Self: username: old.user_name (preserve old data!)
-        // TODO: Version bump: version: 2
+    pub fn migrate_add_field() -> Self {
+        // TODO: Read old state: let old = env::state_read::<OldContractWithSettings>();
+        // TODO: Keep username, add settings with "default", bump version
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -854,29 +858,45 @@ class Contract {
 use near_sdk::near;
 use near_sdk::{env, require};
 use near_sdk::PanicOnDefault;
+use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 
 /// PanicOnDefault: contract panics if deserialized without explicit init—prevents uninitialized state.
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: near_sdk::AccountId,
+    username: String,
+    settings: String,  // Added in v3
     version: u32,
 }
 
-/// Old contract structure for rename migration example
-#[derive(PanicOnDefault)]
+/// Old contract: had user_name instead of username
+#[derive(BorshDeserialize, BorshSerialize)]
 struct OldContract {
     owner_id: near_sdk::AccountId,
-    user_name: String,  // Note: this is the OLD field name
+    user_name: String,
     version: u32,
 }
 
+/// Even older contract: didn't have settings field
+#[derive(BorshDeserialize, BorshSerialize)]
+struct OldContractWithSettings {
+    owner_id: near_sdk::AccountId,
+    username: String,
+    version: u32,
+}
+
+// ============================================================
+// First impl block: regular contract methods (uses &self or &mut self)
+// ============================================================
 #[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
             owner_id: env::current_account_id(),
+            username: "".to_string(),
+            settings: "".to_string(),
             version: 1,
         }
     }
@@ -885,8 +905,8 @@ impl Contract {
         self.version
     }
 
-    /// Migration hook: call after code upgrade. For same-shape upgrades.
-    /// Use &mut self pattern when struct fields don't change.
+    /// Migration hook: call after code upgrade when struct shape stays the same.
+    /// Uses &mut self - old state deserializes fine into new struct shape.
     pub fn migrate(&mut self) {
         require!(
             env::predecessor_account_id() == self.owner_id,
@@ -897,40 +917,34 @@ impl Contract {
     }
 }
 
-/// Separate impl block for #[init(ignore_state)] - struct shape changed!
-/// When adding NEW fields, old state can't be deserialized into new shape.
-/// Solution: use ignore_state to skip deserialization, then manually read old state.
+// ============================================================
+// Second impl block: #[init(ignore_state)] methods
+// When struct shape CHANGES (added/renamed fields), old state can't deserialize.
+// Solution: use ignore_state to skip deserialization, then manually read old state.
+// ============================================================
 #[near]
 impl Contract {
-    /// Migration when adding new fields: struct has MORE fields now
-    ///  CRITICAL: You must read old state BEFORE returning new Self!
-    /// After you return, old state is gone.
+    /// Migration: rename field (user_name -> username)
     #[init(ignore_state)]
-    pub fn migrate_add_field() -> Self {
-        // Read the OLD contract state before it disappears
-        let old = env::state_read::<OldContract>();
-        
+    pub fn migrate_rename() -> Self {
+        let old = env::state_read::<OldContract>().expect("No state");
         Self {
-            owner_id: old.unwrap().owner_id,
-            version: 2,  // Bump version
-            // new_field defaults to "" since we can't read it from old
+            owner_id: old.owner_id,
+            username: old.user_name,  // Rename: preserve the data
+            settings: "".to_string(),  // New field gets default
+            version: old.version + 1,
         }
     }
 
-    /// Real-world example: renaming a field
-    /// Old: user_name -> New: username
-    /// This preserves data during the rename!
+    /// Migration: add brand new field (settings) - already has username
     #[init(ignore_state)]
-    pub fn migrate_rename_field() -> Self {
-        // Read old state with OLD field names
-        let old = env::state_read::<OldContract>();
-        
-        let old = old.expect("Failed to read old state");
-        
-        // Migrate: copy old.user_name to new.username
+    pub fn migrate_add_field() -> Self {
+        let old = env::state_read::<OldContractWithSettings>().expect("No state");
         Self {
             owner_id: old.owner_id,
-            version: 3,  // Another version bump
+            username: old.username,  // Keep existing data
+            settings: "default".to_string(),  // NEW field gets default
+            version: old.version + 1,
         }
     }
 }`,

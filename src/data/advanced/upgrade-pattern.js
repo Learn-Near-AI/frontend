@@ -8,190 +8,259 @@ In games, your character evolves. New abilities, better stats, cooler gear. Your
 The **Upgrade Pattern** lets you update your contract while keeping its data. It's like:
 - Patching a bug without losing progress
 - Adding new features to an existing game
-- Improving performance over time
-
->  **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever! This is the most important rule.`,
+- Improving performance over time`,
   },
   {
-    title: 'Tradeoffs (Nothing Is Perfect!)',
-    content: `A game character that can evolve is essential for long-term play. You can fix bugs without starting over, add new abilities over time, maintain your progress because the same character keeps leveling up, and push emergency balance patches fast.
+    title: 'How Deploying Actually Works',
+    content: `Let me pull back the curtain a bit. When you "deploy" a contract on NEAR, two things happen:
 
-But here's the thing: you lose true predictability. The developer controls evolution, so players have to trust they won't change things in bad ways. You also lose immutable guarantees, and players can't rely on their builds being forever viable because the meta might change.
+1. The **WASM bytecode** gets uploaded — this is your new code
+2. The **state** (all those stored values) stays exactly where it is
 
-If the developer goes rogue, they can change anything about how characters evolve. And players might lose trust if they feel like the rules can change anytime. Complex skill tree migrations between expansions can also break builds if you're not careful.
+Think of it like swapping the engine in a car while keeping the passengers. The car (state) is intact, you're just replacing what's under the hood (code).
 
-One more thing: never delete abilities from the skill tree. Always keep old skills and transform them if needed. That's the golden rule.
+\`\`\`
+┌─────────────────┐     deploy new WASM      ┌─────────────────┐
+│  Old Contract   │  ───────────────────►  │  New Contract   │
+│  Code: v1      │                         │  Code: v2       │
+│  State: {data}  │    (state preserved!) │  State: {data}  │
+└─────────────────┘                         └─────────────────┘
+\`\`\`
 
-For maximum trust, consider time locks on major evolutions or eventually making characters immutable.
+This is actually kind of magical when you think about it. Most blockchains make you choose: either upgrade OR keep data. NEAR gives you both. But this magic comes with a catch — the code expects the state to look a certain way.`,
+  },
+  {
+    title: 'Why The Panic Happens',
+    content: `Here's where it gets fun. You deployed your shiny new contract with an extra field. Everything should work, right?
 
-**When NOT to use Upgrade Pattern:** If you want true immutability where no one can ever change it, skip the upgrade pattern. Some games want to be forever unchanged, and that's when you lock the character at max level!`,
+Wrong. Now every single call panics with:
+
+\`\`\`
+Cannot deserialize the contract state
+\`\`\`
+
+**Why?** Because when your contract starts, NEAR tries to read the old state and fit it into your new struct. But the shapes don't match! It's like trying to put a square peg in a round hole.
+
+The deserializer is going field by field, position by position. Old state has 2 fields, new struct has 3. Something's gotta give — and that something is your contract crashing.
+
+This is the "broken deserialization" problem. The old state literally cannot be parsed into the new shape.`,
+  },
+  {
+    title: 'The ignore_state Magic Explained',
+    content: `So how do we fix this? Here's the thing most tutorials skip over.
+
+When you add \`#[init(ignore_state)]\`, you're basically telling NEAR: "Don't try to deserialize the state. I'll handle it myself."
+
+Normally, NEAR does this:
+\`\`\`
+1. Read bytes from storage
+2. Try to deserialize into your struct
+3. If it works → run your code
+4. If it fails → PANIC
+\`\`\`
+
+With \`ignore_state\`, you get:
+\`\`\`
+1. Read bytes from storage
+2. Give me (the contract) the raw bytes
+3. I'll deserialize manually
+4. I'll return a fully-initialized struct
+\`\`\`
+
+This is why you need that \`OldContract\` struct. You're basically saying "here's what the old data looks like, let me manually map it."
+
+The key insight: you define \`OldContract\` yourself to match what was in storage. It's just a data struct with \`BorshDeserialize\` — not a contract.`,
   },
   {
     title: 'Upgrade Operations',
     content: `**The upgrade flow:**
 
-1. **Deploy contract** → Same account, new WASM
-2. **State preserved** → All your data stays!
-3. **Call migrate()** → Increment version, run transformations
-4. **Done!** → Users don't even notice
+1. Deploy contract → Same account, new WASM
+2. State preserved → All your data stays!
+3. Call migrate() → Increment version, run transformations
+4. Done! → Users don't even notice
 
-**Adding new fields:**
+Two ways to migrate:
+
+**Option A: Same-shape upgrade (&mut self)**
+Fields haven't changed — just bumping version or transforming data. Normal deserialization works fine:
+
 \`\`\`rust
 pub fn migrate(&mut self) {
-    require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-    
-    // New field gets default value
-    // self.new_field = "default".to_string();
-    
+    require!(env::predecessor_account_id() == self.owner_id);
     self.version += 1;
 }
 \`\`\`
 
-**Transforming data:**
-\`\`\`rust
-pub fn migrate(&mut self) {
-    // Example: rename field in storage
-    // self.new_name = self.old_name;
-    
-    self.version += 1;
-}
-\`\`\`
-
-** Critical: The panic you're about to see on mainnet**
-
-You added \`new_field: String\` to your struct and redeployed. Now every call panics with:
-
-\`\`\`
-Thread 'main' panicked at 'Cannot deserialize the contract state.'
-\`\`\`
-
-Here's the fix — before/after:
+**Option B: Struct shape changed (#[init(ignore_state)])**
+Added or renamed fields? Then:
 
 \`\`\`rust
-// BEFORE: No ignore_state → PANIC on every call!
-pub fn migrate(&mut self) {
-    self.version += 1;  // 💥 "Cannot deserialize the contract state."
-}
-
-// AFTER: Use ignore_state to bypass broken deserialization
 #[init(ignore_state)]
 pub fn migrate() -> Self {
-    let old: OldContract = env::state_read().expect("No state");
+    let old = env::state_read::<OldContract>().expect("No state");
     Self {
-        owner_id: old.owner_id,                 // preserve old data
-        version: old.version + 1,               // bump version
-        new_field: "default".to_string(),        // initialize new field
+        owner_id: old.owner_id,
+        username: old.user_name,
+        version: old.version + 1,
     }
 }
 \`\`\`
 
-This is the exact error and fix — bookmark this page if you're deploying to mainnet!`,
+The critical part: you're reading the OLD bytes into an OLD-shaped struct, then building a NEW struct from that data.`,
   },
   {
     title: 'The Actual Code',
-    content: `Here's what the actual code looks like - much simpler than you might expect!
+    content: `Here's the complete code showing both migration scenarios:
 
 \`\`\`rust
 use near_sdk::near;
 use near_sdk::{env, require};
 use near_sdk::PanicOnDefault;
+use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: near_sdk::AccountId,
-    version: u32,  // Just a version number!
+    username: String,
+    settings: String,
+    version: u32,
+}
+
+// Old: had user_name instead of username
+#[derive(BorshDeserialize, BorshSerialize)]
+struct OldContract {
+    owner_id: near_sdk::AccountId,
+    user_name: String,
+    version: u32,
+}
+
+// Even older: didn't have settings
+#[derive(BorshDeserialize, BorshSerialize)]
+struct OldContractWithSettings {
+    owner_id: near_sdk::AccountId,
+    username: String,
+    version: u32,
 }
 
 #[near]
 impl Contract {
-    /// Initial deployment - uses default #[init]
     #[init]
     pub fn new() -> Self {
         Self {
             owner_id: env::current_account_id(),
+            username: "".to_string(),
+            settings: "".to_string(),
             version: 1,
         }
     }
 
-    pub fn get_version(&self) -> u32 {
-        self.version
+    pub fn get_version(&self) -> u32 { self.version }
+
+    pub fn migrate(&mut self) {
+        require!(env::predecessor_account_id() == self.owner_id);
+        self.version += 1;
+    }
+}
+
+#[near]
+impl Contract {
+    #[init(ignore_state)]
+    pub fn migrate_rename() -> Self {
+        let old = env::state_read::<OldContract>().expect("No state");
+        Self {
+            owner_id: old.owner_id,
+            username: old.user_name,
+            settings: "".to_string(),
+            version: old.version + 1,
+        }
     }
 
-    /// Migration: call after code upgrade when struct stays the same
-    pub fn migrate(&mut self) {
-        require!(
-            env::predecessor_account_id() == self.owner_id,
-            "Only owner can migrate"
-        );
-        self.version += 1;
-        env::log_str(&format!("Upgraded to version {}", self.version));
+    #[init(ignore_state)]
+    pub fn migrate_add_field() -> Self {
+        let old = env::state_read::<OldContractWithSettings>().expect("No state");
+        Self {
+            owner_id: old.owner_id,
+            username: old.username,
+            settings: "default".to_string(),
+            version: old.version + 1,
+        }
     }
 }
 \`\`\`
 
-That's it! No proxy pattern, no Promise::new().deploy_contract(). Just a version number that increments!`,
+Two distinct scenarios:
+- \`migrate_rename()\`: field was renamed (user_name → username)
+- \`migrate_add_field()\`: new field added (settings)`,
   },
   {
-    title: 'When To Use Upgrade Pattern',
-    content: `Quick guide:
+    title: 'Why Deleting Fields Is A Disaster',
+    content: `Here's the thing about that "never delete fields" rule — it sounds like arbitrary caution, but there's a real mechanical reason.
 
-**Use UPGRADE when:**
-- Expect bugs (all software has them!)
-- Want to add features over time
-- Need to fix critical issues fast
-- Plan long-term project
+Borsh deserializes by POSITION, not by name. Every field gets a specific byte range:
 
-**The insight:** All successful contracts evolve. The upgrade pattern lets you fix bugs and add features without losing your users!`,
+\`\`\`rust
+struct User {
+    id: u64,       // bytes 0-7
+    name: String,  // bytes 8-15 (length) + 16+ (actual string)
+    age: u32,      // bytes 16-19
+}
+\`\`\`
+
+Delete that middle \`name\` field and re-deploy:
+
+\`\`\`rust
+struct User {
+    id: u64,   // bytes 0-7
+    age: u32,  // Now reads bytes 8-11 which used to be String length!
+}
+\`\`\`
+
+Your \`age\` just got set to whatever number was the length of the old name string. 6 billion people just became age 8. No errors. No warnings. Just garbage data silently polluting your contract.
+
+This is why:
+- Never DELETE fields — add new ones instead
+- Use Option<T> if you really want to "remove" — it serializes to zero bytes
+- Renaming is fine — just map old → new in migration
+
+The rule isn't about being paranoid — it's about understanding the machine.`,
   },
   {
-    title: 'The Design Insight',
-    content: `**Why this works: NEAR's state model!**
+    title: 'Tradeoffs',
+    content: `Being able to evolve a contract is genuinely powerful. You fix bugs without users losing their data, add features over time, push emergency patches when things go wrong. This is huge for production systems.
 
-When you deploy new WASM to the same account:
-- Code changes → NEW behavior
-- State stays → ALL data preserved
-- Address same → Users don't need to update!
+But here's the uncomfortable truth: you're essentially asking users to trust you. You control the evolution. You could change anything.
 
-\`\`\`
-Old WASM + Old State → Deploy New WASM → New WASM + Same State
-\`\`\`
+I've seen projects where the developers "evolved" the tokenomics in ways the community didn't love. Suddenly your tokens are worth less because the contract owner can mint more. The code said they could — it was in the upgradeable contract all along.
 
-**The magic:**
-- \`version: u32\` tracks which version running
-- \`migrate()\` runs AFTER new code deployed
-- Can add/transform data in migrate()
-- Owner controls when to upgrade
+For maximum trust:
+- Consider time locks on major upgrades
+- Eventually make contracts immutable
+- Document what can and can't change
 
-This is why version tracking matters - you know what state you're in!`,
+When NOT to upgrade: If you want true immutability where NO ONE can ever change anything, skip this pattern entirely. Some things should stay forever.`,
   },
   {
     title: "Don't Do This!",
-    content: `What if you can't upgrade at all?
+    content: `Imagine deploying without any upgrade capability:
 
 \`\`\`rust
-// BAD: Can't upgrade, can't fix bugs!
 struct BadContract {
     data: Vec<u8>,
-    // Once deployed, you're stuck with it!
-    // Bug found? Too bad!
-    // Need new feature? Deploy NEW contract, migrate manually!
 }
 
 impl BadContract {
     // No migrate function!
     // No version tracking!
-    // Just hope nothing goes wrong...
 }
 \`\`\`
 
-**The problem:**
-- Bug in production? Deploy from scratch!
-- Want new features? New contract, new address!
-- Lose all users, history, trust!
-- Expensive migration every time
+Found a bug in production? Too bad — deploy from scratch. Want to add a feature? New contract, new address, migrate all users manually, hope nothing breaks.
 
-This is why upgrade pattern exists! Contracts MUST be able to evolve!`,
+This is the old world. It worked for Bitcoin (nothing changes ever) but for applications that need to evolve? It's a death sentence.
+
+Upgrade pattern exists because production software needs to evolve. Smart contracts are software. They need to evolve too.`,
   },
   {
     title: 'Learn More',
