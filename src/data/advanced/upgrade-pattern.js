@@ -287,11 +287,6 @@ impl Contract {
         // How to verify owner? How to set paused = true?
     }
 
-    pub fn upgrade(&mut self, code: Vec<u8>) {
-        // How to check contract is paused? How to check owner?
-        // How to actually upgrade the code?
-    }
-
     pub fn migrate(&mut self) {
         // How to update data_version?
     }
@@ -300,22 +295,32 @@ impl Contract {
         // How to block when paused?
     }
 }
+
+// Separate upgrade function - outside impl block
+// #[init(ignore_state)]
+// pub fn upgrade() {
+//     // State preserved, new code deployed
+// }
 \`\`\`
 
 **Solution Hints:**
 - Pause check: \`require!(!self.paused, "Contract must be paused")\` in change methods
 - Owner check: \`require!(env::predecessor_account_id() == self.owner_id, "Only owner")\`
-- Upgrade: \`env::stack_chain(&code)\` where code is Vec<u8>
-- Migration: increment \`data_version\` after upgrading
-- State migration: convert old struct fields to new format
+- Upgrade: Use separate \`#[init(ignore_state)]\` function outside impl block - state preserved, new code deployed
+- Migration: increment \`data_version\` after upgrading in \`migrate()\` function
+- State migration: convert old struct fields to new format in migrate()
 
 **Upgrade flow:**
 1. Owner calls \`pause()\`
-2. Owner calls \`upgrade(new_code)\` - state preserved, code updated
+2. Deploy new WASM via \`near deploy --init-function upgrade\` (uses #[init(ignore_state)])
 3. Owner calls \`migrate()\` if needed - fix state incompatibilities
 4. Owner calls \`unpause()\`
 
+**Key:** \`#[init(ignore_state)]\` allows deploying new code without re-initializing state.
+
 ---
+
+**Extension:** Add a \`version()\` view method that returns the current data_version.
 
 [Learn more about this topic →](https://docs.near.org/smart-contracts/release/upgrade)`,
   },

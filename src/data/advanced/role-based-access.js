@@ -141,7 +141,7 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            admins: UnorderedSet::new(b"a"),
+            admins: UnorderedSet::new(b"ad"),
             owner_id: env::current_account_id(),
         }
     }
@@ -320,7 +320,7 @@ impl Contract {
 
 **Solution Hints:**
 - Use \`UnorderedSet<AccountId>\` for each role
-- Storage prefix: \`b"o"\` for owners, \`b"a"\` for admins (must be unique!)
+- Storage prefix: \`b"ow"\` for owners, \`b"ad"\` for admins (use 2+ bytes to avoid collisions!)
 - Helper: \`fn is_owner(&self, account: &AccountId) -> bool { self.owners.contains(account) }\`
 - Add: \`self.owners.insert(&account)\`
 - Remove: \`self.owners.remove(&account)\`
@@ -332,6 +332,8 @@ impl Contract {
 - Public: no require needed
 
 ---
+
+**Extension:** Add \`is_admin(account: AccountId)\` view method that returns whether the account has admin role.
 
 [Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
   },

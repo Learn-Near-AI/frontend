@@ -249,6 +249,8 @@ impl Contract {
 
 ---
 
+**Extension:** Add a \`clear_value()\` method that only the owner can call and resets value to 0.
+
 [Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
   },
 ];

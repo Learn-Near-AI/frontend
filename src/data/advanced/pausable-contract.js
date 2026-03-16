@@ -210,6 +210,8 @@ pub fn change_method(&mut self) {
 
 ---
 
+**Extension:** Add a \`decrement()\` change method that also panics when paused.
+
 [Learn more about this topic →](https://docs.rs/near-contract-tools/latest/near_contract_tools/pause/index.html)`,
   },
 ];

@@ -338,6 +338,8 @@ impl Contract {
 
 ---
 
+**Extension:** Add a \`get_message()\` view method that returns the current message (works even when paused).
+
 [Learn more about this topic →](https://github.com/near/NEPs/blob/master/neps/nep-0297.md)`,
   },
 ];

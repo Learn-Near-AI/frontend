@@ -4,12 +4,11 @@ export const multiSignatureExplanation = [
     content: `Your task is to implement a 2-of-3 multi-signature wallet.
 
 **Requirements:**
-- Store \`owners: Vec<AccountId>\`, \`balance: u128\`
-- Implement \`propose(transaction: String)\` - any owner
-- Implement \`approve(transaction_id: u64)\` - owners vote
-- Implement \`execute(transaction_id: u64)\` - execute if 2+ approvals
-- Implement \`deposit()\` - anyone can add funds
-- Track proposal status: Pending, Executed, Rejected
+- Store \`owners: UnorderedSet<AccountId>\`, \`proposals: IterableMap<u64, Proposal>\`
+- Implement \`propose(transaction: String)\` - any owner creates proposal, returns proposal_id
+- Implement \`approve(proposal_id: u64)\` - owners vote, prevent duplicate approvals
+- Implement \`execute(proposal_id: u64)\` - execute if 2+ approvals, mark executed
+- Implement \`deposit()\` - #[payable], add attached_deposit() to balance (NearToken)
 
 **Test:** Need 2+ owners to approve before execution!`,
   },
@@ -360,17 +359,19 @@ impl Contract {
 \`\`\`
 
 **Solution Hints:**
-- Store proposals: \`LookupMap<u64, Proposal>\` with Proposal having \`approvals: Vec<AccountId>\`
+- Use \`UnorderedSet<AccountId>\` for owners (O(1) lookups)
+- Use \`IterableMap<u64, Proposal>\` for proposals with \`#[derive(BorshSerialize, BorshDeserialize)]\`
+- Proposal: \`transaction: String, approvals: Vec<AccountId>, executed: bool\`
 - Generate ID: use \`next_proposal_id\`, increment after each proposal
 - Approve: add predecessor to approvals, check for duplicates with \`.contains()\`
-- Execute: \`require!(approvals.len() >= required_threshold, "Not enough approvals")\`
-- Clear after execution: \`proposals.remove(&id)\` to prevent replay
+- Execute: \`require!(proposal.approvals.len() >= 2, "Need 2+ approvals")\`
 
 **Threshold:**
 - 2-of-3: require 2+ approvals
-- Formula: \`required = (owners.len() + 1) / 2\` (majority)
 
 ---
+
+**Extension:** Add a \`get_proposal(proposal_id: u64)\` view method that returns the proposal details.
 
 [Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
   },

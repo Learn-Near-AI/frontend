@@ -356,21 +356,25 @@ impl Contract {
 \`\`\`
 
 **Solution Hints:**
+- Use \`use near_sdk::store::IterableMap;\`
 - StorageKey: \`#[derive(BorshStorageKey, BorshSerialize)] enum StorageKey { Leaderboard }\`
 - Collection: \`IterableMap<AccountId, u64>\` initialized with \`StorageKey::Leaderboard\`
-- Insert/update: \`self.leaderboard.insert(&account, score)\`
-- Get: \`self.leaderboard.get(&account).copied()\`
+- Insert/update: \`self.leaderboard.insert(account, score)\` (no & — store::IterableMap takes value by value)
+- Get: \`self.leaderboard.get(account).copied()\`
 - Top scores: collect to Vec, sort descending, take(limit)
-- Rank: count entries where score > target score, add 1
+
+**Warning (gas trap):** The sorting approach loads ALL entries into memory, then sorts. Fine for small leaderboards (~100). For larger datasets, use off-chain indexing or a sorted structure.
 
 **Sorting:**
 \`\`\`rust
 let mut scores: Vec<_> = self.leaderboard.iter().collect();
-scores.sort_by(|a, b| b.1.cmp(a.1)); // descending by score
-scores.iter().take(limit).map(|(k, v)| (k.clone(), *v)).collect()
+scores.sort_by(|a, b| b.1.cmp(&a.1));
+scores.into_iter().take(limit as usize).map(|(k, v)| (k.clone(), v)).collect()
 \`\`\`
 
 ---
+
+**Extension:** Add \`get_rank(account: AccountId)\` view method that returns the position (1-based) of an account in the leaderboard.
 
 [Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#lookupmap)`,
   },
