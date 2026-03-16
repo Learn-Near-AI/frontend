@@ -1,68 +1,39 @@
 export const collectionsDetailedExplanation = {
   'collections-vector': [
     {
-      title: 'Unlock The Treasure Chest!',
-      content: `Chat applications store messages in vectors to preserve order.
+      title: 'The Challenge',
+      content: `Your task is to create a list manager using Vectors with unique storage prefixes.
 
-So far, you've stored single things - one message, one number. But what if you want to store a LIST of things?
+**Requirements:**
+- Store \`items: Vector<String>\` with prefix b"i"
+- Store \`tags: Vector<String>\` with prefix b"t" (different prefix!)
+- Implement \`add_item(item: String)\` - pushes to the end of items
+- Implement \`remove_item(index: u64)\` - removes item at index using swap_remove
+- Implement \`get_item(index: u64) -> Option<String>\` - returns item or None if out of bounds
+- Implement \`get_items() -> Vec<String>\` - returns all items using iter().collect()
 
-That's where **Vectors** come in. Think of them like:
-- A treasure chest that holds multiple items
-- A to-do list with many tasks
-- A playlist of songs
+**Important:** Each Vector needs a unique storage prefix to avoid data collisions!
 
-Vectors let you store ordered lists that persist on the blockchain. Time to upgrade your inventory!
-
-**What you'll build:**
-A simple list manager with add, remove, and get operations!`,
+**Test:**
+Add multiple items, remove one by index, then get all items - order should be maintained (except for swap_remove behavior)!`,
     },
     {
-      title: 'Adding Items To The List',
-      content: `Let's add items to our vector:
+      title: 'Hints',
+      content: `**The Problem:**
+You need to store lists, not single values. Multiple lists need separate storage prefixes or they collide.
 
-\`\`\`rust
-pub fn add_item(&mut self, item: String) {
-    self.items.push(&item);
-}
-
-// Same pattern for tags!
-pub fn add_tag(&mut self, tag: String) {
-    self.tags.push(&tag);
-}
-\`\`\`
-
-How it works:
-- \`push(&item)\` adds to the END of the list
-- \`&\` is required - we're borrowing the data
-- Items are added in order: first push goes to index 0, second to index 1, etc.
-- Tags work exactly the same way — just with a different storage prefix!
-
-What about removing?
-\`\`\`rust
-pub fn remove_item(&mut self, index: u64) {
-    require!(index < self.items.len(), "Index out of bounds");
-    self.items.swap_remove(index);
-}
-\`\`\`
-
-> Key detail: \`swap_remove\` does NOT preserve order! It swaps the removed item with the LAST item, then removes the last position. So [A, B, C] removing index 0 becomes [C, B], not [B, C]. If order matters to you, use a different method or accept this behavior!
-
-We MUST check bounds first - what if index is too big? That's why we use require! to validate!`,
-    },
-    {
-      title: 'The Contract Setup',
-      content: `Here's how you create vectors in NEAR:
-
+**Code Snippet:**
 \`\`\`rust
 use near_sdk::near;
 use near_sdk::collections::Vector;
+use near_sdk::require;
 use near_sdk::PanicOnDefault;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    items: Vector<String>,    // A list of strings (e.g., todo items)
-    tags: Vector<String>,    // Another list for tags/labels
+    items: Vector<String>,
+    tags: Vector<String>,
 }
 
 #[near]
@@ -70,93 +41,46 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            items: Vector::new(b"i"),  // "i" = items
-            tags: Vector::new(b"t"),   // "t" = tags
+            items: Vector::new(b"i"),
+            tags: Vector::new(b"t"),
         }
+    }
+
+    pub fn add_item(&mut self, item: String) {
+        // Add to end of list
+    }
+
+    pub fn remove_item(&mut self, index: u64) {
+        // Check bounds, then remove
+    }
+
+    pub fn get_item(&self, index: u64) -> Option<String> {
+        // Return item or None
+    }
+
+    pub fn get_items(&self) -> Vec<String> {
+        // Return all items
     }
 }
 \`\`\`
 
-What's happening:
-- \`Vector<String>\` = A list that holds strings
-- \`Vector::new(b"i")\` = Creates the vector with storage prefix "i"
-- Each collection needs its OWN unique prefix — "i" for items, "t" for tags
-- If you reuse a prefix, data gets mixed up!`,
-    },
-    {
-      title: 'Vector Toolkit - Quick Reference',
-      content: `Here's what you can do with vectors:
+**Solution Hints:**
+- Add: \`self.items.push(&item)\`
+- Remove: \`require!(index < self.items.len(), "bounds error"); self.items.swap_remove(index)\`
+- Get one: \`self.items.get(index)\` returns Option
+- Get all: \`self.items.iter().collect()\`
+- Prefix: b"i" for items, b"t" for tags - MUST be different!
 
-Add to the end:
-\`\`\`rust
-self.items.push(&new_item);
-\`\`\`
+**Storage prefix:**
+Using the same prefix for two collections overwrites data silently. No error. No warning. Tags become items and vice versa. The contract appears to work but returns garbage.
 
-Get by position:
-\`\`\`rust
-let item = self.items.get(index);  // Option<String>
-\`\`\`
+Use at least 2 bytes for prefixes: b"it", b"ta", etc. The prefix is how NEAR knows where to store/retrieve data. Same prefix = same storage location = corrupted data.
 
-Remove by position:
-\`\`\`rust
-self.items.swap_remove(index);  // Swaps with last, doesn't preserve order!
-\`\`\`
+And swap_remove? It doesn't preserve order. [A, B, C] removing index 0 becomes [C, B]. Fast (O(1)) but unordered. If you need order, use a different method or accept this behavior.
 
-How many items?
-\`\`\`rust
-let count = self.items.len();
-\`\`\`
+---
 
-Loop through all:
-\`\`\`rust
-for item in self.items.iter() {
-    // do something with each item
-}
-\`\`\`
-
-Vectors are perfect for: to-do lists, chat messages, game logs, anything ordered!`,
-    },
-    {
-      title: 'Reading From The Vector',
-      content: `Now let's read data back:
-
-\`\`\`rust
-// Get ONE item by index
-pub fn get_item(&self, index: u64) -> Option<String> {
-    self.items.get(index)
-}
-
-// Get ALL items
-pub fn get_items(&self) -> Vec<String> {
-    self.items.iter().collect()
-}
-
-// Reading tags works the same way!
-pub fn get_tags(&self) -> Vec<String> {
-    self.tags.iter().collect()
-}
-\`\`\`
-
-get_item:
-- Returns \`Option<String>\` - might have a value, might be None
-- If index is out of bounds, returns None
-- Uses borrowing (\`&self\`) - free to call!
-
-get_items:
-- Returns a regular Rust \`Vec<String>\`
-- Uses \`.iter().collect()\` to convert
-- Makes a copy of all items
-- Warning: This is a gas trap for large lists! Works fine for small lists (under ~100 items), but for bigger ones you'll want pagination.
-
-get_tags: Works exactly like get_items — same pattern, different collection!
-
-Why two methods?
-- \`get_item\` is efficient - just one item
-- \`get_items\` gets everything - more work, but sometimes you need it!`,
-    },
-    {
-      title: 'Learn More',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#vector)`,
+[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#vector)`,
     },
   ],
 };

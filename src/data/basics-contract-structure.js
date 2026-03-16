@@ -1,145 +1,74 @@
 export const contractStructureDetailedExplanation = {
   'contract-structure': [
     {
-      title: 'Every Contract Needs A Brain',
-      content: `All smart contracts store their owner address in state.
+      title: 'The Challenge',
+      content: `Your task is to create a contract with owner control and greeting management.
 
-In NEARbyExample, you build **smart contracts** - the brain of your app. It lives on the blockchain and runs automatically when someone calls it.
+**Requirements:**
+- Store \`owner_id: AccountId\` and \`greeting: String\` in the contract state
+- Implement \`new(initial_greeting: Option<String>)\` to set the deployer as owner
+- Implement \`get_owner()\` and \`get_greeting()\` view methods
+- Implement \`set_greeting(new_greeting: String)\` that ONLY the owner can call
 
-Think of it like a vending machine: you put in money (gas), make your selection (call a method), and get what you want (result). No middleman needed.
-
-**What you'll build:**
-A contract with owner control AND a greeting that only the owner can change. This is the foundation for access control — deciding who can do what.`,
+**Test:**
+After implementation, only the owner should be able to change the greeting!`,
     },
     {
-      title: 'Writing - Access Control',
-      content: `Now for the magic: ONLY the owner can change the greeting:
+      title: 'Hints',
+      content: `**The Problem:**
+You need two pieces of state (owner and greeting), a constructor that sets the deployer as owner, read methods anyone can call, and a write method only the owner can use.
 
+**Code Snippet:**
 \`\`\`rust
-pub fn set_greeting(&mut self, new_greeting: String) {
-    // Access control: Who called this?
-    require!(
-        env::predecessor_account_id() == self.owner_id,
-        "Only the owner can change the greeting"
-    );
-
-    // Validation: Don't allow empty
-    require!(!new_greeting.is_empty(), "Greeting cannot be empty");
-
-    self.greeting = new_greeting;
-}
-\`\`\`
-
-The pattern:
-1. Get caller: \`env::predecessor_account_id()\`
-2. Compare to owner: \`== self.owner_id\`
-3. If match → proceed; if not → revert!
-
-require! stops bad actors cold!`,
-    },
-    {
-      title: 'The Constructor - Your First Choice',
-      content: `When you first deploy, YOU decide who owns it:
-
-\`\`\`rust
-#[init]
-pub fn new(initial_greeting: Option<String>) -> Self {
-    // Best practice: Set owner to the DEPLOYER (predecessor), not the contract itself
-    let owner = env::predecessor_account_id();
-
-    // Optional: Allow custom greeting or use default
-    let greeting = initial_greeting.unwrap_or_else(|| "Hello from NEAR!".to_string());
-
-    Self {
-        owner_id: owner,
-        greeting,
-    }
-}
-\`\`\`
-
-Key distinction:
-- \`env::predecessor_account_id()\` = WHO DEPLOYED the contract (you!)
-- \`env::current_account_id()\` = WHERE the contract lives
-
-Why predecessor? When YOU deploy, you're the "predecessor" — so you become the owner!`,
-    },
-    {
-      title: 'Reading - View Methods',
-      content: `Anyone can READ the contract (free!):
-
-\`\`\`rust
-// View: Anyone can read the owner (free)
-pub fn get_owner(&self) -> AccountId {
-    self.owner_id.clone()
-}
-
-// View: Anyone can read the greeting (free)
-pub fn get_greeting(&self) -> String {
-    self.greeting.clone()
-}
-\`\`\`
-
-Breaking it down:
-- \`&self\` = Read-only, no changes
-- \`.clone()\` = Returns a copy
-- View methods are **free** — no gas needed!
-
-This is like a shop window — anyone can look, but only the owner can change things!`,
-    },
-    {
-      title: "Don't Do This!",
-      content: `What if anyone could change your greeting?
-
-\`\`\`rust
-// BAD: No owner, anyone can change anything!
-struct Contract {
-    greeting: String,
-}
-
-impl Contract {
-    pub fn set_greeting(&mut self, new_greeting: String) {
-        // Anyone can call this!
-        // No protection whatsoever!
-        self.greeting = new_greeting;
-    }
-}
-\`\`\`
-
-The problem:
-- Anyone can modify your contract
-- No accountability
-- Hackers can change anything
-- Not safe!
-
-Every real contract needs access control!`,
-    },
-    {
-      title: 'The Contract Brain',
-      content: `Every contract needs a brain. In Rust, we call it a \`struct\`:
-
-\`\`\`rust
+use near_sdk::near;
 use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::require;
 
-#[near(contract_state)]      // "This is the contract's memory"
-#[derive(PanicOnDefault)]    // Safety: panics if deployed without init
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct Contract {
-    owner_id: AccountId,     // Who controls this contract
-    greeting: String,        // A message only owner can change
+    // What fields go here?
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new(initial_greeting: Option<String>) -> Self {
+        // How do you set the owner?
+        // How do you handle the optional greeting?
+    }
+
+    pub fn get_owner(&self) -> AccountId {
+        // Return the owner
+    }
+
+    pub fn get_greeting(&self) -> String {
+        // Return the greeting
+    }
+
+    pub fn set_greeting(&mut self, new_greeting: String) {
+        // How do you check if caller is owner?
+        // How do you validate non-empty?
+        // How do you store it?
+    }
 }
 \`\`\`
 
-What's happening:
-- \`owner_id: AccountId\` = The boss account
-- \`greeting: String\` = Mutable state (but protected!)
-- \`#[near(contract_state)]\` = Persists on-chain
-- \`#[derive(PanicOnDefault)]\` = Safety net!
+**Solution Hints:**
+- Owner: use \`env::predecessor_account_id()\` in new() to get whoever deployed the contract
+- Access control: \`require!(env::predecessor_account_id() == self.owner_id, "message")\`
+- Validation: \`require!(!new_greeting.is_empty(), "message")\`
+- View methods use \`&self\`, change methods use \`&mut self\`
+- Return strings with \`.clone()\`
 
-Why this matters:
-The contract state is what persists between calls. This is your contract's memory!`,
-    },
-    {
-      title: 'Learn More',
-      content: `[Learn more about this topic →](https://docs.near.org/build/smart-contracts/anatomy)`,
+**Common confusion:**
+\`predecessor_account_id()\` vs \`current_account_id()\`. In new(), predecessor is the deployer. Using current_account_id() makes the contract itself the owner. 
+
+Empty string validation prevents setting greeting to "", which could break downstream logic.
+
+---
+
+[Learn more about this topic →](https://docs.near.org/build/smart-contracts/anatomy)`,
     },
   ],
 };

@@ -1,45 +1,24 @@
 export const stateManagementDetailedExplanation = {
   'state-management': [
     {
-      title: 'Your Inventory Awaits!',
-      content: `Token contracts store balances in state to track ownership.
+      title: 'The Challenge',
+      content: `Your task is to create a simple counter contract that persists state between calls.
 
-In games, your inventory is what makes you unique. Your sword, your potions, your treasure - it's all stored somewhere.
+**Requirements:**
+- Store \`counter: u64\` in the contract state
+- Implement \`new()\` constructor that initializes counter to 0
+- Implement \`increment()\` change method that adds 1 to counter
+- Implement \`get_counter()\` view method that returns the current counter value
 
-In NEAR contracts, **state** is your inventory. It's the data that sticks around between calls.
-
-Without state, every time you called a contract, it would forget everything. Like a game that crashes every time you save!
-
-**What you'll build:**
-A counter contract - the simplest example of state that changes! This pattern is the foundation for:
-- Voting systems
-- Token balances
-- User inventories
-- Anything that counts!`,
+**Test:**
+Call increment multiple times, then call get_counter - the value should persist!`,
     },
     {
-      title: 'How State Persists',
-      content: `Here's the magic: the counter STICKS AROUND.
+      title: 'Hints',
+      content: `**The Problem:**
+State is what makes a smart contract different from a regular program. The data must survive between calls. You're storing a single number that changes over time.
 
-Every time someone calls your contract, it remembers. That's because:
-
-1. Someone calls the contract
-2. NEAR loads up the contract's state (counter = 5, for example)
-3. Your code runs with that state
-4. If it's a change method, NEAR saves the new state back
-5. Next time, it loads the updated value!
-
-It's like a game that auto-saves after every action. Pretty cool, right?
-
-**Try it:**
-Call increment, then call get_counter. Does it remember? You bet it does!
-
-State persistence is what makes smart contracts powerful. The data survives even when you're not using the app. It's like having a database that never goes down!`,
-    },
-    {
-      title: 'The Contract Brain - Counter Edition',
-      content: `Here's a contract with state:
-
+**Code Snippet:**
 \`\`\`rust
 use near_sdk::near;
 use near_sdk::PanicOnDefault;
@@ -47,85 +26,40 @@ use near_sdk::PanicOnDefault;
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    counter: u64,      // A number that goes up only (for now!)
+    // What type for a counter?
 }
 
 #[near]
 impl Contract {
     #[init]
     pub fn new() -> Self {
-        Self { counter: 0 }  // Start at zero!
+        // Initialize counter to 0
+    }
+
+    pub fn get_counter(&self) -> u64 {
+        // Return the counter value
+    }
+
+    pub fn increment(&mut self) {
+        // Add 1 to counter
     }
 }
 \`\`\`
 
-> Fun fact: u64 can store values from 0 to 18,446,744,073,709,551,615 — that's 18 quintillion! Plenty for any counter.
+**Solution Hints:**
+- Use \`u64\` for the counter (unsigned 64-bit integer)
+- Initialize: \`Self { counter: 0 }\`
+- View (read): \`self.counter\` (no .clone() needed for numbers!)
+- Change (write): \`self.counter += 1;\` or \`self.counter = self.counter + 1;\`
 
-What's happening:
-- \`counter: u64\` = An unsigned 64-bit integer
-- In the constructor, we initialize it to 0
+**Why u64? Why not i64?**
+Unsigned means no negatives. Counters, balances, quantities - none of these should be negative. u64 goes from 0 to 18 quintillion. That's enough for basically anything. If you need negatives, use i64. But for a counter? u64 all the way.
 
-Why u64?
-- It can store HUGE numbers (sufficient for most counters)
-- It's efficient - NEAR knows exactly how much space it takes
-- No negative numbers (use i64 if you need negatives)
+And here's the Rust thing: primitive types like u64 COPY, they don't clone. So \`self.counter\` in a return statement just works. Strings? Those need \`.clone()\` because they're heap-allocated. Numbers are stack-local and cheap to copy.
 
-Think of it like a save file in a game. The contract loads this up every time someone calls it!`,
-    },
-    {
-      title: 'Real World Inventories',
-      content: `Big apps have HUGE inventories:
+---
 
-A banking app might track:
-- User balances (millions of accounts!)
-- Total money in system
-- Is the bank paused?
-
-An NFT game might track:
-- Player's characters
-- Each character's stats
-- Items in inventory
-- Quest progress
-
-A voting system might track:
-- Total votes
-- Who voted (to prevent double-voting)
-- Proposal status
-
-Understanding state is key to building anything useful. Your inventory is your power!`,
-    },
-    {
-      title: 'Reading And Changing The Counter',
-      content: `Here's the full contract with methods:
-
-\`\`\`rust
-// View method - read the counter (free!)
-pub fn get_counter(&self) -> u64 {
-    self.counter
-}
-
-// Change method - add 1 to the counter (costs gas)
-pub fn increment(&mut self) {
-    self.counter += 1;
-}
-\`\`\`
-
-**View method (\`get_counter\`):**
-- Uses \`&self\` - read-only, no changes
-- Returns \`u64\` - just the number
-- Free to call!
-- No \`.clone()\` needed here! Numbers copy automatically in Rust, but strings need \`.clone()\`. (Remember that from the View Methods lesson?)
-
-**Change method (\`increment\`):**
-- Uses \`&mut self\` - can modify state
-- \`+= 1\` means "add 1 to myself"
-- Same as \`self.counter = self.counter + 1\`
-
-The counter pattern is everywhere! Token supplies, vote counts, user scores - they all work this way. One method reads, one method changes. Simple!`,
-    },
-    {
-      title: 'Learn More',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/storage)`,
+[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/storage)`,
     },
   ],
 };

@@ -1,48 +1,28 @@
 export const errorHandlingDetailedExplanation = {
   'error-handling': [
     {
-      title: 'Building Your Safety Net!',
-      content: `Parsing user input returns Option types to handle invalid data gracefully.
+      title: 'The Challenge',
+      content: `Your task is to implement different error handling patterns in a contract.
 
-Even with the best gatekeeper (validation), sometimes things go wrong. Maybe:
-- User sends "abc" when you expect a number
-- User tries to divide by zero
-- Something totally unexpected happens
+**Requirements:**
+- Implement \`try_parse_number(s: String) -> Option<u64>\` - returns Some(parsed) if valid, None if invalid
+- Implement \`safe_divide(a: u64, b: u64) -> Option<u64>\` - returns None if b is 0
+- Implement \`parse_with_default(s: String, default: u64) -> u64\` - uses unwrap_or for fallback
+- Implement \`assert_positive(value: i64)\` - panics if not positive using require!
+- Implement \`strict_check(value: u64)\` - panics if value is 0 using env::panic_str
 
-That's where **error handling** comes in. It's your safety net - catching problems before they become disasters.
-
-**What you'll build:**
-A contract with different error handling patterns - returning Option, using require!, and panicking when needed!`,
+**Test:**
+Call these with invalid inputs and see how each handles errors differently!`,
     },
     {
-      title: 'Which One To Use?',
-      content: `Here's when to use each approach:
+      title: 'Hints',
+      content: `**The Problem:**
+Sometimes things fail. Parsing can fail. Division by zero exists. You need different strategies for different failure modes.
 
-**Option<T> (return None):**
-- Expected failures - might work, might not
-- Caller decides what to do
-- Parsing, looking up data
-
-**require! (panic with message):**
-- Contract rules that must be followed
-- User's fault
-- "You can't do that" situations
-
-**env::panic_str (hard panic):**
-- Critical failures
-- Something is seriously wrong
-- The contract should NOT continue
-
-**Golden rule:**
-Fail gracefully when you can. Panic when you must. Always give clear error messages!`,
-    },
-    {
-      title: 'The Contract Setup',
-      content: `Here's the contract we'll use - it's empty because we're focusing on error handling:
-
+**Code Snippet:**
 \`\`\`rust
 use near_sdk::near;
-use near_sdk::PanicOnDefault;
+use near_sdk::{env, require, PanicOnDefault};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -54,124 +34,46 @@ impl Contract {
     pub fn new() -> Self {
         Self {}
     }
-}
-\`\`\`
 
-No state needed! We're just exploring different ways to handle errors.`,
-    },
-    {
-      title: "Don't Do This!",
-      content: `What if you ignored errors?
+    pub fn try_parse_number(&self, s: String) -> Option<u64> {
+        // Try to parse, return None if it fails
+    }
 
-\`\`\`rust
-// BAD: No error handling!
-pub fn divide(&self, a: u64, b: u64) -> u64 {
-    // b could be 0 → PANIC!
-    a / b
-}
-\`\`\`
+    pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
+        // Check for zero first
+    }
 
-The problem:
-- Division by zero crashes contract
-- No graceful failure
-- User gets cryptic error
-- Bad UX!
+    pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
+        // Parse with fallback
+    }
 
-Handle errors explicitly!`,
-    },
-    {
-      title: 'Option<T> - The Graceful Way',
-      content: `Sometimes a function might not have a value to return. That's where **Option** comes in:
+    pub fn assert_positive(&self, value: i64) {
+        // Panic if not positive
+    }
 
-\`\`\`rust
-// Returns Some(value) if parsing succeeds, None if it fails
-pub fn try_parse_number(&self, s: String) -> Option<u64> {
-    s.parse().ok()
-}
-\`\`\`
-
-What's happening:
-- \`Option<u64>\` means "maybe a number, maybe nothing"
-- \`.parse().ok()\` tries to parse the string; if it fails, returns None
-- Caller can check: \`if let Some(n) = result { ... }\`
-
-How to use Option in your code:
-\`\`\`rust
-let result = contract.try_parse_number("42".to_string());
-
-if let Some(number) = result {
-    // Success! number is now a u64
-    near::log!("We got: {}", number);
-} else {
-    // Failed! result was None
-    near::log!("Couldn't parse that!");
-}
-\`\`\`
-
-Why Option? Graceful failure - doesn't crash, just says "I couldn't do that". Caller decides what to do with nothing. Perfect for expected failures!`,
-    },
-    {
-      title: 'require! - Panic With A Message',
-      content: `Sometimes you WANT to panic - when something should NEVER happen:
-
-\`\`\`rust
-use near_sdk::{env, require};
-
-// Panic if value is not positive
-pub fn assert_positive(&self, value: i64) {
-    require!(value > 0, "Value must be positive");
-}
-
-// Panic for critical failures
-pub fn strict_check(&self, value: u64) {
-    if value == 0 {
-        env::panic_str("ZERO_NOT_ALLOWED");
+    pub fn strict_check(&self, value: u64) {
+        // Panic if zero - critical error
     }
 }
 \`\`\`
 
-> Why i64 here? We use \`i64\` (signed integer) for \`assert_positive\` because it allows NEGATIVE values! This lets us catch when someone accidentally passes a negative number. All other examples use \`u64\` (unsigned) because negative numbers don't make sense for counters, balances, etc.
+**Solution Hints:**
+- Parse: \`s.parse().ok()\` returns Option
+- Safe divide: check \`b == 0\` first, return None if true
+- Default: \`.parse().unwrap_or(default)\`
+- Assert: \`require!(value > 0, "message")\`
+- Strict: \`if value == 0 { env::panic_str("ZERO_NOT_ALLOWED") }\`
 
-When to use each:
+**When to use what:**
+Option/None is for "might not have a value" - caller decides what to do. require! is for "you violated a rule" - user error, clear message. env::panic_str is for "this should NEVER happen" - critical failure.
 
-require!(condition, "message"):
-- For validation errors
-- User's fault - they gave bad input
-- Clear message helps them fix it
+The difference between i64 and u64? i64 can be negative. That's why assert_positive uses i64 - to catch when someone accidentally passes -5. For counters and most things, use u64 because negatives don't make sense.
 
-env::panic_str("message"):
-- For programmer errors
-- Something that should NEVER happen
-- Critical failures that need attention`,
-    },
-    {
-      title: 'Safe Division - Avoiding Crashes',
-      content: `Division by zero is a classic error. Here's how to handle it:
+And division by zero? In Rust it PANICS. The whole contract crashes. That's why you MUST check first. Never assume input is valid.
 
-\`\`\`rust
-// Returns None if b is 0, otherwise Some(a / b)
-pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
-    if b == 0 { return None; }
-    Some(a / b)
-}
-\`\`\`
+---
 
-Why not just divide?
-In Rust, division by zero PANICS - the whole contract crashes! That's bad.
-
-The solution: Check first, then divide. Return None if we can't do it safely.
-
-Alternative - with unwrap_or:
-\`\`\`rust
-pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
-    s.parse().unwrap_or(default)
-}
-\`\`\`
-If parsing fails, use the default value instead!`,
-    },
-    {
-      title: 'Learn More',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/security/welcome)`,
+[Learn more about this topic →](https://docs.near.org/smart-contracts/security/welcome)`,
     },
   ],
 };

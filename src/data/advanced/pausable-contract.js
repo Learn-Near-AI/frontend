@@ -146,7 +146,7 @@ When paused = true, the check fails and the function reverts. That's it!
 It's like a master switch. One toggle protects everything!`,
   },
   {
-    title: 'Learn More',
+    title: 'Hints',
     content: `[Learn more about this topic →](https://docs.rs/near-contract-tools/latest/near_contract_tools/pause/index.html)`,
   },
 ];

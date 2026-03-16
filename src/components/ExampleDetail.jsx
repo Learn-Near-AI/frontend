@@ -62,7 +62,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         : `// No ${effectiveLanguage} code sample is available yet for "${example.name}".
 // Try switching language tabs, or pick another example from the sidebar.`);
 
-  const [activeInfoTab, setActiveInfoTab] = useState('explanation');
+  const [activeInfoTab, setActiveInfoTab] = useState('task');
   const [code, setCode] = useState('');
   const [consoleOutput, setConsoleOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);

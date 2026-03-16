@@ -263,7 +263,7 @@ This is the old world. It worked for Bitcoin (nothing changes ever) but for appl
 Upgrade pattern exists because production software needs to evolve. Smart contracts are software. They need to evolve too.`,
   },
   {
-    title: 'Learn More',
+    title: 'Hints',
     content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/release/upgrade)`,
   },
 ];

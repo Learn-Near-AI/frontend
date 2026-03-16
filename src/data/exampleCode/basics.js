@@ -116,6 +116,16 @@ impl Contract {
     pub fn greet(&self) -> String {
         "Greetings, Adventurer!".to_string()
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_greet() {
+        let c = Contract::new();
+        assert_eq!(c.greet(), "Greetings, Adventurer!".to_string());
+    }
 }`,
     JavaScript: `import { NearBindgen, view } from "near-sdk-js";
 
@@ -153,18 +163,18 @@ impl Contract {
         }
     }
 
-    @view({})
+    #[view]
     pub fn get_owner(&self) -> AccountId {
         // TODO: Return the stored owner_id
         self.owner_id.clone()
     }
 
-    @view({})
+    #[view]
     pub fn get_greeting(&self) -> String {
         self.greeting.clone()
     }
 
-    @call({})
+    #[call]
     pub fn set_greeting(&mut self, new_greeting: String) {
         // TODO: Add access control - only owner can call this
         // Hint: require!(env::predecessor_account_id() == self.owner_id, "...")
@@ -245,7 +255,34 @@ impl Contract {
 
         self.greeting = new_greeting;
     }
-}`,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use near_sdk::test_utils::VMContextBuilder;
+    use near_sdk::testing_env;
+
+    #[test]
+    fn test_default_greeting() {
+        let context = VMContextBuilder::new().build();
+        testing_env!(context);
+        let c = Contract::new(Some("Hi".to_string()));
+        assert_eq!(c.get_greeting(), "Hi".to_string());
+    }
+
+    #[test]
+    fn test_set_greeting() {
+        let context = VMContextBuilder::new()
+            .predecessor_account_id("owner".parse().unwrap())
+            .build();
+        testing_env!(context);
+        let mut c = Contract::new(None);
+        c.set_greeting("Updated".to_string());
+        assert_eq!(c.get_greeting(), "Updated".to_string());
+    }
+}
+`,
     JavaScript: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
 
 @NearBindgen({})
@@ -295,10 +332,9 @@ impl Contract {
         }
     }
 
-    // TODO: Return greeting for caller (or default)
-    pub fn get_my_greeting(&self) -> String {
-        let caller = env::predecessor_account_id();
-        // Hint: user_greetings.get(&caller).unwrap_or_else(|| default_greeting.clone())
+    // TODO: Return greeting for account (or default)
+    pub fn get_greeting(&self, account: AccountId) -> String {
+        // Hint: user_greetings.get(&account).unwrap_or_else(|| default_greeting.clone())
         self.default_greeting.clone()
     }
 
@@ -325,8 +361,8 @@ class Contract {
   }
 
   @view({})
-  get_my_greeting() {
-    // TODO: Return user_greetings[caller] or default_greeting
+  get_greeting({ account }) {
+    // TODO: Return user_greetings[account] or default_greeting
     return this.default_greeting;
   }
 
@@ -363,10 +399,9 @@ impl Contract {
         }
     }
 
-    pub fn get_my_greeting(&self) -> String {
-        let caller = env::predecessor_account_id();
+    pub fn get_greeting(&self, account: AccountId) -> String {
         self.user_greetings
-            .get(&caller)
+            .get(&account)
             .unwrap_or_else(|| self.default_greeting.clone())
     }
 
@@ -377,7 +412,27 @@ impl Contract {
     pub fn has_custom_greeting(&self, account: AccountId) -> bool {
         self.user_greetings.contains_key(&account)
     }
-}`,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use near_sdk::AccountId;
+
+    #[test]
+    fn test_default_greeting() {
+        let c = Contract::new();
+        let user: AccountId = "user".parse().unwrap();
+        assert_eq!(c.get_greeting(user), "Hello, NEAR explorer!".to_string());
+    }
+
+    #[test]
+    fn test_default_greeting_length() {
+        let c = Contract::new();
+        assert_eq!(c.get_default_greeting_length(), 18);
+    }
+}
+`,
     JavaScript: `import { NearBindgen, view, near } from "near-sdk-js";
 
 @NearBindgen({})
@@ -391,9 +446,8 @@ class Contract {
   }
 
   @view({})
-  get_my_greeting() {
-    const caller = near.predecessorAccountId();
-    return this.user_greetings[caller] || this.default_greeting;
+  get_greeting({ account }) {
+    return this.user_greetings[account] || this.default_greeting;
   }
 
   @view({})
@@ -434,10 +488,6 @@ impl Contract {
     // View methods (free)
     pub fn get_message(&self) -> String {
         self.message.clone()
-    }
-
-    pub fn get_owner(&self) -> AccountId {
-        self.owner_id.clone()
     }
 
     // Change methods — add require! for owner-only access
@@ -555,7 +605,36 @@ impl Contract {
         );
         self.message = "Welcome, traveler!".to_string();
     }
-}`,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use near_sdk::test_utils::VMContextBuilder;
+    use near_sdk::testing_env;
+
+    #[test]
+    fn test_get_message() {
+        let context = VMContextBuilder::new()
+            .predecessor_account_id("owner".parse().unwrap())
+            .build();
+        testing_env!(context);
+        let c = Contract::new(Some("Hello".to_string()));
+        assert_eq!(c.get_message(), "Hello".to_string());
+    }
+
+    #[test]
+    fn test_append() {
+        let context = VMContextBuilder::new()
+            .predecessor_account_id("owner".parse().unwrap())
+            .build();
+        testing_env!(context);
+        let mut c = Contract::new(None);
+        c.append_to_message(" World".to_string());
+        assert_eq!(c.get_message(), "Welcome, traveler! World".to_string());
+    }
+}
+`,
     JavaScript: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
 
 @NearBindgen({})
@@ -672,7 +751,21 @@ impl Contract {
     pub fn get_counter(&self) -> u64 {
         self.counter
     }
-}`,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_increment() {
+        let mut c = Contract::new();
+        c.increment();
+        c.increment();
+        assert_eq!(c.get_counter(), 2);
+    }
+}
+
+`,
     JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
 
 @NearBindgen({})
@@ -977,28 +1070,23 @@ impl Contract {
         Self {}
     }
 
-    /// Returns Option - graceful handling for expected failures
     pub fn try_parse_number(&self, s: String) -> Option<u64> {
         s.parse().ok()
     }
 
-    /// Returns None on division by zero instead of panicking
     pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
         if b == 0 { return None; }
         Some(a / b)
     }
 
-    /// Uses unwrap_or for fallback when Option is None
     pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
         s.parse().unwrap_or(default)
     }
 
-    /// Panic for unrecoverable errors - use require! for clear messages
     pub fn assert_positive(&self, value: i64) {
         require!(value > 0, "Value must be positive");
     }
 
-    /// Demonstrates env::panic_str for critical failures
     pub fn strict_check(&self, value: u64) {
         if value == 0 {
             env::panic_str("ZERO_NOT_ALLOWED");
@@ -1125,7 +1213,6 @@ pub struct Contract {
     message: String,
 }
 
-// 100/100 NEP-297 Events – modern best practice
 #[near(event_json(standard = "learn-near-message"))]
 pub enum Event {
     #[event_version("1.0.0")]
@@ -1164,11 +1251,8 @@ impl Contract {
 
     pub fn set_message(&mut self, new_message: String) {
         let old_message = self.message.clone();
-
-        // Update state first
         self.message = new_message.clone();
 
-        // Then emit event AFTER state change
         Event::MessageUpdated {
             old_message,
             new_message,
@@ -1179,11 +1263,8 @@ impl Contract {
 
     pub fn delete_message(&mut self) {
         let deleted_message = self.message.clone();
-
-        // Update state first
         self.message = String::new();
 
-        // Then emit event AFTER state change
         Event::MessageDeleted {
             deleted_message,
             deleted_by: near_sdk::env::predecessor_account_id(),
@@ -1205,7 +1286,6 @@ class Contract {
     const old_message = this.message;
     this.message = message;
     
-    // Then emit event AFTER state change
     const event = {
       standard: "learn-near-message",
       version: "1.0.0",
@@ -1292,16 +1372,15 @@ class Contract {
   }
 }
 `,
-    Rust: `// Vector + storage keys: unique prefixes (b"i", b"t") namespace collections to avoid collisions
-use near_sdk::near;
+    Rust: `use near_sdk::near;
 use near_sdk::collections::Vector;
 use near_sdk::{require, PanicOnDefault};
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
-    items: Vector<String>,   // prefix b"i"
-    tags: Vector<String>,    // prefix b"t" - different key, no collision
+    items: Vector<String>,
+    tags: Vector<String>,
 }
 
 #[near]
@@ -1338,7 +1417,19 @@ impl Contract {
     pub fn get_tags(&self) -> Vec<String> {
         self.tags.iter().collect()
     }
-}`,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_add_and_get_item() {
+        let mut c = Contract::new();
+        c.add_item("apple".to_string());
+        assert_eq!(c.get_item(0), Some("apple".to_string()));
+    }
+}
+`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
@@ -1376,7 +1467,6 @@ class Contract {
   @call({})
   remove_item({ index }) {
     if (index >= this.items.length) near.panic("Index out of bounds");
-    // swap_remove: swap with last, then pop (O(1) like Rust)
     [this.items[index], this.items[this.items.length - 1]] = [this.items[this.items.length - 1], this.items[index]];
     this.items.pop();
   }

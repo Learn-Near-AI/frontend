@@ -146,10 +146,6 @@ function ExplanationTab({ example }) {
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
             {example.name}
           </h2>
-          <p className="text-xs uppercase tracking-wide text-gray-400">
-            Explanation{' '}
-            <span className={`normal-case font-medium ${auditColor}`}>({auditLabel})</span>
-          </p>
         </div>
       </div>
       <div className="relative prose prose-sm max-w-none">
@@ -170,26 +166,30 @@ function ExplanationTab({ example }) {
         )}
       </div>
 
-      {/* Detailed explanation modal */}
+      {/* Hints modal */}
       {hasDetailedExplanation && (
         <Dialog open={detailedModalOpen} onOpenChange={setDetailedModalOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0 border-gray-200 dark:border-[#3e3e42]">
             <DialogHeader className="px-6 pt-6 pb-2 border-b border-gray-200 dark:border-[#3e3e42]">
               <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-                {example.name} — Detailed explanation
+                {example.name} — Hints
               </DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-              {detailedSections.map((section, idx) => (
-                <div key={idx}>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 pb-2 border-b border-gray-200 dark:border-[#3e3e42]">
-                    {section.title}
-                  </h3>
-                  <div className="text-gray-700 dark:text-gray-300">
-                    <ReactMarkdown components={markdownComponents}>{section.content}</ReactMarkdown>
+              {detailedSections
+                .filter((section) => section.title === 'Hints')
+                .map((section, idx) => (
+                  <div key={idx}>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 pb-2 border-b border-gray-200 dark:border-[#3e3e42]">
+                      {section.title}
+                    </h3>
+                    <div className="text-gray-700 dark:text-gray-300">
+                      <ReactMarkdown components={markdownComponents}>
+                        {section.content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </DialogContent>
         </Dialog>

@@ -317,7 +317,7 @@ approvals: UnorderedSet<String>,    // "action:signer" pairs
 Simple but effective consensus mechanism!`,
   },
   {
-    title: 'Learn More',
+    title: 'Hints',
     content: `[Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
   },
 ];

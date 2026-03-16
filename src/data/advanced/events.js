@@ -287,7 +287,7 @@ The problem is obvious:
 This is literally what apps did before events existed. Scan everything. Expensive. Slow. Painful. Don't do this.`,
   },
   {
-    title: 'Learn More',
+    title: 'Hints',
     content: `[Learn more about this topic →](https://github.com/near/NEPs/blob/master/neps/nep-0297.md)`,
   },
 ];

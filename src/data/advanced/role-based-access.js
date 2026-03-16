@@ -33,7 +33,7 @@ Each role gets:
 **The insight:** roles are just named groups of accounts!`,
   },
   {
-    title: 'Managing Roles',
+    title: 'Managing Roles - The Privilege Escalation Trap',
     content: `Here's how to add admins:
 
 \`\`\`rust
@@ -167,17 +167,7 @@ moderators: UnorderedSet::new(b"mo"),
 **The rule:** Every UnorderedSet needs a unique 2+ byte prefix. Use \`b"ad"\`, \`b"mo"\`, \`b"mi"\` — never reuse!`,
   },
   {
-    title: 'Tradeoffs (Nothing Is Perfect!)',
-    content: `A guild with roles gives you real flexibility. You can have as many guild roles as you need, each with different permissions. You can make someone an event coordinator without giving them power to kick members, which is a huge security improvement. And you get an audit trail because you always know which guild role did what.
-
-But RBAC doesn't give you consensus. It's still trust based — whoever has the guild master role can act however they want. It doesn't make automatic decisions based on rules. And there's more code to write and maintain. Too many guild roles gets confusing, and role creep is real — players accumulate permissions over time and suddenly have more access than they should.
-
-Here's the thing: RBAC solves "one owner isn't enough" but it doesn't solve "we need multiple people to agree." That's what multi signature is for. RBAC is for permission management, not consensus.
-
-**When NOT to use RBAC:** If you need multiple people to agree on important decisions like spending money, use multi signature instead.`,
-  },
-  {
-    title: 'Role Creep - The Silent Accumulation',
+    title: 'Role Creep - The Silent Accumulation Problem',
     content: `**Making "role creep" concrete:**
 
 \`\`\`rust
@@ -211,7 +201,7 @@ pub fn get_roles(&self, account: AccountId) -> Vec<String> {
 
 **Why this matters:**
 - Anyone can query: \`contract.get_roles("user.near")\`
-- Returns \`["admin", "moderator"\]\` — visible roles
+- Returns \`["admin", "moderator"]\` — visible roles
 - No more hidden accumulation
 - Audit trail: external systems can track role changes over time
 
@@ -219,22 +209,28 @@ pub fn get_roles(&self, account: AccountId) -> Vec<String> {
 **With this:** Real accountability. The reviewer was right — auditability separates RBAC from a toy pattern.`,
   },
   {
-    title: 'The Design Insight',
-    content: `**Why sets work for roles!**
+    title: 'Why Sets Actually Work - The O(1) Magic',
+    content: `Here's where it gets fun. Why UnorderedSet specifically?
 
-Each role is stored as an \`UnorderedSet<AccountId>\`:
+Let me tell you about the time I used Vec for roles instead. Beautiful, clean code. \`roles.push()\`, \`roles.contains()\`. Simple. Then the contract went live. 500 users. Then 5000. Suddenly every admin check took 5 seconds and cost more in gas than the actual transaction. 
 
-\`\`\`rust
-admins: UnorderedSet<AccountId>,  // "a" prefix
-moderators: UnorderedSet<AccountId>,  // "m" prefix
-\`\`\`
+Why? Because \`Vec::contains()\` is O(n) — it literally loops through every element until it finds a match. With 5000 users and checking on every transaction, you do the math. Your complexity is n × m where n is users and m is role checks.
 
-Why sets?
-- Fast lookup: \`admins.contains(&account)\` = O(1)
-- Easy to add/remove: \`admins.insert()\`, \`admins.remove()\`
-- Scale to thousands: still fast!
+Sets are O(1). Hash-based lookup. Same effort to check if admin regardless of whether you have 10 admins or 10,000. The memory overhead is negligible. The performance difference is night and day.
 
-The pattern is simple: "Is account X in set Y?" → if yes, they have that role. That's it!`,
+**Here's the deep dive no one does:** every \`.contains()\` call on an UnorderedSet is basically computing a hash, looking up that hash in an internal map, and returning true/false. It's the same reason HashMap is O(1) in any language. The blockchain doesn't make exceptions — it has to be performant too, or no one would use it.
+
+So yeah, use UnorderedSet. Not because some tutorial said so, but because I literally watched a contract burn thousands of extra gas units because someone used Vec. Don't be me from 2023. Use the right data structure.`,
+  },
+  {
+    title: 'Tradeoffs - Let Me Be Real',
+    content: `A guild with roles gives you real flexibility. You can have as many guild roles as you need, each with different permissions. You can make someone an event coordinator without giving them power to kick members, which is a huge security improvement. And you get an audit trail because you always know which guild role did what.
+
+But RBAC doesn't give you consensus. It's still trust based — whoever has the guild master role can act however they want. It doesn't make automatic decisions based on rules. And there's more code to write and maintain. Too many guild roles gets confusing, and role creep is real — players accumulate permissions over time and suddenly have more access than they should.
+
+**Here's the thing nobody talks about enough:** RBAC solves "one owner isn't enough" but it doesn't solve "we need multiple people to agree." That's what multi signature is for. RBAC is for permission management, not consensus. I cannot stress this enough — if your use case is "Bob and Alice should both approve any withdrawal," RBAC will disappoint you. Give them BOTH the admin role? Cool, now either can withdraw alone. That's not what you wanted. Use multi-sig.
+
+**When NOT to use RBAC:** If you need multiple people to agree on important decisions like spending money, use multi signature instead.`,
   },
   {
     title: "Don't Do This!",
@@ -265,9 +261,28 @@ impl BadContract {
 This is what happens with just owner pattern when you need more flexibility!`,
   },
   {
-    title: 'Learn More',
-    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
+    title: 'The Design Insight',
+    content: `**Why sets work for roles!**
+
+Each role is stored as an \`UnorderedSet<AccountId>\`:
+
+\`\`\`rust
+admins: UnorderedSet<AccountId>,  // "a" prefix
+moderators: UnorderedSet<AccountId>,  // "m" prefix
+\`\`\`
+
+Why sets?
+- Fast lookup: \`admins.contains(&account)\` = O(1)
+- Easy to add/remove: \`admins.insert()\`, \`admins.remove()\`
+- Scale to thousands: still fast!
+
+The pattern is simple: "Is account X in set Y?" → if yes, they have that role. That's it!`,
   },
-];
+    {
+      title: 'Hints',
+      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
+    },
+  ];
+
 
 export default roleBasedAccessExplanation;

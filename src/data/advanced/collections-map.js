@@ -314,7 +314,7 @@ impl BadLeaderboard {
 This is O(n) - time grows with size. Maps are O(1) - instant regardless of size!`,
   },
   {
-    title: 'Learn More',
+    title: 'Hints',
     content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#lookupmap)`,
   },
 ];
