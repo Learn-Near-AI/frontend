@@ -213,7 +213,43 @@ The owner pattern simply asks: "Is the caller the owner?" If yes, proceed. If no
   },
   {
     title: 'Hints',
-    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
+    content: `**The Problem:**
+You need owner-protected methods. Only the designated owner should modify state.
+
+**Code Snippet:**
+\`\`\`rust
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        // How to set owner correctly?
+    }
+
+    pub fn set_value(&mut self, value: u64) {
+        // How to check if caller is owner?
+        // How to reject if not owner?
+    }
+
+    pub fn transfer_ownership(&mut self, new_owner: AccountId) {
+        // How to verify ownership?
+        // How to update owner?
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- In new(): use \`env::current_account_id()\` (the contract account), not \`env::predecessor_account_id()\` (the deployer)
+- Access check: \`require!(env::predecessor_account_id() == self.owner_id, "Only owner")\`
+- Transfer: after require check, set \`self.owner_id = new_owner\`
+- View methods: no access control needed (read-only, no state change)
+
+**Key distinction:**
+- \`current_account_id()\` = account where contract is deployed
+- \`predecessor_account_id()\` = account that called this function
+
+---
+
+[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
   },
 ];
 

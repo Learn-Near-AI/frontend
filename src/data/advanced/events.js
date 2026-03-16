@@ -301,7 +301,44 @@ This is literally what apps did before events existed. Scan everything. Expensiv
   },
   {
     title: 'Hints',
-    content: `[Learn more about this topic →](https://github.com/near/NEPs/blob/master/neps/nep-0297.md)`,
+    content: `**The Problem:**
+You need NEP-297 compliant events. Use the event_json macro and .emit() method.
+
+**Code Snippet:**
+\`\`\`rust
+// How to define events?
+
+#[near]
+impl Contract {
+    pub fn set_message(&mut self, msg: String) {
+        // How to capture old value?
+        // How to update state?
+        // How to emit event AFTER update?
+    }
+
+    pub fn delete_message(&mut self) {
+        // How to emit deletion event?
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- Define enum: \`#[near(event_json(standard = "your-standard"))]\`
+- Variants: \`#[event_version("1.0.0")] VariantName { field: Type, ... }\`
+- Emit: \`Event::MessageUpdated { ... }.emit()\`
+- Standard: "nep171" for NFTs, "nep141" for FT, custom string for your app
+- Version: string like "1.0.0"
+
+**NEP-297 format:**
+\`\`\`json
+{"standard": "your-standard", "version": "1.0.0", "event": "EventName", "data": {...}}
+\`\`\`
+
+**Important:** Update state BEFORE emitting events.
+
+---
+
+[Learn more about this topic →](https://github.com/near/NEPs/blob/master/neps/nep-0297.md)`,
   },
 ];
 

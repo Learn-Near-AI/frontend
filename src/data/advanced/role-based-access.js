@@ -293,7 +293,47 @@ The pattern is simple: "Is account X in set Y?" → if yes, they have that role.
   },
   {
     title: 'Hints',
-    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
+    content: `**The Problem:**
+You need multiple access levels. Owners can manage admins, admins can do specific actions.
+
+**Code Snippet:**
+\`\`\`rust
+pub struct Contract {
+    // What collection types for roles?
+    // How to initialize each role?
+}
+
+impl Contract {
+    pub fn add_owner(&mut self, account: AccountId) {
+        // How to add to role?
+    }
+
+    pub fn add_admin(&mut self, account: AccountId) {
+        // How to verify caller is owner first?
+    }
+
+    pub fn admin_only_action(&mut self) {
+        // How to check if caller is admin OR owner?
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- Use \`UnorderedSet<AccountId>\` for each role
+- Storage prefix: \`b"o"\` for owners, \`b"a"\` for admins (must be unique!)
+- Helper: \`fn is_owner(&self, account: &AccountId) -> bool { self.owners.contains(account) }\`
+- Add: \`self.owners.insert(&account)\`
+- Remove: \`self.owners.remove(&account)\`
+- Check: \`self.owners.contains(&account)\`
+
+**Access patterns:**
+- Owner-only: \`require!(self.is_owner(&env::predecessor_account_id()), "Only owner")\`
+- Admin-or-owner: \`require!(is_owner || is_admin)\`
+- Public: no require needed
+
+---
+
+[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
   },
 ];
 

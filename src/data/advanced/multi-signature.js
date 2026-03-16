@@ -332,7 +332,47 @@ Simple but effective consensus mechanism!`,
   },
   {
     title: 'Hints',
-    content: `[Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
+    content: `**The Problem:**
+You need multiple owners to approve a transaction before it executes. Track approvals per transaction.
+
+**Code Snippet:**
+\`\`\`rust
+pub struct Proposal {
+    // What fields to track?
+    // - transaction description
+    // - approvals (who approved)
+    // - status (pending/executed/rejected)
+}
+
+impl Contract {
+    pub fn propose(&mut self, transaction: String) -> u64 {
+        // How to create proposal? How to assign ID?
+    }
+
+    pub fn approve(&mut self, proposal_id: u64) {
+        // How to add owner to approvals? How to prevent double-approval?
+    }
+
+    pub fn execute(&mut self, proposal_id: u64) {
+        // How to check enough approvals? How to execute? How to clean up?
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- Store proposals: \`LookupMap<u64, Proposal>\` with Proposal having \`approvals: Vec<AccountId>\`
+- Generate ID: use \`next_proposal_id\`, increment after each proposal
+- Approve: add predecessor to approvals, check for duplicates with \`.contains()\`
+- Execute: \`require!(approvals.len() >= required_threshold, "Not enough approvals")\`
+- Clear after execution: \`proposals.remove(&id)\` to prevent replay
+
+**Threshold:**
+- 2-of-3: require 2+ approvals
+- Formula: \`required = (owners.len() + 1) / 2\` (majority)
+
+---
+
+[Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
   },
 ];
 

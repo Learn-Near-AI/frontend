@@ -328,7 +328,51 @@ This is O(n) - time grows with size. Maps are O(1) - instant regardless of size!
   },
   {
     title: 'Hints',
-    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#lookupmap)`,
+    content: `**The Problem:**
+You need a leaderboard with fast lookups by account. Use IterableMap with StorageKey.
+
+**Code Snippet:**
+\`\`\`rust
+// How to define storage keys?
+
+#[near(contract_state)]
+pub struct Contract {
+    // What collection type for leaderboard?
+}
+
+impl Contract {
+    pub fn set_score(&mut self, account: AccountId, score: u64) {
+        // How to insert or update a score?
+    }
+
+    pub fn get_top_scores(&self, limit: u64) -> Vec<(AccountId, u64)> {
+        // How to get all scores? How to sort? How to limit?
+    }
+
+    pub fn get_rank(&self, account: AccountId) -> u64 {
+        // How to calculate rank (position in sorted list)?
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- StorageKey: \`#[derive(BorshStorageKey, BorshSerialize)] enum StorageKey { Leaderboard }\`
+- Collection: \`IterableMap<AccountId, u64>\` initialized with \`StorageKey::Leaderboard\`
+- Insert/update: \`self.leaderboard.insert(&account, score)\`
+- Get: \`self.leaderboard.get(&account).copied()\`
+- Top scores: collect to Vec, sort descending, take(limit)
+- Rank: count entries where score > target score, add 1
+
+**Sorting:**
+\`\`\`rust
+let mut scores: Vec<_> = self.leaderboard.iter().collect();
+scores.sort_by(|a, b| b.1.cmp(a.1)); // descending by score
+scores.iter().take(limit).map(|(k, v)| (k.clone(), *v)).collect()
+\`\`\`
+
+---
+
+[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/collections#lookupmap)`,
   },
 ];
 

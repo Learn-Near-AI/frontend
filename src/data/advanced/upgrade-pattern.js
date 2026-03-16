@@ -277,7 +277,47 @@ Upgrade pattern exists because production software needs to evolve. Smart contra
   },
   {
     title: 'Hints',
-    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/release/upgrade)`,
+    content: `**The Problem:**
+You need to pause the contract before upgrading, and add a migration hook for state changes.
+
+**Code Snippet:**
+\`\`\`rust
+impl Contract {
+    pub fn pause(&mut self) {
+        // How to verify owner? How to set paused = true?
+    }
+
+    pub fn upgrade(&mut self, code: Vec<u8>) {
+        // How to check contract is paused? How to check owner?
+        // How to actually upgrade the code?
+    }
+
+    pub fn migrate(&mut self) {
+        // How to update data_version?
+    }
+
+    pub fn change_method(&mut self) {
+        // How to block when paused?
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- Pause check: \`require!(!self.paused, "Contract must be paused")\` in change methods
+- Owner check: \`require!(env::predecessor_account_id() == self.owner_id, "Only owner")\`
+- Upgrade: \`env::stack_chain(&code)\` where code is Vec<u8>
+- Migration: increment \`data_version\` after upgrading
+- State migration: convert old struct fields to new format
+
+**Upgrade flow:**
+1. Owner calls \`pause()\`
+2. Owner calls \`upgrade(new_code)\` - state preserved, code updated
+3. Owner calls \`migrate()\` if needed - fix state incompatibilities
+4. Owner calls \`unpause()\`
+
+---
+
+[Learn more about this topic →](https://docs.near.org/smart-contracts/release/upgrade)`,
   },
 ];
 

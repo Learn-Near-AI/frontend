@@ -161,7 +161,56 @@ It's like a master switch. One toggle protects everything!`,
   },
   {
     title: 'Hints',
-    content: `[Learn more about this topic →](https://docs.rs/near-contract-tools/latest/near_contract_tools/pause/index.html)`,
+    content: `**The Problem:**
+You need an emergency stop. When paused, certain operations should fail.
+
+**Code Snippet:**
+\`\`\`rust
+#[near(contract_state)]
+pub struct Contract {
+    // What field tracks pause state?
+    // What other fields needed (owner, counter)?
+}
+
+impl Contract {
+    pub fn pause(&mut self) {
+        // How to check owner? How to set paused = true?
+    }
+
+    pub fn unpause(&mut self) {
+        // How to check owner? How to set paused = false?
+    }
+
+    pub fn increment(&mut self) {
+        // How to reject when paused?
+    }
+
+    pub fn get_counter(&self) -> u64 {
+        // Should this work when paused?
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- Store: \`paused: bool\` in struct
+- Initialize: \`paused: false\` in new()
+- Toggle: \`self.paused = true/false\` with owner require check
+- Check in change methods: \`require!(!self.paused, "Contract is paused")\`
+- View methods: usually allow even when paused (read-only, no state change risk)
+
+**Pattern:**
+\`\`\`rust
+pub fn change_method(&mut self) {
+    require!(!self.paused, "Contract is paused");
+    // ... method logic ...
+}
+\`\`\`
+
+**Common use cases:** pause transfers in FT/NFT, pause trading, emergency shutdown.
+
+---
+
+[Learn more about this topic →](https://docs.rs/near-contract-tools/latest/near_contract_tools/pause/index.html)`,
   },
 ];
 
