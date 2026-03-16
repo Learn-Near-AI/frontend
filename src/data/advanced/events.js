@@ -1,5 +1,18 @@
 export const eventsExplanation = [
   {
+    title: 'The Challenge',
+    content: `Your task is to implement a contract that emits NEP-297 compliant events.
+
+**Requirements:**
+- Define \`#[near(event_json(standard = "my-project"))]\` enum with events
+- Store \`message: String\`
+- Implement \`set_message(msg: String)\` - emits MessageUpdated event with old/new/updated_by
+- Implement \`delete_message()\` - emits MessageDeleted event with deleted_message/deleted_by
+- Use \`.emit()\` on event variants
+
+**Test:** Events are emitted with correct standard, version, and data!`,
+  },
+  {
     title: 'The Town Crier!',
     content: `Wallets listen for transfer events to update balances in real-time.
 

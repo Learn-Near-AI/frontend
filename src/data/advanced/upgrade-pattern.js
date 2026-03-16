@@ -1,5 +1,18 @@
 export const upgradePatternExplanation = [
   {
+    title: 'The Challenge',
+    content: `Your task is to implement a pausable upgradeable contract.
+
+**Requirements:**
+- Store \`owner_id: AccountId\`, \`paused: bool\`, \`data_version: u32\`
+- Implement \`pause()\`, \`unpause()\` - owner only
+- Implement \`upgrade(code: Vec<u8>)\` - owner only, only when paused
+- Implement \`migrate()\` - for state migration between versions
+- When paused: all change methods should panic
+
+**Test:** Can pause, upgrade, then unpause while preserving state!`,
+  },
+  {
     title: 'The Evolution!',
     content: `Popular dApps use upgrade patterns to add features while preserving user data.
 

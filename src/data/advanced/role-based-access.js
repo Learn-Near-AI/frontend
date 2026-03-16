@@ -1,5 +1,18 @@
 export const roleBasedAccessExplanation = [
   {
+    title: 'The Challenge',
+    content: `Your task is to implement a multi-role access control contract.
+
+**Requirements:**
+- Store \`owners: UnorderedSet<AccountId>\`, \`admins: UnorderedSet<AccountId>\`
+- Implement \`add_owner\`, \`remove_owner\` - owners only
+- Implement \`add_admin\`, \`remove_admin\` - owners only
+- Implement \`get_owners()\`, \`get_admins()\` - public view
+- Implement \`admin_only_action()\` - admins or owners only
+
+**Test:** Owners can manage admins, admins can call admin_only_action, regular users cannot!`,
+  },
+  {
     title: 'Guild Roles!',
     content: `DeFi protocols use RBAC to separate regular users from admins and moderators.
 
@@ -278,11 +291,10 @@ Why sets?
 
 The pattern is simple: "Is account X in set Y?" → if yes, they have that role. That's it!`,
   },
-    {
-      title: 'Hints',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
-    },
-  ];
-
+  {
+    title: 'Hints',
+    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
+  },
+];
 
 export default roleBasedAccessExplanation;

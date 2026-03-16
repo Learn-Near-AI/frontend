@@ -1,5 +1,19 @@
 export const multiSignatureExplanation = [
   {
+    title: 'The Challenge',
+    content: `Your task is to implement a 2-of-3 multi-signature wallet.
+
+**Requirements:**
+- Store \`owners: Vec<AccountId>\`, \`balance: u128\`
+- Implement \`propose(transaction: String)\` - any owner
+- Implement \`approve(transaction_id: u64)\` - owners vote
+- Implement \`execute(transaction_id: u64)\` - execute if 2+ approvals
+- Implement \`deposit()\` - anyone can add funds
+- Track proposal status: Pending, Executed, Rejected
+
+**Test:** Need 2+ owners to approve before execution!`,
+  },
+  {
     title: 'The Two-Key Safe!',
     content: `DAOs use multi-sig contracts to secure treasuries requiring multiple approvals.
 

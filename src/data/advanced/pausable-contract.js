@@ -1,5 +1,19 @@
 export const pausableContractExplanation = [
   {
+    title: 'The Challenge',
+    content: `Your task is to implement an Emergency Stop mechanism for a contract.
+
+**Requirements:**
+- Store \`owner_id: AccountId\`, \`paused: bool\`, \`counter: u64\`
+- In \`new()\`, set owner to \`env::current_account_id()\`, paused to false
+- Implement \`pause()\`, \`unpause()\` - owner only
+- Implement \`increment()\` - change method, panics if paused
+- Implement \`get_counter()\` - view, works even when paused
+- When paused, increment should return "Contract is paused" error
+
+**Test:** Can pause, verify increment fails, unpause, verify it works!`,
+  },
+  {
     title: 'The Emergency Button!',
     content: `Stablecoin protocols pause transfers when vulnerabilities are discovered.
 

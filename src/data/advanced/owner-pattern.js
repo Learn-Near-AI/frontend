@@ -1,5 +1,19 @@
 export const ownerPatternExplanation = [
   {
+    title: 'The Challenge',
+    content: `Your task is to implement an owner-protected contract with value management.
+
+**Requirements:**
+- Store \`owner_id: AccountId\` and \`value: u64\`
+- In \`new()\`, set owner to \`env::current_account_id()\` (not predecessor!)
+- Implement \`set_value(value: u64)\` - owner only
+- Implement \`get_value()\` - public view
+- Implement \`transfer_ownership(new_owner: AccountId)\` - owner only
+- Use \`require!\` for all access control
+
+**Test:** Only the owner can modify the value!`,
+  },
+  {
     title: 'The Castle Guard!',
     content: `NFT contracts use owner patterns to restrict minting and burning.
 
@@ -197,10 +211,10 @@ The \`env::predecessor_account_id()\` gives you exactly that - the account that 
 
 The owner pattern simply asks: "Is the caller the owner?" If yes, proceed. If no, revert. Simple but effective!`,
   },
-    {
-      title: 'Hints',
-      content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
-    },
-  ];
+  {
+    title: 'Hints',
+    content: `[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/best-practices)`,
+  },
+];
 
 export default ownerPatternExplanation;
