@@ -4,11 +4,15 @@ export const upgradePatternExplanation = [
     content: `Your task is to implement a pausable upgradeable contract.
 
 **Requirements:**
-- Store \`owner_id: AccountId\`, \`paused: bool\`, \`data_version: u32\`
+- Store \`owner_id: AccountId\`, \`paused: bool\`, \`data_version: u32\`, \`value: u64\`
+- Implement \`new()\` - initializes with data_version: 1
+- Implement \`upgrade()\` with \`#[init(ignore_state)]\` inside #[near] impl block - sets data_version to 2
 - Implement \`pause()\`, \`unpause()\` - owner only
-- Implement \`upgrade(code: Vec<u8>)\` - owner only, only when paused
-- Implement \`migrate()\` - for state migration between versions
-- When paused: all change methods should panic
+- Implement \`migrate()\` - owner only, increments data_version
+- Implement \`set_value()\` - only when not paused
+- Implement \`get_value()\` and \`get_version()\` - view methods
+
+**Key:** \`#[init(ignore_state)]\` goes INSIDE the #[near] impl block!
 
 **Test:** Can pause, upgrade, then unpause while preserving state!`,
   },
@@ -306,7 +310,7 @@ impl Contract {
 **Solution Hints:**
 - Pause check: \`require!(!self.paused, "Contract must be paused")\` in change methods
 - Owner check: \`require!(env::predecessor_account_id() == self.owner_id, "Only owner")\`
-- Upgrade: Use separate \`#[init(ignore_state)]\` function outside impl block - state preserved, new code deployed
+- Upgrade: Use \`#[init(ignore_state)]\` INSIDE the #[near] impl block - state preserved, new code deployed
 - Migration: increment \`data_version\` after upgrading in \`migrate()\` function
 - State migration: convert old struct fields to new format in migrate()
 

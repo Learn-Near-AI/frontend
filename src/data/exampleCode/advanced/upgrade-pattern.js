@@ -23,40 +23,35 @@ impl Contract {
         }
     }
 
+    // TODO: Add #[init(ignore_state)] upgrade function that:
+    // - Returns Self
+    // - Sets data_version to 2
+    // - Sets paused to false
+    // - Sets value to 0
+
     pub fn pause(&mut self) {
-        require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-        self.paused = true;
+        // TODO: require caller is owner, set paused = true
     }
 
     pub fn unpause(&mut self) {
-        require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-        self.paused = false;
+        // TODO: require caller is owner, set paused = false
     }
 
     pub fn migrate(&mut self) {
-        require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-        self.data_version += 1;
+        // TODO: require caller is owner, increment data_version
     }
 
     pub fn set_value(&mut self, value: u64) {
-        require!(!self.paused, "Contract is paused");
-        self.value = value;
+        // TODO: require not paused, set self.value
     }
 
     pub fn get_value(&self) -> u64 {
         self.value
     }
-}
 
-// Separate upgrade function - outside impl block
-// Use: near deploy --wasm-file new.wasm --init-function upgrade --init-args '{}'
-#[init(ignore_state)]
-pub fn upgrade() -> Contract {
-    Contract {
-        owner_id: env::current_account_id(),
-        paused: false,
-        data_version: 2,
-        value: 0,
+    pub fn get_version(&self) -> u32 {
+        // TODO: return data_version
+        0
     }
 }`,
 
@@ -80,6 +75,16 @@ impl Contract {
             owner_id: env::current_account_id(),
             paused: false,
             data_version: 1,
+            value: 0,
+        }
+    }
+
+    #[init(ignore_state)]
+    pub fn upgrade() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            paused: false,
+            data_version: 2,
             value: 0,
         }
     }
@@ -113,19 +118,6 @@ impl Contract {
     }
 }
 
-// upgrade() is outside the impl block. #[init(ignore_state)] bypasses
-// state deserialization so new code can deploy even if struct shape changed.
-// Deploy with: near deploy --wasm-file new.wasm --init-function upgrade --init-args '{}'
-#[init(ignore_state)]
-pub fn upgrade() -> Contract {
-    Contract {
-        owner_id: env::current_account_id(),
-        paused: false,
-        data_version: 2,
-        value: 0,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -146,6 +138,179 @@ mod tests {
         assert_eq!(contract.get_version(), 2);
     }
 }`,
+
+  JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, paused, data_version, value } = {}) {
+    this.owner_id = owner_id || near.currentAccountId();
+    this.paused = paused || false;
+    this.data_version = data_version || 1;
+    this.value = value || 0;
+  }
+
+  @call({})
+  pause() {
+    // TODO: require caller is owner, set this.paused = true
+  }
+
+  @call({})
+  unpause() {
+    // TODO: require caller is owner, set this.paused = false
+  }
+
+  @call({})
+  migrate() {
+    // TODO: require caller is owner, increment this.data_version
+  }
+
+  @call({})
+  set_value({ value }) {
+    // TODO: require not paused, set this.value
+  }
+
+  @view({})
+  get_value() {
+    return this.value;
+  }
+
+  @view({})
+  get_version() {
+    // TODO: return this.data_version
+    return 0;
+  }
+}`,
+
+  JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, paused, data_version, value } = {}) {
+    this.owner_id = owner_id || near.currentAccountId();
+    this.paused = paused || false;
+    this.data_version = data_version || 1;
+    this.value = value || 0;
+  }
+
+  @call({})
+  pause() {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner");
+    }
+    this.paused = true;
+  }
+
+  @call({})
+  unpause() {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner");
+    }
+    this.paused = false;
+  }
+
+  @call({})
+  migrate() {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner");
+    }
+    this.data_version += 1;
+  }
+
+  @call({})
+  set_value({ value }) {
+    if (this.paused) {
+      near.panic("Contract is paused");
+    }
+    this.value = value;
+  }
+
+  @view({})
+  get_value() {
+    return this.value;
+  }
+
+  @view({})
+  get_version() {
+    return this.data_version;
+  }
+}`,
+
+  TheChallenge: `Your task is to implement a pausable upgradeable contract.
+
+**Requirements:**
+- Store \`owner_id: AccountId\`, \`paused: bool\`, \`data_version: u32\`, \`value: u64\`
+- Implement \`new()\` - initializes with data_version: 1
+- Implement \`upgrade()\` with \`#[init(ignore_state)]\` - sets data_version to 2
+- Implement \`pause()\`, \`unpause()\` - owner only
+- Implement \`migrate()\` - owner only, increments data_version
+- Implement \`set_value()\` - only when not paused
+- Implement \`get_value()\` and \`get_version()\` - view methods
+
+**Key:** \`#[init(ignore_state)]\` goes inside the #[near] impl block!
+
+**Test:** Can pause, upgrade, then unpause while preserving state!`,
+
+  Hints: `**The Problem:**
+You need a contract that can be paused for upgrades, with state migration support.
+
+**Code Snippet:**
+\`\`\`rust
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    paused: bool,
+    data_version: u32,
+    value: u64,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::current_account_id(),
+            paused: false,
+            data_version: 1,
+            value: 0,
+        }
+    }
+
+    #[init(ignore_state)]
+    pub fn upgrade() -> Self {
+        // TODO: Return new state with updated version
+    }
+
+    pub fn pause(&mut self) {
+        // TODO: require owner, set paused = true
+    }
+
+    pub fn set_value(&mut self, value: u64) {
+        // TODO: require not paused
+    }
+}
+\`\`\`
+
+**Solution Hints:**
+- Pause check: \`require!(!self.paused, "Contract is paused")\` in change methods
+- Owner check: \`require!(env::predecessor_account_id() == self.owner_id, "Only owner")\`
+- Upgrade: Use \`#[init(ignore_state)]\` INSIDE the #[near] impl block - state is preserved
+- Migration: increment \`data_version\` in \`migrate()\` function
+
+**Upgrade flow:**
+1. Owner calls \`pause()\`
+2. Deploy new WASM via \`near deploy --init-function upgrade\`
+3. Owner calls \`migrate()\` if needed
+4. Owner calls \`unpause()\`
+
+**Key:** \`#[init(ignore_state)]\` allows deploying new code without re-initializing state.
+
+---
+
+**Extension:** Add a \`version()\` view method that returns the current data_version.
+
+[Learn more about this topic →](https://docs.near.org/smart-contracts/release/upgrade)`,
 };
 
 export default upgradePatternCode;

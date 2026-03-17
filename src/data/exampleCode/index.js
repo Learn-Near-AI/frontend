@@ -1,8 +1,7 @@
 // Main export file for all example code
 import { basicsCode } from './basics.js';
-import { securityCode } from './security.js';
 import { collectionsCode } from './collections.js';
-import { advancedCode } from './advanced.js';
+import advancedCode from './advanced/index.js';
 import { crossContractCode } from './crossContract.js';
 import { nftsCode } from './nfts.js';
 import { chainSignaturesCode } from './chainSignatures.js';
@@ -34,7 +33,6 @@ export const WORKING_EXAMPLES = [
 // Combine all code examples
 const allCode = {
   ...basicsCode,
-  ...securityCode,
   ...collectionsCode,
   ...advancedCode,
   ...crossContractCode,

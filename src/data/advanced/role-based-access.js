@@ -58,7 +58,7 @@ pub fn add_admin(&mut self, account: AccountId) {
         "Not authorized"
     );
     
-    self.admins.insert(&account);
+    self.admins.insert(account);
 }
 \`\`\`
 
@@ -125,14 +125,14 @@ pub fn remove_admin(&mut self, account: AccountId) {
 
 \`\`\`rust
 use near_sdk::near;
-use near_sdk::collections::UnorderedSet;
-use near_sdk::{env, AccountId, require};
+use near_sdk::store::UnorderedSet;
+use near_sdk::{env, AccountId, require, BorshStorageKey};
 use near_sdk::PanicOnDefault;
-use near_sdk::{BorshStorageKey};
-use borsh::BorshSerialize;
+use near_sdk::borsh::BorshSerialize;
 
-#[derive(BorshStorageKey, BorshSerialize)]
-enum StorageKey {
+#[derive(BorshSerialize, BorshStorageKey)]
+#[borsh(crate = "near_sdk::borsh")]
+pub enum StorageKey {
     Admins,
 }
 
@@ -332,11 +332,12 @@ impl Contract {
 \`\`\`
 
 **Solution Hints:**
-- Use \`UnorderedSet<AccountId>\` for each role
+- Use \`UnorderedSet<AccountId>\` for each role (store API, not collections)
 - Use \`BorshStorageKey\` enum for unique storage keys
 - Helper: \`fn is_owner(&self, account: &AccountId) -> bool { self.owners.contains(account) }\`
-- Add: \`self.owners.insert(&account)\`
-- Remove: \`self.owners.remove(&account)\`
+- Add: \`self.owners.insert(account)\` (takes ownership, not reference)
+- Remove: \`self.owners.remove(&account)\` (remove takes reference)
+- Get all: \`self.owners.iter().cloned().collect()\`
 - Check: \`self.owners.contains(&account)\`
 
 **Access patterns:**
