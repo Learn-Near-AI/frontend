@@ -1,7 +1,14 @@
 export const roleBasedAccessCode = {
   RustExercise: `use near_sdk::near;
 use near_sdk::collections::UnorderedSet;
-use near_sdk::{env, AccountId, PanicOnDefault, require};
+use near_sdk::{env, AccountId, PanicOnDefault, require, BorshStorageKey};
+use borsh::BorshSerialize;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Owners,
+    Admins,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -14,11 +21,11 @@ pub struct Contract {
 impl Contract {
     #[init]
     pub fn new(initial_owner: AccountId) -> Self {
-        let mut owners = UnorderedSet::new(b"ow");
+        let mut owners = UnorderedSet::new(StorageKey::Owners);
         owners.insert(&initial_owner);
         Self {
             owners,
-            admins: UnorderedSet::new(b"ad"),
+            admins: UnorderedSet::new(StorageKey::Admins),
         }
     }
 
@@ -49,7 +56,14 @@ impl Contract {
 
   Rust: `use near_sdk::near;
 use near_sdk::collections::UnorderedSet;
-use near_sdk::{env, AccountId, PanicOnDefault, require};
+use near_sdk::{env, AccountId, PanicOnDefault, require, BorshStorageKey};
+use borsh::BorshSerialize;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Owners,
+    Admins,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -62,11 +76,11 @@ pub struct Contract {
 impl Contract {
     #[init]
     pub fn new(initial_owner: AccountId) -> Self {
-        let mut owners = UnorderedSet::new(b"ow");
+        let mut owners = UnorderedSet::new(StorageKey::Owners);
         owners.insert(&initial_owner);
         Self {
             owners,
-            admins: UnorderedSet::new(b"ad"),
+            admins: UnorderedSet::new(StorageKey::Admins),
         }
     }
 

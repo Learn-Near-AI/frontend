@@ -128,12 +128,19 @@ use near_sdk::near;
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
+use near_sdk::{BorshStorageKey};
+use borsh::BorshSerialize;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Admins,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     owner_id: AccountId,
-    admins: UnorderedSet<AccountId>,  // Note: uses "admins" not "officers"
+    admins: UnorderedSet<AccountId>,
 }
 
 #[near]
@@ -141,7 +148,7 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            admins: UnorderedSet::new(b"ad"),
+            admins: UnorderedSet::new(StorageKey::Admins),
             owner_id: env::current_account_id(),
         }
     }
@@ -166,9 +173,15 @@ impl Contract {
 admins: UnorderedSet::new(b"a"),
 moderators: UnorderedSet::new(b"a"),
 
-// RIGHT — unique prefixes (at least 2 bytes!)
-admins: UnorderedSet::new(b"ad"),
-moderators: UnorderedSet::new(b"mo"),
+// RIGHT — use BorshStorageKey enum for type-safe unique keys
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Admins,
+    Moderators,
+}
+
+admins: UnorderedSet::new(StorageKey::Admins),
+moderators: UnorderedSet::new(StorageKey::Moderators),
 \`\`\`
 
 **Why this destroys your contract:**
@@ -177,7 +190,7 @@ moderators: UnorderedSet::new(b"mo"),
 - Data silently overwrites each other
 - No error, no warning — just broken state
 
-**The rule:** Every UnorderedSet needs a unique 2+ byte prefix. Use \`b"ad"\`, \`b"mo"\`, \`b"mi"\` — never reuse!`,
+**The pattern:** Use BorshStorageKey enum for type-safe, unique storage keys. Each variant automatically gets a unique prefix.`,
   },
   {
     title: 'Role Creep - The Silent Accumulation Problem',
@@ -320,7 +333,7 @@ impl Contract {
 
 **Solution Hints:**
 - Use \`UnorderedSet<AccountId>\` for each role
-- Storage prefix: \`b"ow"\` for owners, \`b"ad"\` for admins (use 2+ bytes to avoid collisions!)
+- Use \`BorshStorageKey\` enum for unique storage keys
 - Helper: \`fn is_owner(&self, account: &AccountId) -> bool { self.owners.contains(account) }\`
 - Add: \`self.owners.insert(&account)\`
 - Remove: \`self.owners.remove(&account)\`

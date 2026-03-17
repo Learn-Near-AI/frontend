@@ -109,13 +109,21 @@ use near_sdk::near;
 use near_sdk::collections::UnorderedSet;
 use near_sdk::{env, AccountId, require};
 use near_sdk::PanicOnDefault;
+use near_sdk::{BorshStorageKey, require};
+use borsh::BorshSerialize;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Signers,
+    Approvals,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     signers: UnorderedSet<AccountId>,
-    required_signatures: u32,      // How many approvals needed (e.g., 2)
-    approvals: UnorderedSet<String>, // Stored as "action:signer"
+    required_signatures: u32,
+    approvals: UnorderedSet<String>,
     last_executed_action: Option<String>,
 }
 
@@ -124,9 +132,9 @@ impl Contract {
     #[init]
     pub fn new(required_signatures: u32) -> Self {
         Self {
-            signers: UnorderedSet::new(b"s"),
+            signers: UnorderedSet::new(StorageKey::Signers),
             required_signatures,
-            approvals: UnorderedSet::new(b"a"),
+            approvals: UnorderedSet::new(StorageKey::Approvals),
             last_executed_action: None,
         }
     }

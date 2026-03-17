@@ -163,18 +163,18 @@ impl Contract {
         }
     }
 
-    #[view]
+    
     pub fn get_owner(&self) -> AccountId {
         // TODO: Return the stored owner_id
         self.owner_id.clone()
     }
 
-    #[view]
+    
     pub fn get_greeting(&self) -> String {
         self.greeting.clone()
     }
 
-    #[call]
+    
     pub fn set_greeting(&mut self, new_greeting: String) {
         // TODO: Add access control - only owner can call this
         // Hint: require!(env::predecessor_account_id() == self.owner_id, "...")
@@ -793,7 +793,7 @@ use near_sdk::PanicOnDefault;
 #[derive(PanicOnDefault)]
 pub struct Contract {
     // TODO: Add counter: u64
-    counter: u64,
+    
 }
 
 #[near]
@@ -1303,15 +1303,23 @@ class Contract {
 `,
   },
   'collections-vector': {
-    RustExercise: `// Use a Vector<String> with a unique storage prefix. Implement add_item, get_item, get_items.
+    RustExercise: `// Use Vector<String> with StorageKey enum. Implement add_item, add_tag, get_item, get_items, get_tags.
 use near_sdk::near;
 use near_sdk::collections::Vector;
-use near_sdk::{require, PanicOnDefault};
+use near_sdk::{require, PanicOnDefault, BorshStorageKey};
+use borsh::BorshSerialize;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Items,
+    Tags,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Contract {
     items: Vector<String>,
+    tags: Vector<String>,
 }
 
 #[near]
@@ -1319,12 +1327,17 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            items: Vector::new(b"i"),
+            items: Vector::new(StorageKey::Items),
+            tags: Vector::new(StorageKey::Tags),
         }
     }
 
     pub fn add_item(&mut self, item: String) {
         self.items.push(&item);
+    }
+
+    pub fn add_tag(&mut self, tag: String) {
+        // TODO: push tag to tags vector
     }
 
     pub fn remove_item(&mut self, index: u64) {
@@ -1334,12 +1347,17 @@ impl Contract {
 
     pub fn get_item(&self, index: u64) -> Option<String> {
         // Return the item at the given index, or None if out of bounds.
-        ()
+        None
     }
 
     pub fn get_items(&self) -> Vec<String> {
         // Return all items (collect the vector's iterator).
-        ()
+        vec![]
+    }
+
+    pub fn get_tags(&self) -> Vec<String> {
+        // TODO: return all tags
+        vec![]
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -1374,7 +1392,14 @@ class Contract {
 `,
     Rust: `use near_sdk::near;
 use near_sdk::collections::Vector;
-use near_sdk::{require, PanicOnDefault};
+use near_sdk::{require, PanicOnDefault, BorshStorageKey};
+use borsh::BorshSerialize;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Items,
+    Tags,
+}
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -1388,8 +1413,8 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         Self {
-            items: Vector::new(b"i"),
-            tags: Vector::new(b"t"),
+            items: Vector::new(StorageKey::Items),
+            tags: Vector::new(StorageKey::Tags),
         }
     }
 
