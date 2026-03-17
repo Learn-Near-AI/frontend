@@ -339,6 +339,45 @@ class Contract {
     return this.balance.toString();
   }
 }`,
+
+  TheChallenge: `Your task is to implement a 2-of-N multi-signature wallet.
+
+**Requirements:**
+- Store \`owners: UnorderedSet<AccountId>\`, \`proposals: IterableMap<u64, Proposal>\`
+- Implement \`new(initial_owner: AccountId)\` - sets first owner
+- Implement \`propose(transaction: String) -> u64\` - owner creates proposal
+- Implement \`approve(proposal_id: u64)\` - owner approves, prevent duplicates
+- Implement \`execute(proposal_id: u64)\` - execute if 2+ approvals
+- Implement \`deposit()\` - #[payable], add attached_deposit() to balance (NearToken)
+- Implement \`get_proposal()\` and \`get_balance()\` - view methods
+
+**Key:** Proposal needs BorshSerialize/BorshDeserialize for IterableMap storage!`,
+
+  Hints: `**The Problem:**
+You need multiple owners to approve a transaction before it executes.
+
+**Code Snippet:**
+\`\`\`rust
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct Proposal {
+    pub transaction: String,
+    pub approvals: Vec<AccountId>,
+    pub executed: bool,
+}
+\`\`\`
+
+**Solution Hints:**
+- Use \`store::UnorderedSet<AccountId>\` for owners (O(1) lookups)
+- Use \`store::IterableMap<u64, Proposal>\` for proposals
+- Proposal: \`transaction: String, approvals: Vec<AccountId>, executed: bool\`
+- Generate ID: use \`next_proposal_id\`, increment after each proposal
+- Approve: add predecessor to approvals, check for duplicates with \`.contains()\`
+- Execute: \`require!(proposal.approvals.len() >= 2, "Need 2+ approvals")\`
+
+**Threshold:**
+- 2-of-N: require 2+ approvals
+
+[Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
 };
 
 export default multiSignatureCode;

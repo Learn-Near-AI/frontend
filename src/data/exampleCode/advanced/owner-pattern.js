@@ -20,17 +20,16 @@ impl Contract {
     }
 
     pub fn set_value(&mut self, value: u64) {
-        require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-        self.value = value;
+        // TODO: require caller is owner, then set self.value
     }
 
     pub fn get_value(&self) -> u64 {
-        self.value
+        // TODO: return self.value
+        0
     }
 
     pub fn transfer_ownership(&mut self, new_owner: AccountId) {
-        require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-        self.owner_id = new_owner;
+        // TODO: require caller is owner, then update self.owner_id
     }
 }`,
 
@@ -43,19 +42,18 @@ class Contract {
 
   @call({})
   setValue({ value }) {
-    require(near.predecessorAccountId() === this.owner_id, "Only owner");
-    this.value = value;
+    // TODO: require caller is owner, then set this.value
   }
 
   @view({})
   getValue() {
-    return this.value;
+    // TODO: return this.value
+    return 0;
   }
 
   @call({})
   transferOwnership({ new_owner }) {
-    require(near.predecessorAccountId() === this.owner_id, "Only owner");
-    this.owner_id = new_owner;
+    // TODO: require caller is owner, then update this.owner_id
   }
 }`,
 
@@ -118,6 +116,37 @@ class Contract {
     this.owner_id = new_owner;
   }
 }`,
+
+  TheChallenge: `Your task is to implement an owner pattern contract.
+
+**Requirements:**
+- Store \`owner_id: AccountId\` and \`value: u64\`
+- Implement \`new()\` - sets owner to current account
+- Implement \`set_value(value: u64)\` - owner only
+- Implement \`get_value() -> u64\` - public view
+- Implement \`transfer_ownership(new_owner: AccountId)\` - owner only
+
+**Test:** Only owner can set_value and transfer_ownership`,
+
+  Hints: `**The Problem:**
+You need to restrict certain methods to only the contract owner.
+
+**Solution Hints:**
+- Get current account: \`env::current_account_id()\` (Rust) / \`near.currentAccountId()\` (JS)
+- Get predecessor: \`env::predecessor_account_id()\` (Rust) / \`near.predecessorAccountId()\` (JS)
+- Require: \`require!(condition, "error message")\` (Rust) / \`require(condition, "error message")\` (JS)
+
+**Rust:**
+\`\`\`rust
+require!(env::predecessor_account_id() == self.owner_id, "Only owner");
+\`\`\`
+
+**JavaScript:**
+\`\`\`javascript
+require(near.predecessorAccountId() === this.owner_id, "Only owner");
+\`\`\`
+
+[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/access-control)`,
 };
 
 export default ownerPatternCode;

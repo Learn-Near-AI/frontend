@@ -22,23 +22,53 @@ impl Contract {
     }
 
     pub fn pause(&mut self) {
-        require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-        self.paused = true;
+        // TODO: require caller is owner, set paused = true
     }
 
     pub fn unpause(&mut self) {
-        require!(env::predecessor_account_id() == self.owner_id, "Only owner");
-        self.paused = false;
+        // TODO: require caller is owner, set paused = false
     }
 
     pub fn increment(&mut self) {
-        require!(!self.paused, "Contract is paused");
-        self.counter += 1;
+        // TODO: require not paused, increment counter
     }
 
     pub fn get_counter(&self) -> u64 {
-        self.counter
+        // TODO: return counter
+        0
     }
+}`,
+
+  JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, paused, counter } = {}) {
+    this.owner_id = owner_id || near.currentAccountId();
+    this.paused = paused || false;
+    this.counter = counter || 0;
+  }
+
+  @call({})
+  pause() {
+    // TODO: require caller is owner, set this.paused = true
+  }
+
+  @call({})
+  unpause() {
+    // TODO: require caller is owner, set this.paused = false
+  }
+
+  @call({})
+  increment() {
+    // TODO: require not paused, increment this.counter
+  }
+
+  @view({})
+  get_counter() {
+    // TODO: return this.counter
+    return 0;
+  }
 }`,
 
   Rust: `use near_sdk::near;
@@ -102,6 +132,84 @@ mod tests {
         contract.increment();
     }
 }`,
+
+  JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ owner_id, paused, counter } = {}) {
+    this.owner_id = owner_id || near.currentAccountId();
+    this.paused = paused || false;
+    this.counter = counter || 0;
+  }
+
+  @call({})
+  pause() {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner");
+    }
+    this.paused = true;
+  }
+
+  @call({})
+  unpause() {
+    if (near.predecessorAccountId() !== this.owner_id) {
+      near.panic("Only owner");
+    }
+    this.paused = false;
+  }
+
+  @call({})
+  increment() {
+    if (this.paused) {
+      near.panic("Contract is paused");
+    }
+    this.counter += 1;
+  }
+
+  @view({})
+  get_counter() {
+    return this.counter;
+  }
+}`,
+
+  TheChallenge: `Your task is to implement a pausable contract.
+
+**Requirements:**
+- Store \`owner_id: AccountId\`, \`paused: bool\`, \`counter: u64\`
+- Implement \`pause()\` - owner only, sets paused = true
+- Implement \`unpause()\` - owner only, sets paused = false
+- Implement \`increment()\` - only when NOT paused
+- Implement \`get_counter() -> u64\` - view method
+
+**Test:** increment works normally, but panics when paused`,
+
+  Hints: `**The Problem:**
+You need a contract that can be paused for emergencies, preventing state changes.
+
+**Solution Hints:**
+- Owner check: \`require!(env::predecessor_account_id() == self.owner_id, "Only owner")\`
+- Pause check: \`require!(!self.paused, "Contract is paused")\`
+
+**Rust:**
+\`\`\`rust
+pub fn increment(&mut self) {
+    require!(!self.paused, "Contract is paused");
+    self.counter += 1;
+}
+\`\`\`
+
+**JavaScript:**
+\`\`\`javascript
+increment() {
+    if (this.paused) {
+      near.panic("Contract is paused");
+    }
+    this.counter += 1;
+}
+\`\`\`
+
+[Learn more about this topic →](https://docs.near.org/smart-contracts/anatomy/access-control)`,
 };
 
 export default pausableContractCode;
