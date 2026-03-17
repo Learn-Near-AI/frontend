@@ -241,7 +241,7 @@ class Contract {
 **Requirements:**
 - Store \`owner_id: AccountId\`, \`paused: bool\`, \`data_version: u32\`, \`value: u64\`
 - Implement \`new()\` - initializes with data_version: 1
-- Implement \`upgrade()\` with \`#[init(ignore_state)]\` - sets data_version to 2
+- Implement \`upgrade()\` with \`#[init(ignore_state)]\` - constructs fresh state with data_version: 2, paused: false, value: 0. Old state is discarded.
 - Implement \`pause()\`, \`unpause()\` - owner only
 - Implement \`migrate()\` - owner only, increments data_version
 - Implement \`set_value()\` - only when not paused
@@ -309,6 +309,10 @@ impl Contract {
 ---
 
 **Extension:** Add a \`version()\` view method that returns the current data_version.
+
+---
+
+For production migrations that preserve existing state, see the migration pattern in docs
 
 [Learn more about this topic →](https://docs.near.org/smart-contracts/release/upgrade)`,
 };

@@ -1,7 +1,7 @@
 export const multiSignatureExplanation = [
   {
     title: 'The Challenge',
-    content: `Your task is to implement a 2-of-3 multi-signature wallet.
+    content: `Your task is to implement a multi-signature wallet where any proposal requires at least 2 owner approvals before execution.
 
 **Requirements:**
 - Store \`owners: UnorderedSet<AccountId>\`, \`proposals: IterableMap<u64, Proposal>\`
@@ -379,7 +379,7 @@ impl Contract {
 
 ---
 
-**Extension:** Add a \`get_proposal(proposal_id: u64)\` view method that returns the proposal details.
+**Extension:** The current implementation is M-of-N (any number of owners, fixed approval threshold). For a strict 2-of-3 wallet, you would enforce exactly 3 owners in new() and reject add_owner once the limit is reached. What tradeoffs does that introduce?
 
 [Learn more about this topic →](https://github.com/near/core-contracts/tree/master/multisig)`,
   },

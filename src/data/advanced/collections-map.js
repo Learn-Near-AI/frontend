@@ -8,7 +8,7 @@ export const collectionsMapExplanation = [
 - Implement \`set_score(account: AccountId, score: u64)\` - public, updates score
 - Implement \`get_score(account: AccountId)\` - public view
 - Implement \`get_top_scores(limit: u64)\` - returns top N scores sorted descending
-- Implement \`get_rank(account: AccountId)\` - returns position in leaderboard
+
 
 **Test:** Setting a higher score moves user up in top scores!`,
   },

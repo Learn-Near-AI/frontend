@@ -54,12 +54,22 @@ impl Contract {
         // TODO: insert account into admins
     }
 
+    pub fn remove_admin(&mut self, account: AccountId) {
+        // TODO: require caller is owner
+        // TODO: remove account from admins
+    }
+
     pub fn admin_only_action(&mut self) {
         // TODO: require caller is admin OR owner
     }
 
     pub fn get_owners(&self) -> Vec<AccountId> {
         // TODO: return all owners
+        vec![]
+    }
+
+    pub fn get_admins(&self) -> Vec<AccountId> {
+        // TODO: return all admins
         vec![]
     }
 }`,
@@ -119,12 +129,23 @@ impl Contract {
         self.admins.insert(account);
     }
 
+    // ADDED: was in task, missing from code
+    pub fn remove_admin(&mut self, account: AccountId) {
+        require!(self.is_owner(&env::predecessor_account_id()), "Only owner");
+        self.admins.remove(&account);
+    }
+
     pub fn admin_only_action(&mut self) {
         require!(self.is_admin(&env::predecessor_account_id()), "Admin or owner only");
     }
 
     pub fn get_owners(&self) -> Vec<AccountId> {
         self.owners.iter().cloned().collect()
+    }
+
+    // ADDED: was in task, missing from code
+    pub fn get_admins(&self) -> Vec<AccountId> {
+        self.admins.iter().cloned().collect()
     }
 }
 
@@ -145,6 +166,29 @@ mod tests {
         let owner: AccountId = "owner.near".parse().unwrap();
         let mut contract = Contract::new(owner.clone());
         contract.remove_owner(owner);
+    }
+
+    // ADDED: covers the two missing methods
+    #[test]
+    fn test_add_and_remove_admin() {
+        let owner: AccountId = "owner.near".parse().unwrap();
+        let admin: AccountId = "admin.near".parse().unwrap();
+        let mut contract = Contract::new(owner.clone());
+        contract.add_admin(admin.clone());
+        assert!(contract.is_admin(&admin));
+        contract.remove_admin(admin.clone());
+        assert!(!contract.is_admin(&admin));
+    }
+
+    #[test]
+    fn test_get_admins() {
+        let owner: AccountId = "owner.near".parse().unwrap();
+        let admin: AccountId = "admin.near".parse().unwrap();
+        let mut contract = Contract::new(owner.clone());
+        contract.add_admin(admin.clone());
+        let admins = contract.get_admins();
+        assert_eq!(admins.len(), 1);
+        assert_eq!(admins[0], admin);
     }
 }`,
 
@@ -190,6 +234,12 @@ class Contract {
   }
 
   @call({})
+  remove_admin({ account }) {
+    // TODO: require caller is owner
+    // TODO: remove account from admins
+  }
+
+  @call({})
   admin_only_action() {
     // TODO: require caller is admin OR owner
   }
@@ -197,6 +247,12 @@ class Contract {
   @view({})
   get_owners() {
     // TODO: return this.owners
+    return [];
+  }
+
+  @view({})
+  get_admins() {
+    // TODO: return this.admins
     return [];
   }
 }`,
@@ -253,6 +309,16 @@ class Contract {
   }
 
   @call({})
+  remove_admin({ account }) {
+    const caller = near.predecessorAccountId();
+    require(this.is_owner(caller), "Only owner");
+    const index = this.admins.indexOf(account);
+    if (index > -1) {
+      this.admins.splice(index, 1);
+    }
+  }
+
+  @call({})
   admin_only_action() {
     const caller = near.predecessorAccountId();
     require(this.is_admin(caller), "Admin or owner only");
@@ -261,6 +327,11 @@ class Contract {
   @view({})
   get_owners() {
     return this.owners;
+  }
+
+  @view({})
+  get_admins() {
+    return this.admins;
   }
 }`,
 
@@ -272,8 +343,10 @@ class Contract {
 - Implement \`add_owner(account: AccountId)\` - owner-only
 - Implement \`remove_owner(account: AccountId)\` - owner-only, cannot remove last owner
 - Implement \`add_admin(account: AccountId)\` - owner-only
+- Implement \`remove_admin(account: AccountId)\` - owner-only
 - Implement \`admin_only_action()\` - admin or owner can call
 - Implement \`get_owners() -> Vec<AccountId>\` - view method
+- Implement \`get_admins() -> Vec<AccountId>\` - view method
 
 **Helper methods:**
 - \`is_owner(account: &AccountId) -> bool\`

@@ -320,7 +320,7 @@ impl Contract {
 3. Owner calls \`migrate()\` if needed - fix state incompatibilities
 4. Owner calls \`unpause()\`
 
-**Key:** \`#[init(ignore_state)]\` allows deploying new code without re-initializing state.
+**Key:** \`#[init(ignore_state)]\` skips the already-initialized panic, letting you construct a fresh state struct. Existing state is discarded, you explicitly decide what the new state looks like. Use this when deploying a breaking change where old state is incompatible or intentionally reset.
 
 ---
 

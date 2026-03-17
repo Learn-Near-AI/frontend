@@ -1,12 +1,10 @@
 export const multiSignatureCode = {
   RustExercise: `use near_sdk::near;
-use near_sdk::collections::UnorderedSet;
-use near_sdk::store::IterableMap;
+use near_sdk::store::{UnorderedSet, IterableMap};
 use near_sdk::{env, AccountId, PanicOnDefault, require, BorshStorageKey, NearToken};
 use borsh::{BorshSerialize, BorshDeserialize};
-use near_sdk::Promise;
 
-#[derive(BorshStorageKey, BorshSerialize)]
+#[derive(BorshSerialize, BorshStorageKey)]
 enum StorageKey {
     Proposals,
     Owners,
@@ -33,7 +31,7 @@ impl Contract {
     #[init]
     pub fn new(initial_owner: AccountId) -> Self {
         let mut owners = UnorderedSet::new(StorageKey::Owners);
-        owners.insert(&initial_owner);
+        owners.insert(initial_owner);
         Self {
             owners,
             proposals: IterableMap::new(StorageKey::Proposals),
@@ -42,37 +40,45 @@ impl Contract {
         }
     }
 
-    // Helper: returns true if account is in the owners set
     fn is_owner(&self, account: &AccountId) -> bool {
         self.owners.contains(account)
     }
 
-    // TODO: propose - require caller is owner, insert Proposal with empty approvals,
-    //       increment next_proposal_id, return the new proposal id
+    pub fn add_owner(&mut self, account: AccountId) {
+        // TODO: require caller is owner
+        // TODO: insert account into owners
+    }
+
     pub fn propose(&mut self, transaction: String) -> u64 {
+        // TODO: require caller is owner
+        // TODO: get current proposal_id, increment it
+        // TODO: insert Proposal with empty approvals, executed = false
+        // TODO: return the proposal id
         0
     }
 
-    // TODO: approve - require caller is owner, require proposal exists and not executed,
-    //       push caller to approvals only if not already present (no duplicates)
     pub fn approve(&mut self, proposal_id: u64) {
+        // TODO: require caller is owner
+        // TODO: require proposal exists and not executed
+        // TODO: push caller to approvals only if not already present (no duplicates)
     }
 
-    // TODO: execute - require caller is owner, require 2+ approvals, mark executed = true
     pub fn execute(&mut self, proposal_id: u64) {
+        // TODO: require caller is owner
+        // TODO: require proposal exists and not executed
+        // TODO: require 2+ approvals
+        // TODO: mark executed = true
     }
 
-    // TODO: deposit - mark #[payable], add env::attached_deposit() to self.balance
-    //       Note: attached_deposit() returns NearToken, use .as_yoctonear() to do math
-    //       or use NearToken::from_yoctonear(self.balance.as_yoctonear() + amount.as_yoctonear())
     #[payable]
     pub fn deposit(&mut self) {
+        // TODO: get attached_deposit() (returns NearToken)
+        // TODO: add to self.balance
     }
 
     pub fn get_proposal(&self, proposal_id: u64) -> Option<(String, usize, bool)> {
-        self.proposals.get(&proposal_id).map(|p| {
-            (p.transaction.clone(), p.approvals.len(), p.executed)
-        })
+        // TODO: return proposal details (transaction, approvals.len(), executed)
+        None
     }
 
     pub fn get_balance(&self) -> NearToken {
@@ -81,13 +87,11 @@ impl Contract {
 }`,
 
   Rust: `use near_sdk::near;
-use near_sdk::collections::UnorderedSet;
-use near_sdk::store::IterableMap;
+use near_sdk::store::{UnorderedSet, IterableMap};
 use near_sdk::{env, AccountId, PanicOnDefault, require, BorshStorageKey, NearToken};
 use borsh::{BorshSerialize, BorshDeserialize};
-use near_sdk::Promise;
 
-#[derive(BorshStorageKey, BorshSerialize)]
+#[derive(BorshSerialize, BorshStorageKey)]
 enum StorageKey {
     Proposals,
     Owners,
@@ -106,7 +110,6 @@ pub struct Contract {
     owners: UnorderedSet<AccountId>,
     proposals: IterableMap<u64, Proposal>,
     next_proposal_id: u64,
-    // NearToken instead of u128 — type-safe, matches near-sdk 5.x attached_deposit() return type
     balance: NearToken,
 }
 
@@ -115,7 +118,7 @@ impl Contract {
     #[init]
     pub fn new(initial_owner: AccountId) -> Self {
         let mut owners = UnorderedSet::new(StorageKey::Owners);
-        owners.insert(&initial_owner);
+        owners.insert(initial_owner);  // by value, not reference
         Self {
             owners,
             proposals: IterableMap::new(StorageKey::Proposals),
@@ -130,7 +133,7 @@ impl Contract {
 
     pub fn add_owner(&mut self, account: AccountId) {
         require!(self.is_owner(&env::predecessor_account_id()), "Only owner");
-        self.owners.insert(&account);
+        self.owners.insert(account);  // by value, not reference
     }
 
     pub fn propose(&mut self, transaction: String) -> u64 {
@@ -152,7 +155,6 @@ impl Contract {
             .get_mut(&proposal_id)
             .expect("Proposal not found");
         require!(!proposal.executed, "Already executed");
-        // Prevent duplicate approvals from the same owner
         if !proposal.approvals.contains(&caller) {
             proposal.approvals.push(caller);
         }
@@ -170,8 +172,6 @@ impl Contract {
 
     #[payable]
     pub fn deposit(&mut self) {
-        // env::attached_deposit() returns NearToken in near-sdk 5.x (not u128)
-        // env::prepaid_gas() is for gas units — completely different from NEAR tokens
         let amount = env::attached_deposit();
         self.balance = NearToken::from_yoctonear(
             self.balance.as_yoctonear() + amount.as_yoctonear()
@@ -343,15 +343,20 @@ class Contract {
   TheChallenge: `Your task is to implement a 2-of-N multi-signature wallet.
 
 **Requirements:**
-- Store \`owners: UnorderedSet<AccountId>\`, \`proposals: IterableMap<u64, Proposal>\`
+- Store \`owners: UnorderedSet<AccountId>\`, \`proposals: IterableMap<u64, Proposal>\`, \`balance: NearToken\`
 - Implement \`new(initial_owner: AccountId)\` - sets first owner
+- Implement \`add_owner(account: AccountId)\` - owner-only
 - Implement \`propose(transaction: String) -> u64\` - owner creates proposal
 - Implement \`approve(proposal_id: u64)\` - owner approves, prevent duplicates
 - Implement \`execute(proposal_id: u64)\` - execute if 2+ approvals
 - Implement \`deposit()\` - #[payable], add attached_deposit() to balance (NearToken)
 - Implement \`get_proposal()\` and \`get_balance()\` - view methods
 
-**Key:** Proposal needs BorshSerialize/BorshDeserialize for IterableMap storage!`,
+**Key:** 
+- Use \`store::UnorderedSet\` and \`store::IterableMap\` (not collections)
+- Proposal needs \`BorshSerialize/BorshDeserialize\` for IterableMap storage
+- \`UnorderedSet::insert\` takes ownership (by value, not reference)
+- Use \`NearToken\` for balance (not u128)`,
 
   Hints: `**The Problem:**
 You need multiple owners to approve a transaction before it executes.
@@ -367,12 +372,13 @@ pub struct Proposal {
 \`\`\`
 
 **Solution Hints:**
-- Use \`store::UnorderedSet<AccountId>\` for owners (O(1) lookups)
-- Use \`store::IterableMap<u64, Proposal>\` for proposals
-- Proposal: \`transaction: String, approvals: Vec<AccountId>, executed: bool\`
-- Generate ID: use \`next_proposal_id\`, increment after each proposal
-- Approve: add predecessor to approvals, check for duplicates with \`.contains()\`
+- Imports: \`use near_sdk::store::{UnorderedSet, IterableMap}\`
+- StorageKey: \`#[derive(BorshStorageKey)]\` enum with Proposals, Owners variants
+- UnorderedSet: \`self.owners.insert(account)\` (takes ownership, not reference)
+- Proposal: \`self.proposals.insert(id, Proposal { ... })\`
+- Approve: \`proposal.approvals.contains(&caller)\` to check duplicates
 - Execute: \`require!(proposal.approvals.len() >= 2, "Need 2+ approvals")\`
+- Deposit: \`let amount = env::attached_deposit();\` returns NearToken
 
 **Threshold:**
 - 2-of-N: require 2+ approvals
