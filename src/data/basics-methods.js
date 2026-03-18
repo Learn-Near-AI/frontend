@@ -10,7 +10,8 @@ export const methodsDetailedExplanation = {
 - Implement \`get_default_greeting_length()\` - returns length of default greeting
 - Implement \`has_custom_greeting(account: AccountId)\` - checks if user has custom greeting
 
-**Hint:** Use \`LookupMap::get()\` to retrieve stored values. Pass account as a parameter since view methods don't have a reliable predecessor.`,
+**Test:** Call get_greeting("alice.near") — if Alice has no custom greeting, you should get back "Hello, NEAR explorer!". If she does, you get hers.`,
+
     },
     {
       title: 'Hints',
@@ -79,7 +80,10 @@ impl Contract {
 - Implement \`set_message(new_message: String)\` - owner only, validates non-empty
 - Implement \`append_to_message(addition: String)\` - owner only, validates non-empty  
 - Implement \`reset_message()\` - owner only, resets to default
+- Implement \`get_owner()\` - returns the owner account ID
+- Implement \`get_message_length()\` - returns the length of the message as u64
 - All change methods should use \`require!\` for access control
+
 
 **Test:**
 Only the owner should be able to modify the message!`,

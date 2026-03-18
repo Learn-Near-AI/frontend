@@ -118,15 +118,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_greet() {
-        let c = Contract::new();
-        assert_eq!(c.greet(), "Greetings, Adventurer!".to_string());
-    }
-}`,
+`,
     JavaScript: `import { NearBindgen, view } from "near-sdk-js";
 
 @NearBindgen({})
@@ -156,33 +148,25 @@ impl Contract {
     #[init]
     pub fn new(initial_greeting: Option<String>) -> Self {
         // TODO: Set owner_id to the deployer (predecessor_account_id)
-        // TODO: Set greeting from initial_greeting or default
-        Self {
-            owner_id: env::predecessor_account_id(),
-            greeting: "Hello from NEAR!".to_string(),
-        }
+        // TODO: Set greeting from initial_greeting, or default to "Hello from NEAR!"
+        todo!()
     }
 
-    
     pub fn get_owner(&self) -> AccountId {
         // TODO: Return the stored owner_id
-        self.owner_id.clone()
+        todo!()
     }
 
-    
     pub fn get_greeting(&self) -> String {
-        self.greeting.clone()
+        // TODO: Return the stored greeting
+        todo!()
     }
 
-    
     pub fn set_greeting(&mut self, new_greeting: String) {
-        // TODO: Add access control - only owner can call this
-        // Hint: require!(env::predecessor_account_id() == self.owner_id, "...")
-        
-        // TODO: Add validation - greeting cannot be empty
-        // Hint: require!(!new_greeting.is_empty(), "...")
-        
-        self.greeting = new_greeting;
+        // TODO: Only the owner can call this (require! + predecessor_account_id)
+        // TODO: Greeting cannot be empty (require!)
+        // TODO: Store the new greeting
+        todo!()
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -257,31 +241,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use near_sdk::test_utils::VMContextBuilder;
-    use near_sdk::testing_env;
 
-    #[test]
-    fn test_default_greeting() {
-        let context = VMContextBuilder::new().build();
-        testing_env!(context);
-        let c = Contract::new(Some("Hi".to_string()));
-        assert_eq!(c.get_greeting(), "Hi".to_string());
-    }
-
-    #[test]
-    fn test_set_greeting() {
-        let context = VMContextBuilder::new()
-            .predecessor_account_id("owner".parse().unwrap())
-            .build();
-        testing_env!(context);
-        let mut c = Contract::new(None);
-        c.set_greeting("Updated".to_string());
-        assert_eq!(c.get_greeting(), "Updated".to_string());
-    }
-}
 `,
     JavaScript: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
 
@@ -312,7 +272,7 @@ class Contract {
   },
   'view-methods': {
     RustExercise: `use near_sdk::near;
-use near_sdk::{env, AccountId, PanicOnDefault};
+use near_sdk::{AccountId, PanicOnDefault};
 use near_sdk::collections::LookupMap;
 
 #[near(contract_state)]
@@ -332,20 +292,19 @@ impl Contract {
         }
     }
 
-    // TODO: Return greeting for account (or default)
     pub fn get_greeting(&self, account: AccountId) -> String {
-        // Hint: user_greetings.get(&account).unwrap_or_else(|| default_greeting.clone())
-        self.default_greeting.clone()
+        // TODO: Return the greeting for account if it exists, otherwise return default_greeting
+        todo!()
     }
 
-    // TODO: Return length of default greeting
     pub fn get_default_greeting_length(&self) -> u64 {
-        0 // TODO: implement
+        // TODO: Return the length of default_greeting as u64
+        todo!()
     }
 
-    // TODO: Check if user has custom greeting
     pub fn has_custom_greeting(&self, account: AccountId) -> bool {
-        false // TODO: implement
+        // TODO: Return true if account has a custom greeting in user_greetings
+        todo!()
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, near } from "near-sdk-js";
@@ -419,19 +378,7 @@ mod tests {
     use super::*;
     use near_sdk::AccountId;
 
-    #[test]
-    fn test_default_greeting() {
-        let c = Contract::new();
-        let user: AccountId = "user".parse().unwrap();
-        assert_eq!(c.get_greeting(user), "Hello, NEAR explorer!".to_string());
-    }
-
-    #[test]
-    fn test_default_greeting_length() {
-        let c = Contract::new();
-        assert_eq!(c.get_default_greeting_length(), 18);
-    }
-}
+    
 `,
     JavaScript: `import { NearBindgen, view, near } from "near-sdk-js";
 
@@ -485,25 +432,38 @@ impl Contract {
         }
     }
 
-    // View methods (free)
     pub fn get_message(&self) -> String {
         self.message.clone()
     }
 
-    // Change methods — add require! for owner-only access
+    pub fn get_owner(&self) -> AccountId {
+        // TODO: Return the stored owner_id
+        todo!()
+    }
 
-    // TODO: set_message — require owner, validate not empty, update message
+    pub fn get_message_length(&self) -> u64 {
+        // TODO: Return the length of message as u64
+        todo!()
+    }
+
     pub fn set_message(&mut self, new_message: String) {
-        // Hint: require!(env::predecessor_account_id() == self.owner_id, "...")
-        // Hint: require!(!new_message.is_empty(), "...")
+        // TODO: Only the owner can call this (require!)
+        // TODO: Message cannot be empty (require!)
+        // TODO: Store the new message
+        todo!()
     }
 
-    // TODO: append_to_message — require owner, validate not empty, push_str
     pub fn append_to_message(&mut self, addition: String) {
+        // TODO: Only the owner can call this (require!)
+        // TODO: Addition cannot be empty (require!)
+        // TODO: Append addition to the existing message
+        todo!()
     }
 
-    // TODO: reset_message — require owner, set back to default
     pub fn reset_message(&mut self) {
+        // TODO: Only the owner can call this (require!)
+        // TODO: Reset message back to "Welcome, traveler!"
+        todo!()
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
@@ -607,33 +567,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use near_sdk::test_utils::VMContextBuilder;
-    use near_sdk::testing_env;
 
-    #[test]
-    fn test_get_message() {
-        let context = VMContextBuilder::new()
-            .predecessor_account_id("owner".parse().unwrap())
-            .build();
-        testing_env!(context);
-        let c = Contract::new(Some("Hello".to_string()));
-        assert_eq!(c.get_message(), "Hello".to_string());
-    }
-
-    #[test]
-    fn test_append() {
-        let context = VMContextBuilder::new()
-            .predecessor_account_id("owner".parse().unwrap())
-            .build();
-        testing_env!(context);
-        let mut c = Contract::new(None);
-        c.append_to_message(" World".to_string());
-        assert_eq!(c.get_message(), "Welcome, traveler! World".to_string());
-    }
-}
 `,
     JavaScript: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
 
