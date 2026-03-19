@@ -22,20 +22,26 @@ impl Contract {
     }
 
     pub fn pause(&mut self) {
-        // TODO: require caller is owner, set paused = true
+        // TODO: Require caller is owner
+        // TODO: Set paused to true
+        todo!()
     }
 
     pub fn unpause(&mut self) {
-        // TODO: require caller is owner, set paused = false
+        // TODO: Require caller is owner
+        // TODO: Set paused to false
+        todo!()
     }
 
     pub fn increment(&mut self) {
-        // TODO: require not paused, increment counter
+        // TODO: Require contract is not paused
+        // TODO: Increment counter by 1
+        todo!()
     }
 
     pub fn get_counter(&self) -> u64 {
-        // TODO: return counter
-        0
+        // TODO: Return counter
+        todo!()
     }
 }`,
 
@@ -113,25 +119,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_increment_when_active() {
-        let mut contract = Contract::new();
-        contract.increment();
-        assert_eq!(contract.get_counter(), 1);
-    }
-
-    #[test]
-    #[should_panic(expected = "Contract is paused")]
-    fn test_increment_when_paused() {
-        let mut contract = Contract::new();
-        contract.pause();
-        contract.increment();
-    }
-}`,
+`,
 
   JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 

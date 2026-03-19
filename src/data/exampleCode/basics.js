@@ -373,12 +373,6 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use near_sdk::AccountId;
-
-    
 `,
     JavaScript: `import { NearBindgen, view, near } from "near-sdk-js";
 
@@ -813,7 +807,7 @@ class Contract {
   },
   'input-validation': {
     RustExercise: `use near_sdk::near;
-use near_sdk::{env, require};
+use near_sdk::require;
 use near_sdk::PanicOnDefault;
 
 #[near(contract_state)]
@@ -832,8 +826,10 @@ impl Contract {
     }
 
     pub fn set_message(&mut self, message: String) {
-        // Validate: message must be non-empty and at most 100 characters, then store it.
-        let _: u64 = ();
+        // TODO: Reject if message is empty
+        // TODO: Reject if message is longer than 100 characters
+        // TODO: Store the message
+        todo!()
     }
 
     pub fn get_message(&self) -> String {
@@ -933,27 +929,28 @@ impl Contract {
     }
 
     pub fn try_parse_number(&self, s: String) -> Option<u64> {
-        // Return Some(parsed value) if the string parses as u64, otherwise None.
-        ()
+        // TODO: Parse s as u64, return Some(value) if valid, None if invalid
+        todo!()
     }
 
     pub fn safe_divide(&self, a: u64, b: u64) -> Option<u64> {
-        // Return None if b is 0, otherwise Some(a / b).
-        ()
+        // TODO: Return None if b is 0, otherwise return Some(a / b)
+        todo!()
     }
 
     pub fn parse_with_default(&self, s: String, default: u64) -> u64 {
-        s.parse().unwrap_or(default)
+        // TODO: Parse s as u64, return default if parsing fails
+        todo!()
     }
 
     pub fn assert_positive(&self, value: i64) {
-        require!(value > 0, "Value must be positive");
+        // TODO: Panic with require! if value is not positive
+        todo!()
     }
 
     pub fn strict_check(&self, value: u64) {
-        if value == 0 {
-            env::panic_str("ZERO_NOT_ALLOWED");
-        }
+        // TODO: Panic using env::panic_str if value is 0
+        todo!()
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -1028,31 +1025,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_try_parse_number() {
-        let contract = Contract::new();
-        assert_eq!(contract.try_parse_number("42".to_string()), Some(42));
-        assert_eq!(contract.try_parse_number("abc".to_string()), None);
-    }
-
-    #[test]
-    fn test_safe_divide() {
-        let contract = Contract::new();
-        assert_eq!(contract.safe_divide(10, 2), Some(5));
-        assert_eq!(contract.safe_divide(10, 0), None);
-    }
-
-    #[test]
-    fn test_parse_with_default() {
-        let contract = Contract::new();
-        assert_eq!(contract.parse_with_default("10".to_string(), 0), 10);
-        assert_eq!(contract.parse_with_default("x".to_string(), 99), 99);
-    }
-}`,
+`,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
@@ -1237,8 +1210,7 @@ class Contract {
 `,
   },
   'collections-vector': {
-    RustExercise: `// Use Vector<String> with StorageKey enum. Implement add_item, add_tag, get_item, get_items, get_tags.
-use near_sdk::near;
+    RustExercise: `use near_sdk::near;
 use near_sdk::collections::Vector;
 use near_sdk::{require, PanicOnDefault, BorshStorageKey};
 use borsh::BorshSerialize;
@@ -1267,31 +1239,33 @@ impl Contract {
     }
 
     pub fn add_item(&mut self, item: String) {
-        self.items.push(&item);
+        // TODO: Push item to the items vector
+        todo!()
     }
 
     pub fn add_tag(&mut self, tag: String) {
-        // TODO: push tag to tags vector
+        // TODO: Push tag to the tags vector
+        todo!()
     }
 
     pub fn remove_item(&mut self, index: u64) {
-        require!(index < self.items.len(), "Index out of bounds");
-        self.items.swap_remove(index);
+        // TODO: Check index is within bounds, then remove using swap_remove
+        todo!()
     }
 
     pub fn get_item(&self, index: u64) -> Option<String> {
-        // Return the item at the given index, or None if out of bounds.
-        None
+        // TODO: Return the item at index, or None if out of bounds
+        todo!()
     }
 
     pub fn get_items(&self) -> Vec<String> {
-        // Return all items (collect the vector's iterator).
-        vec![]
+        // TODO: Return all items using iter().collect()
+        todo!()
     }
 
     pub fn get_tags(&self) -> Vec<String> {
-        // TODO: return all tags
-        vec![]
+        // TODO: Return all tags using iter().collect()
+        todo!()
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -1378,16 +1352,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_add_and_get_item() {
-        let mut c = Contract::new();
-        c.add_item("apple".to_string());
-        assert_eq!(c.get_item(0), Some("apple".to_string()));
-    }
-}
+
 `,
     JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 

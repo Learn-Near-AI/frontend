@@ -39,38 +39,43 @@ impl Contract {
     }
 
     pub fn add_owner(&mut self, account: AccountId) {
-        // TODO: require caller is owner
-        // TODO: insert account into owners
+        // TODO: Require caller is owner
+        // TODO: Insert account into owners
+        todo!()
     }
 
     pub fn remove_owner(&mut self, account: AccountId) {
-        // TODO: require caller is owner
-        // TODO: require can't remove last owner
-        // TODO: remove account from owners
+        // TODO: Require caller is owner
+        // TODO: Require cannot remove last owner
+        // TODO: Remove account from owners
+        todo!()
     }
 
     pub fn add_admin(&mut self, account: AccountId) {
-        // TODO: require caller is owner
-        // TODO: insert account into admins
+        // TODO: Require caller is owner
+        // TODO: Insert account into admins
+        todo!()
     }
 
     pub fn remove_admin(&mut self, account: AccountId) {
-        // TODO: require caller is owner
-        // TODO: remove account from admins
+        // TODO: Require caller is owner
+        // TODO: Remove account from admins
+        todo!()
     }
 
     pub fn admin_only_action(&mut self) {
-        // TODO: require caller is admin OR owner
+        // TODO: Require caller is admin or owner
+        todo!()
     }
 
     pub fn get_owners(&self) -> Vec<AccountId> {
-        // TODO: return all owners
-        vec![]
+        // TODO: Return all owners
+        todo!()
     }
 
     pub fn get_admins(&self) -> Vec<AccountId> {
-        // TODO: return all admins
-        vec![]
+        // TODO: Return all admins
+        todo!()
     }
 }`,
 
@@ -149,48 +154,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_initial_owner() {
-        let owner: AccountId = "owner.near".parse().unwrap();
-        let contract = Contract::new(owner.clone());
-        assert!(contract.is_owner(&owner));
-    }
-
-    #[test]
-    #[should_panic(expected = "Cannot remove last owner")]
-    fn test_cannot_remove_last_owner() {
-        let owner: AccountId = "owner.near".parse().unwrap();
-        let mut contract = Contract::new(owner.clone());
-        contract.remove_owner(owner);
-    }
-
-    // ADDED: covers the two missing methods
-    #[test]
-    fn test_add_and_remove_admin() {
-        let owner: AccountId = "owner.near".parse().unwrap();
-        let admin: AccountId = "admin.near".parse().unwrap();
-        let mut contract = Contract::new(owner.clone());
-        contract.add_admin(admin.clone());
-        assert!(contract.is_admin(&admin));
-        contract.remove_admin(admin.clone());
-        assert!(!contract.is_admin(&admin));
-    }
-
-    #[test]
-    fn test_get_admins() {
-        let owner: AccountId = "owner.near".parse().unwrap();
-        let admin: AccountId = "admin.near".parse().unwrap();
-        let mut contract = Contract::new(owner.clone());
-        contract.add_admin(admin.clone());
-        let admins = contract.get_admins();
-        assert_eq!(admins.len(), 1);
-        assert_eq!(admins[0], admin);
-    }
-}`,
+`,
 
   JavaScriptExercise: `import { NearBindgen, call, view, near, require } from "near-sdk-js";
 

@@ -20,16 +20,20 @@ impl Contract {
     }
 
     pub fn set_value(&mut self, value: u64) {
-        // TODO: require caller is owner, then set self.value
+        // TODO: Require caller is owner
+        // TODO: Set self.value to value
+        todo!()
     }
 
     pub fn get_value(&self) -> u64 {
-        // TODO: return self.value
-        0
+        // TODO: Return self.value
+        todo!()
     }
 
     pub fn transfer_ownership(&mut self, new_owner: AccountId) {
-        // TODO: require caller is owner, then update self.owner_id
+        // TODO: Require caller is owner
+        // TODO: Update owner_id to new_owner
+        todo!()
     }
 }`,
 

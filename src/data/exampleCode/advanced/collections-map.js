@@ -25,17 +25,18 @@ impl Contract {
     }
 
     pub fn set_score(&mut self, account: AccountId, score: u64) {
-        // TODO: insert account and score into leaderboard
+        // TODO: Insert account and score into leaderboard
+        todo!()
     }
 
     pub fn get_score(&self, account: AccountId) -> Option<u64> {
-        // TODO: return the score for account, or None if not found
-        None
+        // TODO: Return the score for account, or None if not found
+        todo!()
     }
 
     pub fn get_top_scores(&self, limit: u64) -> Vec<(AccountId, u64)> {
-        // TODO: get all scores, sort by score descending, return top 'limit' results
-        vec![]
+        // TODO: Collect all scores, sort descending by score, return top limit results
+        todo!()
     }
 }`,
 
@@ -83,28 +84,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_set_and_get_score() {
-        let mut contract = Contract::new();
-        let account: AccountId = "player.near".parse().unwrap();
-        contract.set_score(account.clone(), 100);
-        assert_eq!(contract.get_score(account), Some(100));
-    }
-
-    #[test]
-    fn test_top_scores_order() {
-        let mut contract = Contract::new();
-        contract.set_score("alice.near".parse().unwrap(), 50);
-        contract.set_score("bob.near".parse().unwrap(), 100);
-        let top = contract.get_top_scores(2);
-        assert_eq!(top[0].1, 100);
-        assert_eq!(top[1].1, 50);
-    }
-}`,
+`,
 
   JavaScriptExercise: `import { NearBindgen, view, call } from "near-sdk-js";
 

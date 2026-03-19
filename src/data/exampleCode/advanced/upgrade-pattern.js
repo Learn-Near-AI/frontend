@@ -23,26 +23,34 @@ impl Contract {
         }
     }
 
-    // TODO: Add #[init(ignore_state)] upgrade function that:
-    // - Returns Self
+    // TODO: Add #[init(ignore_state)] upgrade() function that:
+    // - Sets owner_id to env::current_account_id()
     // - Sets data_version to 2
     // - Sets paused to false
     // - Sets value to 0
 
     pub fn pause(&mut self) {
-        // TODO: require caller is owner, set paused = true
+        // TODO: Require caller is owner
+        // TODO: Set paused to true
+        todo!()
     }
 
     pub fn unpause(&mut self) {
-        // TODO: require caller is owner, set paused = false
+        // TODO: Require caller is owner
+        // TODO: Set paused to false
+        todo!()
     }
 
     pub fn migrate(&mut self) {
-        // TODO: require caller is owner, increment data_version
+        // TODO: Require caller is owner
+        // TODO: Increment data_version by 1
+        todo!()
     }
 
     pub fn set_value(&mut self, value: u64) {
-        // TODO: require not paused, set self.value
+        // TODO: Require contract is not paused
+        // TODO: Set self.value
+        todo!()
     }
 
     pub fn get_value(&self) -> u64 {
@@ -50,8 +58,8 @@ impl Contract {
     }
 
     pub fn get_version(&self) -> u32 {
-        // TODO: return data_version
-        0
+        // TODO: Return data_version
+        todo!()
     }
 }`,
 
@@ -118,26 +126,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[should_panic(expected = "Contract is paused")]
-    fn test_set_value_while_paused() {
-        let mut contract = Contract::new();
-        contract.pause();
-        contract.set_value(99);
-    }
-
-    #[test]
-    fn test_migrate_increments_version() {
-        let mut contract = Contract::new();
-        assert_eq!(contract.get_version(), 1);
-        contract.migrate();
-        assert_eq!(contract.get_version(), 2);
-    }
-}`,
+`,
 
   JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
@@ -249,7 +238,7 @@ class Contract {
 
 **Key:** \`#[init(ignore_state)]\` goes inside the #[near] impl block!
 
-**Test:** Can pause, upgrade, then unpause while preserving state!`,
+**Test:** Call pause(), then upgrade() — data_version should be 2 and value should reset to 0!`,
 
   Hints: `**The Problem:**
 You need a contract that can be paused for upgrades, with state migration support.

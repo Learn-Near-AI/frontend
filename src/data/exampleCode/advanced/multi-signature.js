@@ -45,40 +45,43 @@ impl Contract {
     }
 
     pub fn add_owner(&mut self, account: AccountId) {
-        // TODO: require caller is owner
-        // TODO: insert account into owners
+        // TODO: Require caller is owner
+        // TODO: Insert account into owners
+        todo!()
     }
 
     pub fn propose(&mut self, transaction: String) -> u64 {
-        // TODO: require caller is owner
-        // TODO: get current proposal_id, increment it
-        // TODO: insert Proposal with empty approvals, executed = false
-        // TODO: return the proposal id
-        0
+        // TODO: Require caller is owner
+        // TODO: Get current proposal id, then increment next_proposal_id
+        // TODO: Insert new Proposal with empty approvals and executed = false
+        // TODO: Return the proposal id
+        todo!()
     }
 
     pub fn approve(&mut self, proposal_id: u64) {
-        // TODO: require caller is owner
-        // TODO: require proposal exists and not executed
-        // TODO: push caller to approvals only if not already present (no duplicates)
+        // TODO: Require caller is owner
+        // TODO: Require proposal exists and is not already executed
+        // TODO: Add caller to approvals only if not already present
+        todo!()
     }
 
     pub fn execute(&mut self, proposal_id: u64) {
-        // TODO: require caller is owner
-        // TODO: require proposal exists and not executed
-        // TODO: require 2+ approvals
-        // TODO: mark executed = true
+        // TODO: Require caller is owner
+        // TODO: Require proposal exists and is not already executed
+        // TODO: Require at least 2 approvals
+        // TODO: Mark proposal as executed
+        todo!()
     }
 
     #[payable]
     pub fn deposit(&mut self) {
-        // TODO: get attached_deposit() (returns NearToken)
-        // TODO: add to self.balance
+        // TODO: Get attached_deposit() and add it to self.balance
+        todo!()
     }
 
     pub fn get_proposal(&self, proposal_id: u64) -> Option<(String, usize, bool)> {
-        // TODO: return proposal details (transaction, approvals.len(), executed)
-        None
+        // TODO: Return (transaction, approvals.len(), executed) for the proposal
+        todo!()
     }
 
     pub fn get_balance(&self) -> NearToken {
@@ -189,42 +192,7 @@ impl Contract {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_propose_and_approve() {
-        let owner: AccountId = "owner.near".parse().unwrap();
-        let mut contract = Contract::new(owner.clone());
-        let id = contract.propose("transfer 100 NEAR".to_string());
-        assert_eq!(id, 0);
-        contract.approve(0);
-        let (_, approvals, executed) = contract.get_proposal(0).unwrap();
-        assert_eq!(approvals, 1);
-        assert!(!executed);
-    }
-
-    #[test]
-    #[should_panic(expected = "Need 2+ approvals")]
-    fn test_execute_requires_two_approvals() {
-        let owner: AccountId = "owner.near".parse().unwrap();
-        let mut contract = Contract::new(owner);
-        contract.propose("transfer".to_string());
-        contract.approve(0);
-        contract.execute(0);
-    }
-
-    #[test]
-    fn test_next_proposal_id_increments() {
-        let owner: AccountId = "owner.near".parse().unwrap();
-        let mut contract = Contract::new(owner);
-        let id0 = contract.propose("action one".to_string());
-        let id1 = contract.propose("action two".to_string());
-        assert_eq!(id0, 0);
-        assert_eq!(id1, 1);
-    }
-}`,
+`,
 
   JavaScriptExercise: `import { NearBindgen, call, view, near, require } from "near-sdk-js";
 

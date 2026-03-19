@@ -11,7 +11,7 @@ export const stateManagementDetailedExplanation = {
 - Implement \`get_counter()\` view method that returns the current counter value
 
 **Test:**
-Call increment multiple times, then call get_counter - the value should persist!`,
+Call increment multiple times, then call \`get_counter()\` - the current counter value show!`,
     },
     {
       title: 'Hints',

@@ -14,7 +14,7 @@ export const upgradePatternExplanation = [
 
 **Key:** \`#[init(ignore_state)]\` goes INSIDE the #[near] impl block!
 
-**Test:** Can pause, upgrade, then unpause while preserving state!`,
+**Test:** Call pause(), then upgrade() — data_version should be 2 and value should reset to 0!`,
   },
   {
     title: 'The Evolution!',

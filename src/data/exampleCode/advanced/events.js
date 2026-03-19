@@ -33,13 +33,17 @@ impl Contract {
     }
 
     pub fn set_message(&mut self, msg: String) {
-        // TODO: store old message, update to new message
-        // TODO: emit MessageUpdated event with old_message, new_message, updated_by
+        // TODO: Store the old message
+        // TODO: Update message to new value
+        // TODO: Emit MessageUpdated event with old_message, new_message, updated_by
+        todo!()
     }
 
     pub fn delete_message(&mut self) {
-        // TODO: store deleted message, clear message to empty
-        // TODO: emit MessageDeleted event with deleted_message, deleted_by
+        // TODO: Store the deleted message
+        // TODO: Clear message to empty string
+        // TODO: Emit MessageDeleted event with deleted_message, deleted_by
+        todo!()
     }
 }`,
 
