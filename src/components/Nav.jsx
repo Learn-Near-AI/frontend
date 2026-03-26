@@ -1,33 +1,39 @@
-import React from 'react'
-import { Menu, X, Sun, Moon, ExternalLink, Flame } from 'lucide-react'
-import { config } from '../config'
-import { useStreak } from '../hooks/useStreak'
-import NavWallet from './nav/NavWallet'
-import StreakModal from './nav/StreakModal'
+import React from 'react';
+import { Menu, X, Sun, Moon, ExternalLink, Flame } from 'lucide-react';
+import { config } from '../config';
+import { useStreak } from '../hooks/useStreak';
+import NavWallet from './nav/NavWallet';
+import StreakModal from './nav/StreakModal';
 
 const NAV_ITEMS = [
   { id: 'examples', label: 'Examples', type: 'button', onClickKey: 'launchExamplesBrowser' },
   { id: 'docs', label: 'Docs', type: 'link', hrefKey: 'docs' },
-  { id: 'roadmap', label: 'Roadmap', type: 'button', onClickKey: 'navigateRoadmap', path: '/roadmap' },
+  {
+    id: 'roadmap',
+    label: 'Roadmap',
+    type: 'button',
+    onClickKey: 'navigateRoadmap',
+    path: '/roadmap',
+  },
   { id: 'learn', label: 'Learn', type: 'link', hrefKey: 'github', icon: ExternalLink },
-]
+];
 
 function NavLinks({ items, currentPath, variant, launchExamplesBrowser, navigate }) {
-  const linkBaseClass = variant === 'desktop'
-    ? 'text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium'
-    : 'text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium py-2 text-left'
-  const buttonBaseClass = `transition-colors font-medium ${variant === 'mobile' ? 'py-2 text-left ' : ''}`
-  const buttonActiveClass = 'text-near-primary'
-  const buttonInactiveClass = 'text-gray-600 dark:text-gray-300 hover:text-near-primary'
-  const containerClass = variant === 'desktop'
-    ? 'hidden md:flex items-center gap-8'
-    : 'flex flex-col gap-4'
+  const linkBaseClass =
+    variant === 'desktop'
+      ? 'text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium'
+      : 'text-gray-600 dark:text-gray-300 hover:text-near-primary transition-colors font-medium py-2 text-left';
+  const buttonBaseClass = `transition-colors font-medium ${variant === 'mobile' ? 'py-2 text-left ' : ''}`;
+  const buttonActiveClass = 'text-near-primary';
+  const buttonInactiveClass = 'text-gray-600 dark:text-gray-300 hover:text-near-primary';
+  const containerClass =
+    variant === 'desktop' ? 'hidden md:flex items-center gap-8' : 'flex flex-col gap-4';
 
   return (
     <div className={containerClass}>
       {items.map((item) => {
         if (item.type === 'link') {
-          const href = config.links[item.hrefKey]
+          const href = config.links[item.hrefKey];
           return (
             <a
               key={item.id}
@@ -39,12 +45,13 @@ function NavLinks({ items, currentPath, variant, launchExamplesBrowser, navigate
               {item.label}
               {item.icon && <item.icon className="h-4 w-4" />}
             </a>
-          )
+          );
         }
-        const isActive = item.path ? currentPath === item.path : false
-        const onClick = item.onClickKey === 'launchExamplesBrowser'
-          ? launchExamplesBrowser
-          : () => navigate('/roadmap')
+        const isActive = item.path ? currentPath === item.path : false;
+        const onClick =
+          item.onClickKey === 'launchExamplesBrowser'
+            ? launchExamplesBrowser
+            : () => navigate('/roadmap');
         return (
           <button
             key={item.id}
@@ -53,10 +60,10 @@ function NavLinks({ items, currentPath, variant, launchExamplesBrowser, navigate
           >
             {item.label}
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 function Nav({
@@ -79,16 +86,15 @@ function Nav({
     closeBadge,
     reopenBadge,
     getStreakMessage,
-  } = useStreak(currentPath)
+    completedExamples,
+    getUnlockedCount,
+  } = useStreak(currentPath);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#111216]/95 backdrop-blur-md border-b border-gray-200 dark:border-[#3e3e42]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div
-            onClick={scrollToTop}
-            className="flex items-center gap-2 cursor-pointer group"
-          >
+          <div onClick={scrollToTop} className="flex items-center gap-2 cursor-pointer group">
             <img
               src="/assets/images/vecteezy.png"
               alt="NEAR Logo"
@@ -132,7 +138,9 @@ function Nav({
                 title="View your streak"
               >
                 <Flame className="h-4 w-4" />
-                <span>{currentStreak} Day{currentStreak !== 1 ? 's' : ''}</span>
+                <span>
+                  {currentStreak} Day{currentStreak !== 1 ? 's' : ''}
+                </span>
               </button>
             )}
 
@@ -164,8 +172,8 @@ function Nav({
               {currentPath !== '/' && showStreakBadge && (
                 <button
                   onClick={() => {
-                    setModalOpen(true)
-                    setMobileMenuOpen(false)
+                    setModalOpen(true);
+                    setMobileMenuOpen(false);
                   }}
                   className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-200"
                 >
@@ -175,8 +183,8 @@ function Nav({
                   </div>
                   <button
                     onClick={(e) => {
-                      closeBadge(e)
-                      setMobileMenuOpen(false)
+                      closeBadge(e);
+                      setMobileMenuOpen(false);
                     }}
                     className="p-1 hover:bg-white/20 rounded-full transition-colors"
                   >
@@ -223,9 +231,11 @@ function Nav({
         longestStreak={longestStreak}
         totalVisits={totalVisits}
         getStreakMessage={getStreakMessage}
+        completedExamples={completedExamples}
+        getUnlockedCount={getUnlockedCount}
       />
     </nav>
-  )
+  );
 }
 
-export default Nav
+export default Nav;

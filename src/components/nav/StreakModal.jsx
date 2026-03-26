@@ -1,13 +1,8 @@
-import React, { useEffect } from 'react'
-import { Flame, Trophy, Calendar, Target, Zap } from 'lucide-react'
-import { logger } from '../../lib/logger'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog'
+import React, { useEffect } from 'react';
+import { Flame, Trophy, Calendar, Target, Zap, BookOpen } from 'lucide-react';
+import { logger } from '../../lib/logger';
+import { WORKING_EXAMPLES } from '../../data/examples';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 
 export default function StreakModal({
   open,
@@ -16,33 +11,38 @@ export default function StreakModal({
   longestStreak,
   totalVisits,
   getStreakMessage,
+  completedExamples = [],
+  getUnlockedCount,
 }) {
+  const totalExamples = WORKING_EXAMPLES.length;
+  const completedCount = completedExamples.length;
+  const unlockedCount = getUnlockedCount ? getUnlockedCount() : completedCount;
   useEffect(() => {
     if (open) {
       try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const playNote = (frequency, startTime, duration) => {
-          const oscillator = audioContext.createOscillator()
-          const gainNode = audioContext.createGain()
-          oscillator.connect(gainNode)
-          gainNode.connect(audioContext.destination)
-          oscillator.frequency.value = frequency
-          oscillator.type = 'sine'
-          gainNode.gain.setValueAtTime(0, startTime)
-          gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.01)
-          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
-          oscillator.start(startTime)
-          oscillator.stop(startTime + duration)
-        }
-        const now = audioContext.currentTime
-        playNote(523.25, now, 0.15)
-        playNote(659.25, now + 0.1, 0.15)
-        playNote(783.99, now + 0.2, 0.25)
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          oscillator.frequency.value = frequency;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0, startTime);
+          gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.01);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+          oscillator.start(startTime);
+          oscillator.stop(startTime + duration);
+        };
+        const now = audioContext.currentTime;
+        playNote(523.25, now, 0.15);
+        playNote(659.25, now + 0.1, 0.15);
+        playNote(783.99, now + 0.2, 0.25);
       } catch (error) {
-        logger.debug('Audio not available:', error)
+        logger.debug('Audio not available:', error);
       }
     }
-  }, [open])
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -63,8 +63,39 @@ export default function StreakModal({
               <Flame className="h-8 w-8 text-orange-500" />
             </div>
             <div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">{currentStreak}</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                {currentStreak}
+              </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">Current Streak</div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-lg bg-near-primary/10 border border-near-primary/20">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen className="h-4 w-4 text-near-primary" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                Examples Progress
+              </span>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full bg-gray-200 dark:bg-[#3e3e42] rounded-full h-2">
+                <div
+                  className="bg-near-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(unlockedCount / totalExamples) * 100}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500 dark:text-gray-400">Completed</span>
+                <span className="text-green-600 dark:text-green-400 font-semibold">
+                  {completedCount} / {totalExamples}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-[#3e3e42] rounded-full h-2">
+                <div
+                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(completedCount / totalExamples) * 100}%` }}
+                />
+              </div>
             </div>
           </div>
 
@@ -74,7 +105,9 @@ export default function StreakModal({
                 <Trophy className="h-4 w-4 text-yellow-500" />
                 <span className="text-xs text-gray-400">Best Streak</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{longestStreak}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                {longestStreak}
+              </div>
             </div>
 
             <div className="p-4 rounded-lg bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42]">
@@ -97,13 +130,17 @@ export default function StreakModal({
               {currentStreak < 7 && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-400">7-day streak</span>
-                  <span className="text-near-primary font-semibold">{7 - currentStreak} days left</span>
+                  <span className="text-near-primary font-semibold">
+                    {7 - currentStreak} days left
+                  </span>
                 </div>
               )}
               {currentStreak < 30 && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-400">30-day streak</span>
-                  <span className="text-near-primary font-semibold">{30 - currentStreak} days left</span>
+                  <span className="text-near-primary font-semibold">
+                    {30 - currentStreak} days left
+                  </span>
                 </div>
               )}
               {currentStreak >= 30 && (
@@ -124,5 +161,5 @@ export default function StreakModal({
         </button>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { X, CheckCircle } from 'lucide-react';
 import { exampleCode } from '../data/examples';
 import { isGuidedExample, exerciseHints } from '../data/guidedExercises';
 import { TOUR_AUTO_START_DELAY_MS, CONSOLE_ERROR_LINES_MAX } from '../lib/appConstants';
+import { useStreak } from '../hooks/useStreak';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +36,10 @@ function getStoredLanguage() {
 }
 
 function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }) {
+  const location = useLocation();
+  const { completeExample, completedExamples, recentlyCompleted } = useStreak(
+    location.pathname || '/'
+  );
   const isIntroExample = example.id === 'intro';
   const guidedExample = isGuidedExample(example.id);
   const [activeLanguage, setActiveLanguageState] = useState(getStoredLanguage);
@@ -74,6 +80,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   const [isWarningClosed, setIsWarningClosed] = useState(false);
   const [runTour, setRunTour] = useState(false);
   const [showingSolution, setShowingSolution] = useState(false);
+  const [showCompleteButton, setShowCompleteButton] = useState(false);
 
   const handleShowSolution = () => {
     if (solutionCode) setCode(solutionCode);
@@ -388,6 +395,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
       // Contract deployed successfully!
       addConsoleOutput('\n🎉 Deployment complete!');
+      setShowCompleteButton(true);
     } catch (error) {
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
@@ -509,12 +517,57 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       </div>
 
       {!isIntroExample && (
-        <ConsolePanel
-          consoleOutput={consoleOutput}
-          deployedContractId={deployedContractId}
-          deploymentTxHash={deploymentTxHash}
-          wasmSize={wasmSize}
-        />
+        <>
+          {showCompleteButton && !completedExamples.includes(example.id) && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <div>
+                    <h3 className="font-semibold text-green-800 dark:text-green-300">
+                      Example Completed!
+                    </h3>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      Great work! You've successfully deployed this contract.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    completeExample(example.id);
+                    setShowCompleteButton(false);
+                  }}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Mark Complete
+                </button>
+              </div>
+            </div>
+          )}
+          {completedExamples.includes(example.id) && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <div>
+                  <h3 className="font-semibold text-green-800 dark:text-green-300">
+                    Example Completed!
+                  </h3>
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    You've completed this example. The next example in the learning path is now
+                    unlocked!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          <ConsolePanel
+            consoleOutput={consoleOutput}
+            deployedContractId={deployedContractId}
+            deploymentTxHash={deploymentTxHash}
+            wasmSize={wasmSize}
+          />
+        </>
       )}
     </div>
   );

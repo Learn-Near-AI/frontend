@@ -1,7 +1,7 @@
-import React from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import ExampleCard from './ExampleCard'
-import { categoryOrder } from '../data/examples'
+import React from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import ExampleCard from './ExampleCard';
+import { categoryOrder } from '../data/examples';
 
 function CategorySidebar({
   groupedExamples,
@@ -9,20 +9,22 @@ function CategorySidebar({
   toggleCategory,
   selectedExample,
   handleExampleSelect,
-  categoryIcons
+  categoryIcons,
+  isExampleUnlocked,
+  completedExamples,
 }) {
   // Sort categories by learning complexity order (Basics first)
   const categories = Object.keys(groupedExamples).sort((a, b) => {
-    const indexA = categoryOrder.indexOf(a)
-    const indexB = categoryOrder.indexOf(b)
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
     // If both are in the order list, sort by their position
-    if (indexA !== -1 && indexB !== -1) return indexA - indexB
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
     // If only one is in the list, prioritize it
-    if (indexA !== -1) return -1
-    if (indexB !== -1) return 1
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
     // If neither is in the list, sort alphabetically
-    return a.localeCompare(b)
-  })
+    return a.localeCompare(b);
+  });
 
   if (categories.length === 0) {
     return (
@@ -30,7 +32,7 @@ function CategorySidebar({
         <p>No examples found</p>
         <p className="text-sm mt-2">Try adjusting your filters</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -42,63 +44,66 @@ function CategorySidebar({
       </div>
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="space-y-1">
-        {categories.map(category => {
-          const examples = groupedExamples[category]
-          const isExpanded = expandedCategories[category]
-          const icon = categoryIcons[category] || '📁'
+          {categories.map((category) => {
+            const examples = groupedExamples[category];
+            const isExpanded = expandedCategories[category];
+            const icon = categoryIcons[category] || '📁';
 
-          return (
-            <div key={category} className="mb-2">
-              {/* Category Header */}
-              <button
-                onClick={() => toggleCategory(category)}
-                className="w-full flex items-center justify-between px-3 py-3.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors group"
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  {icon.startsWith('/') ? (
-                    <img 
-                      src={icon} 
-                      alt={category} 
-                      className="w-5 h-5 flex-shrink-0 object-contain"
-                    />
+            return (
+              <div key={category} className="mb-2">
+                {/* Category Header */}
+                <button
+                  onClick={() => toggleCategory(category)}
+                  className="w-full flex items-center justify-between px-3 py-3.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1b1f] transition-colors group"
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {icon.startsWith('/') ? (
+                      <img
+                        src={icon}
+                        alt={category}
+                        className="w-5 h-5 flex-shrink-0 object-contain"
+                      />
+                    ) : (
+                      <span className="text-lg flex-shrink-0">{icon}</span>
+                    )}
+                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {category}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                      ({examples.length})
+                    </span>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                   ) : (
-                    <span className="text-lg flex-shrink-0">{icon}</span>
+                    <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                   )}
-                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {category}
-                  </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
-                    ({examples.length})
-                  </span>
-                </div> 
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                )}
-              </button>
+                </button>
 
-              {/* Category Items */}
-              {isExpanded && (
-                <div className="ml-6 mt-1 space-y-1">
-                  {examples.map(example => (
-                    <ExampleCard
-                      key={example.id}
-                      example={example}
-                      isSelected={selectedExample?.id === example.id}
-                      onClick={() => handleExampleSelect(example)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )
-        })}
+                {/* Category Items */}
+                {isExpanded && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {examples.map((example) => (
+                      <ExampleCard
+                        key={example.id}
+                        example={example}
+                        isSelected={selectedExample?.id === example.id}
+                        onClick={() => handleExampleSelect(example)}
+                        isLocked={isExampleUnlocked ? !isExampleUnlocked(example.id) : false}
+                        isCompleted={
+                          completedExamples ? completedExamples.includes(example.id) : false
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default CategorySidebar
-
+export default CategorySidebar;

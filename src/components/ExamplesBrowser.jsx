@@ -11,6 +11,7 @@ import WelcomeContent from './WelcomeContent';
 import ExampleDetail from './ExampleDetail';
 import SuccessPage from './SuccessPage';
 import { Sheet, SheetContent } from './ui/sheet';
+import { useStreak } from '../hooks/useStreak';
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
 
@@ -18,6 +19,8 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
+
+  const { isExampleUnlocked, completedExamples } = useStreak(currentPath);
 
   const [selectedExample, setSelectedExample] = useState(null);
   const [comingSoonExample, setComingSoonExample] = useState(null);
@@ -44,9 +47,8 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   }, []);
 
   const handleExampleSelect = (example) => {
-    // Update URL hash
+    if (!isExampleUnlocked(example.id)) return;
     window.history.pushState(null, '', `#${example.id}`);
-    // Check if example has working code implementation
     if (WORKING_EXAMPLES.includes(example.id)) {
       setSelectedExample(example);
       setComingSoonExample(null);
@@ -240,6 +242,8 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
                     setSidebarVisible(false);
                   }}
                   categoryIcons={categoryIcons}
+                  isExampleUnlocked={isExampleUnlocked}
+                  completedExamples={completedExamples}
                 />
               </div>
             </SheetContent>
@@ -259,6 +263,8 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
             selectedExample={selectedExample}
             handleExampleSelect={handleExampleSelect}
             categoryIcons={categoryIcons}
+            isExampleUnlocked={isExampleUnlocked}
+            completedExamples={completedExamples}
           />
         </div>
 
