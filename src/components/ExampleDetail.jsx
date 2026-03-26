@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { useLocation } from 'react-router-dom';
 import { X, CheckCircle } from 'lucide-react';
 import { exampleCode } from '../data/examples';
 import { isGuidedExample, exerciseHints } from '../data/guidedExercises';
 import { TOUR_AUTO_START_DELAY_MS, CONSOLE_ERROR_LINES_MAX } from '../lib/appConstants';
-import { useStreak } from '../hooks/useStreak';
+import { useStreak } from '../context/StreakContext';
 import {
   Dialog,
   DialogContent,
@@ -36,10 +35,7 @@ function getStoredLanguage() {
 }
 
 function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }) {
-  const location = useLocation();
-  const { completeExample, completedExamples, recentlyCompleted } = useStreak(
-    location.pathname || '/'
-  );
+  const { completeExample, completedExamples, recentlyCompleted } = useStreak();
   const isIntroExample = example.id === 'intro';
   const guidedExample = isGuidedExample(example.id);
   const [activeLanguage, setActiveLanguageState] = useState(getStoredLanguage);
@@ -228,6 +224,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       addConsoleOutput('✓ Contract compiled successfully');
       addConsoleOutput(`✓ WASM size: ${(compileResult.size / 1024).toFixed(2)} KB`);
       setWasmSize(compileResult.size);
+      setShowCompleteButton(true);
       addConsoleOutput(
         JSON.stringify({
           text: `✓ Compilation Time: ${compileTimeRun}s`,
@@ -395,7 +392,6 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
       // Contract deployed successfully!
       addConsoleOutput('\n🎉 Deployment complete!');
-      setShowCompleteButton(true);
     } catch (error) {
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         addConsoleOutput(`❌ Error: Failed to connect to backend`);

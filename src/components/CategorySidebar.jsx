@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import ExampleCard from './ExampleCard';
-import { categoryOrder } from '../data/examples';
+import { categoryOrder, WORKING_EXAMPLES } from '../data/examples';
+
+const INITIAL_UNLOCKED = ['intro', 'greeting'];
+
+function isExampleUnlocked(exampleId, completedExamples) {
+  if (INITIAL_UNLOCKED.includes(exampleId)) return true;
+  if (!WORKING_EXAMPLES.includes(exampleId)) return false;
+  const exampleIndex = WORKING_EXAMPLES.indexOf(exampleId);
+  if (exampleIndex <= 0) return false;
+  const previousExampleId = WORKING_EXAMPLES[exampleIndex - 1];
+  return completedExamples.includes(previousExampleId);
+}
 
 function CategorySidebar({
   groupedExamples,
@@ -10,8 +21,7 @@ function CategorySidebar({
   selectedExample,
   handleExampleSelect,
   categoryIcons,
-  isExampleUnlocked,
-  completedExamples,
+  completedExamples = [],
 }) {
   // Sort categories by learning complexity order (Basics first)
   const categories = Object.keys(groupedExamples).sort((a, b) => {
@@ -89,10 +99,8 @@ function CategorySidebar({
                         example={example}
                         isSelected={selectedExample?.id === example.id}
                         onClick={() => handleExampleSelect(example)}
-                        isLocked={isExampleUnlocked ? !isExampleUnlocked(example.id) : false}
-                        isCompleted={
-                          completedExamples ? completedExamples.includes(example.id) : false
-                        }
+                        isLocked={!isExampleUnlocked(example.id, completedExamples)}
+                        isCompleted={completedExamples.includes(example.id)}
                       />
                     ))}
                   </div>

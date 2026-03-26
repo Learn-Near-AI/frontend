@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Menu, X, Sun, Moon, ExternalLink, Flame } from 'lucide-react';
 import { config } from '../config';
-import { useStreak } from '../hooks/useStreak';
+import { useStreak } from '../context/StreakContext';
 import NavWallet from './nav/NavWallet';
 import StreakModal from './nav/StreakModal';
 
@@ -88,7 +88,12 @@ function Nav({
     getStreakMessage,
     completedExamples,
     getUnlockedCount,
-  } = useStreak(currentPath);
+    setCurrentPath: setContextPath,
+  } = useStreak();
+
+  useEffect(() => {
+    setContextPath(currentPath);
+  }, [currentPath, setContextPath]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#111216]/95 backdrop-blur-md border-b border-gray-200 dark:border-[#3e3e42]">

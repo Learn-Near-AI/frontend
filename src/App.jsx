@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react'
-import { BrowserRouter, useNavigate, useLocation } from 'react-router-dom'
-import AOS from 'aos'
-import 'aos/dist/aos.css'
-import { Toaster } from 'sonner'
-import Nav from './components/Nav'
-import { AppRoutes } from './routes'
-import { redirectToSuccessIfNeeded } from './lib/transactionHashes'
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, useNavigate, useLocation } from 'react-router-dom';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import { Toaster } from 'sonner';
+import Nav from './components/Nav';
+import { AppRoutes } from './routes';
+import { redirectToSuccessIfNeeded } from './lib/transactionHashes';
+import { StreakProvider } from './context/StreakContext';
 
 function AppContent({ mobileMenuOpen, setMobileMenuOpen }) {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const currentPath = location.pathname
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme')
-    return saved ? saved === 'dark' : true
-  })
+    const saved = localStorage.getItem('theme');
+    return saved ? saved === 'dark' : true;
+  });
 
   useEffect(() => {
     AOS.init({
@@ -23,46 +24,46 @@ function AppContent({ mobileMenuOpen, setMobileMenuOpen }) {
       easing: 'ease-in-out',
       once: true,
       offset: 100,
-    })
-  }, [])
+    });
+  }, []);
 
   useEffect(() => {
     if (isDark) {
-      document.documentElement.classList.add('dark')
+      document.documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove('dark');
     }
-  }, [isDark])
+  }, [isDark]);
 
   const handleNavigate = (path) => {
-    if (path === currentPath) return
-    navigate(path)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    setMobileMenuOpen(false)
-  }
+    if (path === currentPath) return;
+    navigate(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMobileMenuOpen(false);
+  };
 
   const toggleTheme = () => {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light')
-  }
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+  };
 
   const scrollToTop = () => {
     if (currentPath !== '/') {
-      handleNavigate('/')
-      return
+      handleNavigate('/');
+      return;
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    setMobileMenuOpen(false)
-  }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMobileMenuOpen(false);
+  };
 
   const launchExamplesBrowser = () => {
-    handleNavigate('/examples')
-  }
+    handleNavigate('/examples');
+  };
 
   return (
     <div className="min-h-screen bg-[#111216]">
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           style: {
@@ -93,22 +94,23 @@ function AppContent({ mobileMenuOpen, setMobileMenuOpen }) {
         launchExamplesBrowser={launchExamplesBrowser}
       />
     </div>
-  )
+  );
 }
 
 function App() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    redirectToSuccessIfNeeded()
-  }, [])
+    redirectToSuccessIfNeeded();
+  }, []);
 
   return (
     <BrowserRouter>
-      <AppContent mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
+      <StreakProvider>
+        <AppContent mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
+      </StreakProvider>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
-
+export default App;

@@ -11,16 +11,30 @@ import WelcomeContent from './WelcomeContent';
 import ExampleDetail from './ExampleDetail';
 import SuccessPage from './SuccessPage';
 import { Sheet, SheetContent } from './ui/sheet';
-import { useStreak } from '../hooks/useStreak';
+import { useStreak } from '../context/StreakContext';
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
+const INITIAL_UNLOCKED = ['intro', 'greeting'];
+
+function checkExampleUnlocked(exampleId, completedExamples) {
+  if (INITIAL_UNLOCKED.includes(exampleId)) return true;
+  if (!WORKING_EXAMPLES.includes(exampleId)) return false;
+  const exampleIndex = WORKING_EXAMPLES.indexOf(exampleId);
+  if (exampleIndex <= 0) return false;
+  const previousExampleId = WORKING_EXAMPLES[exampleIndex - 1];
+  return completedExamples.includes(previousExampleId);
+}
 
 function ExamplesBrowser({ isDark, toggleTheme }) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const { isExampleUnlocked, completedExamples } = useStreak(currentPath);
+  const { completedExamples, setCurrentPath } = useStreak();
+
+  useEffect(() => {
+    setCurrentPath(currentPath);
+  }, [currentPath, setCurrentPath]);
 
   const [selectedExample, setSelectedExample] = useState(null);
   const [comingSoonExample, setComingSoonExample] = useState(null);
@@ -47,7 +61,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
   }, []);
 
   const handleExampleSelect = (example) => {
-    if (!isExampleUnlocked(example.id)) return;
+    if (!checkExampleUnlocked(example.id, completedExamples)) return;
     window.history.pushState(null, '', `#${example.id}`);
     if (WORKING_EXAMPLES.includes(example.id)) {
       setSelectedExample(example);
@@ -242,7 +256,6 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
                     setSidebarVisible(false);
                   }}
                   categoryIcons={categoryIcons}
-                  isExampleUnlocked={isExampleUnlocked}
                   completedExamples={completedExamples}
                 />
               </div>
@@ -263,7 +276,6 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
             selectedExample={selectedExample}
             handleExampleSelect={handleExampleSelect}
             categoryIcons={categoryIcons}
-            isExampleUnlocked={isExampleUnlocked}
             completedExamples={completedExamples}
           />
         </div>

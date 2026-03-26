@@ -71,19 +71,9 @@ export default function StreakModal({
           </div>
 
           <div className="p-4 rounded-lg bg-near-primary/10 border border-near-primary/20">
-            <div className="flex items-center gap-2 mb-3">
-              <BookOpen className="h-4 w-4 text-near-primary" />
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                Examples Progress
-              </span>
-            </div>
+            
             <div className="space-y-2">
-              <div className="w-full bg-gray-200 dark:bg-[#3e3e42] rounded-full h-2">
-                <div
-                  className="bg-near-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(unlockedCount / totalExamples) * 100}%` }}
-                />
-              </div>
+              
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">Completed</span>
                 <span className="text-green-600 dark:text-green-400 font-semibold">
