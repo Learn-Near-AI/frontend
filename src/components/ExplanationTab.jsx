@@ -141,29 +141,30 @@ function ExplanationTab({ example }) {
 
   return (
     <div className="space-y-4 bg-gray-50 dark:bg-[#0d0f14] rounded-lg p-2 h-[400px] overflow-y-auto">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
-            {example.name}
-          </h2>
-        </div>
-      </div>
+      <div className="flex items-center justify-between gap-2">
+  <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+    {example.name}
+  </h2>
+  {hasMoreSections && (
+    <button
+      type="button"
+      onClick={() => setDetailedModalOpen(true)}
+      className="text-md font-medium text-near-primary hover:text-near-primary/80 cursor-pointer transition-colors shrink-0"
+      title="Learn more with deep dive"
+    >
+      Learn More →
+    </button>
+  )}
+</div>
+
       <div className="relative prose prose-sm max-w-none">
+        
         {firstSection ? (
           <ReactMarkdown components={markdownComponents}>{firstSection.content}</ReactMarkdown>
         ) : (
           <p className="text-gray-500 dark:text-gray-400 italic">No explanation available yet.</p>
         )}
-        {hasMoreSections && (
-          <button
-            type="button"
-            onClick={() => setDetailedModalOpen(true)}
-            className="mt-3 text-md font-medium text-near-primary hover:text-near-primary/80 cursor-pointer transition-colors"
-            title="Learn more with deep dive"
-          >
-            Learn More →
-          </button>
-        )}
+        
       </div>
 
       {/* Hints modal */}
