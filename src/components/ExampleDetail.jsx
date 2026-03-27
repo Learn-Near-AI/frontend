@@ -117,12 +117,24 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
   useEffect(() => {
     const checkBackendStatus = async () => {
       try {
-        const response = await fetch(`${config.backend.deploy}/api/near/status`);
-        if (response.ok) {
-          const status = await response.json();
-          setBackendCLIConfigured(status.configured);
-          logger.debug('Backend CLI configured:', status.configured);
+        const rustStatus = await fetch(`${config.backend}/api/near/status`);
+        const jsStatus = await fetch(`${config.backend}/api/js/near/status`);
+
+        let rustConfigured = false;
+        let jsConfigured = false;
+
+        if (rustStatus.ok) {
+          const rustData = await rustStatus.json();
+          rustConfigured = rustData.configured || rustData.success;
         }
+
+        if (jsStatus.ok) {
+          const jsData = await jsStatus.json();
+          jsConfigured = jsData.configured || jsData.success;
+        }
+
+        setBackendCLIConfigured(rustConfigured || jsConfigured);
+        logger.debug('Backend CLI configured:', { rust: rustConfigured, js: jsConfigured });
       } catch (error) {
         logger.warn('Could not check backend CLI status:', error);
         setBackendCLIConfigured(false);
@@ -150,11 +162,13 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     const compileStartRun = Date.now();
 
     try {
-      const compileApiUrl = getCompileApiUrl(activeLanguage);
-      logger.debug(`[FRONTEND] Sending compile request to: ${compileApiUrl}/api/compile`);
+      const compileApiUrl = getCompileApiUrl();
+      const isJsContract = activeLanguage === 'JavaScript';
+      const compileEndpoint = isJsContract ? '/api/js/compile' : '/api/compile';
+      logger.debug(`[FRONTEND] Sending compile request to: ${compileApiUrl}${compileEndpoint}`);
       logger.debug(`[FRONTEND] Language: ${activeLanguage}, Code length: ${codeToCompile.length}`);
 
-      const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
+      const compileResponse = await fetch(`${compileApiUrl}${compileEndpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: codeToCompile, language: activeLanguage }),
@@ -167,9 +181,10 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       if (!compileResponse.ok) {
         const errorData = await compileResponse.json().catch(() => ({ error: 'Unknown error' }));
         logger.error('[FRONTEND] Error response:', errorData);
+        const errorObj = errorData.error;
         const errorMsg =
           errorData.stderr ||
-          errorData.error ||
+          (typeof errorObj === 'object' ? errorObj.message || errorObj.error : errorObj) ||
           errorData.message ||
           `HTTP ${compileResponse.status}: ${compileResponse.statusText}`;
         addConsoleOutput(`❌ Error: ${errorMsg}`);
@@ -185,9 +200,10 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
       if (!compileResult.success) {
         // Extract detailed error message
+        const errorObj = compileResult.error;
         let errorMsg =
           compileResult.stderr ||
-          compileResult.error ||
+          (typeof errorObj === 'object' ? errorObj.message || errorObj.error : errorObj) ||
           compileResult.message ||
           'Compilation failed';
 
@@ -236,7 +252,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       addConsoleOutput('   Click "Deploy" to deploy and test your contract on TestNet.');
     } catch (error) {
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        const compileApiUrl = getCompileApiUrl(activeLanguage);
+        const compileApiUrl = getCompileApiUrl();
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
         addConsoleOutput(`   Backend URL: ${compileApiUrl}`);
         addConsoleOutput(`   Please check if the backend is running and accessible.`);
@@ -271,8 +287,10 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
 
     try {
       // Step 1: Compile the contract (exercise for guided when solution is shown)
-      const compileApiUrl = getCompileApiUrl(activeLanguage);
-      const compileResponse = await fetch(`${compileApiUrl}/api/compile`, {
+      const compileApiUrl = getCompileApiUrl();
+      const isJsContract = activeLanguage === 'JavaScript';
+      const compileEndpoint = isJsContract ? '/api/js/compile' : '/api/compile';
+      const compileResponse = await fetch(`${compileApiUrl}${compileEndpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: codeToCompile, language: activeLanguage }),
@@ -314,7 +332,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       const userId = accountId ? accountId.split('.')[0] : 'anonymous';
       const projectId = example.id || 'near-example';
 
-      const deployResponse = await fetch(`${config.backend.deploy}/api/deploy`, {
+      const deployResponse = await fetch(`${config.backend}/api/deploy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -370,7 +388,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       // Optional: Test the deployed contract
       addConsoleOutput('\n▶ Testing deployed contract...');
       try {
-        const testResponse = await fetch(`${config.backend.deploy}/api/contract/view`, {
+        const testResponse = await fetch(`${config.backend}/api/contract/view`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -395,7 +413,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
     } catch (error) {
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         addConsoleOutput(`❌ Error: Failed to connect to backend`);
-        addConsoleOutput(`   Backend URL: ${config.backend.deploy}`);
+        addConsoleOutput(`   Backend URL: ${config.backend}`);
         addConsoleOutput(`   Please check if the backend is running and accessible.`);
       } else {
         addConsoleOutput(`❌ Error: ${error.message}`);

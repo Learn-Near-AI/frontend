@@ -17,12 +17,10 @@ export const config = {
     explorerUrl: 'https://explorer.testnet.near.org',
   },
 
-  /** Backend API URLs - use proxy in development */
-  backend: {
-    rust: import.meta.env.VITE_RUST_COMPILE_URL || (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev'),
-    js: import.meta.env.VITE_JS_COMPILE_URL || (isDev ? '/api/backend-js' : 'https://learn-near-backend.fly.dev'),
-    deploy: import.meta.env.VITE_DEPLOY_URL || (isDev ? '/api/backend-rust' : 'https://rustendpoint.fly.dev'),
-  },
+  /** Backend API URL - unified endpoint for all backend operations */
+  backend:
+    import.meta.env.VITE_BACKEND_URL ||
+    (isDev ? '/api/backend' : 'https://learnnearbyexample.fly.dev'),
 
   /** External links */
   links: {
@@ -35,5 +33,4 @@ export const config = {
   },
 };
 
-export const getCompileApiUrl = (language) =>
-  language === 'Rust' ? config.backend.rust : config.backend.js;
+export const getCompileApiUrl = () => config.backend;
