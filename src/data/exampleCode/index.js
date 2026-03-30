@@ -10,7 +10,7 @@ import { COMING_SOON_TEMPLATE } from '../constants.jsx';
 
 // List of example IDs that have working implementations (full learning UI, incl. Intro path)
 export const WORKING_EXAMPLES = [
-  // Basics (9)
+  // Basics (10)
   'intro',
   'greeting',
   'contract-structure',
@@ -20,7 +20,33 @@ export const WORKING_EXAMPLES = [
   'input-validation',
   'error-handling',
   'collections-vector',
-  // Advanced (7)
+  'basics-code-exercise',
+  // Advanced (8)
+  'collections-map',
+  'events',
+  'owner-pattern',
+  'role-based-access',
+  'pausable-contract',
+  'multi-signature',
+  'upgrade-pattern',
+  'advanced-code-exercise',
+];
+
+// Examples that require all basics to be completed
+export const BASICS_EXAMPLES = [
+  'intro',
+  'greeting',
+  'contract-structure',
+  'view-methods',
+  'change-methods',
+  'state-management',
+  'input-validation',
+  'error-handling',
+  'collections-vector',
+];
+
+// Advanced examples that require completion before advanced-code-exercise
+export const ADVANCED_EXAMPLES = [
   'collections-map',
   'events',
   'owner-pattern',

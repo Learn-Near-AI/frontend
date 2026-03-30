@@ -1,32 +1,33 @@
-import React, { useState, useEffect } from 'react'
-import { useNearWallet } from 'near-connect-hooks'
-import { ChevronDown, LogOut } from 'lucide-react'
-import { useWalletBalance } from '../../hooks/useWalletBalance'
+import React, { useState, useEffect } from 'react';
+import { useNearWallet } from 'near-connect-hooks';
+import { ChevronDown, LogOut } from 'lucide-react';
+import { useWalletBalance } from '../../hooks/useWalletBalance';
 
 export default function NavWallet({ currentPath, mobile = false }) {
-  const { signedAccountId, signIn, signOut } = useNearWallet()
-  const walletBalance = useWalletBalance(signedAccountId)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { signedAccountId, signIn, signOut } = useNearWallet();
+  const walletBalance = useWalletBalance(signedAccountId);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
-    if (mobile) return
+    if (mobile) return;
     const handleClickOutside = (event) => {
       if (dropdownOpen && !event.target.closest('.wallet-dropdown-container')) {
-        setDropdownOpen(false)
+        setDropdownOpen(false);
       }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [dropdownOpen, mobile])
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen, mobile]);
 
   const handleDisconnect = () => {
-    signOut()
-    setDropdownOpen(false)
-  }
+    signOut();
+    setDropdownOpen(false);
+  };
 
-  const showWallet = currentPath.startsWith('/examples') || currentPath === '/roadmap'
+  const showWallet =
+    currentPath.startsWith('/examples') || currentPath === '/roadmap' || currentPath === '/agent';
 
-  if (!showWallet) return null
+  if (!showWallet) return null;
 
   if (mobile) {
     return (
@@ -58,11 +59,11 @@ export default function NavWallet({ currentPath, mobile = false }) {
             onClick={signIn}
             className="w-full px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 dark:border-[#3e3e42] text-gray-900 dark:text-gray-100 hover:border-near-primary hover:text-near-primary transition-colors"
           >
-            Connect NEAR Wallet
+            Connect Wallet
           </button>
         )}
       </div>
-    )
+    );
   }
 
   return (
@@ -118,9 +119,9 @@ export default function NavWallet({ currentPath, mobile = false }) {
           onClick={signIn}
           className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 dark:border-[#3e3e42] text-gray-900 dark:text-gray-100 hover:border-near-primary hover:text-near-primary transition-colors"
         >
-          Connect NEAR Wallet
+          Connect Wallet
         </button>
       )}
     </div>
-  )
+  );
 }

@@ -20,6 +20,13 @@ export const examplesData = {
       difficulty: 'Intermediate',
       language: 'Rust',
     },
+    {
+      id: 'basics-code-exercise',
+      name: 'Code Exercise',
+      difficulty: 'Beginner',
+      language: 'Rust',
+      isGuidedOnly: true,
+    },
   ],
   Advanced: [
     {
@@ -44,6 +51,12 @@ export const examplesData = {
     },
     { id: 'multi-signature', name: 'Multi-Signature', difficulty: 'Advanced', language: 'Rust' },
     { id: 'upgrade-pattern', name: 'Upgrade Pattern', difficulty: 'Advanced', language: 'Rust' },
+    {
+      id: 'advanced-code-exercise',
+      name: 'Code Exercise',
+      difficulty: 'Advanced',
+      language: 'Rust',
+    },
   ],
   'Collections & Data': [
     // Intermediate - Data Structures and Applications

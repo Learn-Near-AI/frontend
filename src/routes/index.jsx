@@ -1,9 +1,10 @@
-import React from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { ExamplesBrowser } from '../features/examples'
-import { LandingPage } from '../features/landing'
-import Roadmap from '../components/Roadmap'
-import Footer from '../components/Footer'
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import ExamplesBrowser from '../components/ExamplesBrowser';
+import { LandingPage } from '../features/landing';
+import Roadmap from '../components/Roadmap';
+import Footer from '../components/Footer';
+import AgentPage from '../components/AgentPage';
 
 /**
  * Application route definitions.
@@ -13,6 +14,7 @@ export function AppRoutes({ isDark, toggleTheme, scrollToTop, launchExamplesBrow
   return (
     <Routes>
       <Route path="/roadmap" element={<Roadmap scrollToTop={scrollToTop} />} />
+      <Route path="/agent" element={<AgentPage />} />
       <Route
         path="/examples/*"
         element={<ExamplesBrowser isDark={isDark} toggleTheme={toggleTheme} />}
@@ -27,5 +29,5 @@ export function AppRoutes({ isDark, toggleTheme, scrollToTop, launchExamplesBrow
         }
       />
     </Routes>
-  )
+  );
 }

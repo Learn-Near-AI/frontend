@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Menu, X, Sun, Moon, ExternalLink, Flame } from 'lucide-react';
+import { Menu, X, Sun, Moon, Flame } from 'lucide-react';
 import { config } from '../config';
 import { useStreak } from '../context/StreakContext';
 import NavWallet from './nav/NavWallet';
@@ -15,7 +15,7 @@ const NAV_ITEMS = [
     onClickKey: 'navigateRoadmap',
     path: '/roadmap',
   },
-  { id: 'learn', label: 'Learn', type: 'link', hrefKey: 'github', icon: ExternalLink },
+  { id: 'agent', label: 'Agents', type: 'button', path: '/agent' },
 ];
 
 function NavLinks({ items, currentPath, variant, launchExamplesBrowser, navigate }) {
@@ -51,7 +51,9 @@ function NavLinks({ items, currentPath, variant, launchExamplesBrowser, navigate
         const onClick =
           item.onClickKey === 'launchExamplesBrowser'
             ? launchExamplesBrowser
-            : () => navigate('/roadmap');
+            : item.path
+              ? () => navigate(item.path)
+              : () => navigate('/roadmap');
         return (
           <button
             key={item.id}

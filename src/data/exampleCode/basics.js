@@ -1398,4 +1398,280 @@ class Contract {
 
 `,
   },
+  'basics-code-exercise': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::collections::{Vector, LookupMap};
+use near_sdk::{env, require, PanicOnDefault, AccountId};
+use borsh::BorshSerialize;
+
+#[derive(BorshSerialize)]
+enum StorageKey {
+    Users,
+    Records,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    counter: u64,
+    records: Vector<String>,
+    user_greetings: LookupMap<AccountId>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::predecessor_account_id(),
+            counter: 0,
+            records: Vector::new(StorageKey::Records),
+            user_greetings: LookupMap::new(StorageKey::Users),
+        }
+    }
+
+    // ========== STATE MANAGEMENT ==========
+    pub fn increment(&mut self) {
+        self.counter += 1;
+    }
+
+    pub fn get_counter(&self) -> u64 {
+        99
+    }
+
+    // ========== VIEW METHODS ==========
+    pub fn get_greeting(&self, account: AccountId) -> u64 {
+        self.user_greetings.get(&account).unwrap_or(0)
+    }
+
+    // ========== CHANGE METHODS ==========
+    pub fn set_counter(&mut self, value: u64) {
+        self.counter = value;
+    }
+
+    pub fn reset_counter(&mut self) {
+        self.counter = 0;
+    }
+
+    // ========== INPUT VALIDATION ==========
+    pub fn add_record(&mut self, record: String) {
+        self.records.push(&record);
+    }
+
+    pub fn get_record(&self, index: u64) -> Option<String> {
+        self.records.get(index)
+    }
+
+    // ========== ERROR HANDLING ==========
+    pub fn safe_add(&self, a: u64, b: u64) -> u64 {
+        a + b
+    }
+
+    pub fn try_parse(&self, s: String) -> Option<u64> {
+        None
+    }
+}
+`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor() {
+    this.owner_id = near.predecessorAccountId();
+    this.counter = 0;
+    this.records = [];
+    this.user_greetings = {};
+  }
+
+  // ========== STATE MANAGEMENT ==========
+  @call({})
+  increment() {
+    this.counter += 1;
+  }
+
+  @view({})
+  get_counter() {
+    return 99;
+  }
+
+  // ========== VIEW METHODS ==========
+  @view({})
+  get_greeting({ account }) {
+    return this.user_greetings[account] || 0;
+  }
+
+  // ========== CHANGE METHODS ==========
+  @call({})
+  set_counter({ value }) {
+    this.counter = value;
+  }
+
+  @call({})
+  reset_counter() {
+    this.counter = 0;
+  }
+
+  // ========== INPUT VALIDATION ==========
+  @call({})
+  add_record({ record }) {
+    this.records.push(record);
+  }
+
+  @view({})
+  get_record({ index }) {
+    return this.records[index] || null;
+  }
+
+  // ========== ERROR HANDLING ==========
+  @view({})
+  safe_add({ a, b }) {
+    return a + b;
+  }
+
+  @view({})
+  try_parse({ s }) {
+    return null;
+  }
+}
+`,
+  },
+  'advanced-code-exercise': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::collections::{Vector, LookupMap};
+use near_sdk::{env, require, PanicOnDefault, AccountId, BorshStorageKey};
+use borsh::BorshSerialize;
+
+#[derive(BorshStorageKey, BorshSerialize)]
+enum StorageKey {
+    Admins,
+    Items,
+    Balances,
+    Votes,
+}
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    owner_id: AccountId,
+    is_paused: bool,
+    admins: LookupMap<AccountId, bool>,
+    items: Vector<String>,
+    balances: LookupMap<AccountId, u64>,
+    votes: LookupMap<String, u64>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            owner_id: env::predecessor_account_id(),
+            is_paused: false,
+            admins: LookupMap::new(StorageKey::Admins),
+            items: Vector::new(StorageKey::Items),
+            balances: LookupMap::new(StorageKey::Balances),
+            votes: LookupMap::new(StorageKey::Votes),
+        }
+    }
+
+    // ========== OWNER PATTERN ==========
+    pub fn get_owner(&self) -> AccountId {
+        self.owner_id.clone()
+    }
+
+    // ========== PAUSABLE CONTRACT ==========
+    pub fn get_paused(&self) -> bool {
+        self.is_paused
+    }
+
+    // ========== ROLE-BASED ACCESS ==========
+    pub fn is_admin(&self, account: AccountId) -> bool {
+        self.admins.get(&account).unwrap_or(false)
+    }
+
+    // ========== EVENTS ==========
+    pub fn get_items(&self) -> Vec<String> {
+        self.items.iter().collect()
+    }
+
+    // ========== COLLECTIONS: MAP ==========
+    pub fn get_balance(&self, account: AccountId) -> u64 {
+        self.balances.get(&account).unwrap_or(0)
+    }
+
+    // ========== COLLECTIONS: VECTOR ==========
+    pub fn add_item(&mut self, item: String) {
+        self.items.push(&item);
+    }
+
+    // ========== MULTI-SIGNATURE ==========
+    pub fn vote(&mut self, proposal_id: String, vote: bool) {
+        let current = self.votes.get(&proposal_id).unwrap_or(0);
+        if vote {
+            self.votes.insert(&proposal_id, &(current + 1));
+        }
+    }
+}
+`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near, require } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor() {
+    this.owner_id = near.predecessorAccountId();
+    this.is_paused = false;
+    this.admins = {};
+    this.items = [];
+    this.balances = {};
+    this.votes = {};
+  }
+
+  // ========== OWNER PATTERN ==========
+  @view({})
+  get_owner() {
+    return this.owner_id;
+  }
+
+  // ========== PAUSABLE CONTRACT ==========
+  @view({})
+  get_paused() {
+    return this.is_paused;
+  }
+
+  // ========== ROLE-BASED ACCESS ==========
+  @view({})
+  is_admin({ account }) {
+    return this.admins[account] || false;
+  }
+
+  // ========== EVENTS ==========
+  @view({})
+  get_items() {
+    return this.items;
+  }
+
+  // ========== COLLECTIONS: MAP ==========
+  @view({})
+  get_balance({ account }) {
+    return this.balances[account] || 0;
+  }
+
+  // ========== COLLECTIONS: VECTOR ==========
+  @call({})
+  add_item({ item }) {
+    this.items.push(item);
+  }
+
+  // ========== MULTI-SIGNATURE ==========
+  @call({})
+  vote({ proposal_id, vote }) {
+    const current = this.votes[proposal_id] || 0;
+    if (vote) {
+      this.votes[proposal_id] = current + 1;
+    }
+  }
+}
+`,
+  },
 };

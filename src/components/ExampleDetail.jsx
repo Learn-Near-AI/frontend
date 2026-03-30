@@ -512,6 +512,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
             onShowSolution={handleShowSolution}
             onBackToExercise={handleBackToExercise}
             exerciseCode={exerciseCode}
+            hasSolution={!!solutionCode}
           />
         </div>
 

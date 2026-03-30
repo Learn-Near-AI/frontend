@@ -8,6 +8,7 @@ export const BASICS_EXAMPLE_IDS = [
   'input-validation',
   'error-handling',
   'collections-vector',
+  'basics-code-exercise',
 ];
 
 export const isBasicsExample = (exampleId) => BASICS_EXAMPLE_IDS.includes(exampleId);

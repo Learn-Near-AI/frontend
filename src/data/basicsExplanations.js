@@ -11,6 +11,7 @@ import { getStateManagementDetailedExplanation } from './basics-state-management
 import { getInputValidationDetailedExplanation } from './basics-input-validation.js';
 import { getErrorHandlingDetailedExplanation } from './basics-error-handling.js';
 import { getCollectionsDetailedExplanation } from './basics-collections.js';
+import { getBasicsCodeExerciseDetailedExplanation } from './basics-code-exercise.js';
 
 export {
   BASICS_EXAMPLE_IDS,
@@ -43,6 +44,9 @@ export const getDetailedExplanation = (exampleId) => {
   }
   if (exampleId === 'collections-vector') {
     return getCollectionsDetailedExplanation(exampleId);
+  }
+  if (exampleId === 'basics-code-exercise') {
+    return getBasicsCodeExerciseDetailedExplanation();
   }
   return null;
 };

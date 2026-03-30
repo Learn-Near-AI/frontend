@@ -9,6 +9,7 @@ import {
   multiSignatureExplanation,
   upgradePatternExplanation,
 } from './advanced/index.js';
+import { advancedCodeExerciseExplanation } from './advanced-code-exercise.js';
 
 export const ADVANCED_EXAMPLE_IDS = [
   'collections-map',
@@ -18,6 +19,7 @@ export const ADVANCED_EXAMPLE_IDS = [
   'pausable-contract',
   'multi-signature',
   'upgrade-pattern',
+  'advanced-code-exercise',
 ];
 
 export const isAdvancedExample = (exampleId) => ADVANCED_EXAMPLE_IDS.includes(exampleId);
@@ -30,6 +32,7 @@ export const advancedDetailedExplanations = {
   'pausable-contract': pausableContractExplanation,
   'multi-signature': multiSignatureExplanation,
   'upgrade-pattern': upgradePatternExplanation,
+  'advanced-code-exercise': advancedCodeExerciseExplanation,
 };
 
 export const getAdvancedDetailedExplanation = (exampleId) =>

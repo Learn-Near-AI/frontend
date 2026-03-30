@@ -13,12 +13,14 @@ export const BASIC_GUIDED_EXAMPLES = [
   'events',
   'collections-vector',
   'collections-map',
+  'basics-code-exercise',
   // Access Control & Security
   'owner-pattern',
   'role-based-access',
   'pausable-contract',
   'multi-signature',
   'upgrade-pattern',
+  'advanced-code-exercise',
   // Collections & Data
   'todo-list',
   'user-profiles',
@@ -193,6 +195,98 @@ export const putItToTheTest = {
 
 - **\`list\`**: store a sale (token_id, seller, nft_contract_id, price) with a unique listing_id.
 - **\`buy\`**: require sale exists and attached deposit >= price; remove sale; call NFT \`nft_transfer_from\` and on success send payment to seller (callback pattern). Run; buy must fail if underpaid.`,
+
+  'basics-code-exercise': `### Put it to the test
+
+This contract has **8 bugs** from your Basics learning. Find and fix them all!
+
+---
+
+**Bug 1 — State Management**
+- \`get_counter\` currently returns \`99\` → Fix it to return \`self.counter\`
+
+---
+
+**Bug 2 — View Methods**  
+- \`get_greeting\` returns a \`u64\` → Change return type to \`String\` and fix the default to \`"Hello".to_string()\`
+
+---
+
+**Bug 3 — Change Methods (Access Control)**
+- \`set_counter\` → Add \`require!(env::predecessor_account_id() == self.owner_id, "...")\`
+- \`reset_counter\` → Add the same owner check
+
+---
+
+**Bug 4 — Input Validation**
+- \`add_record\` → Add \`require!(!record.is_empty(), "Record cannot be empty")\`
+
+---
+
+**Bug 5 — Input Validation**
+- \`get_record\` → Add bounds check: panic if \`index >= self.records.len()\`
+
+---
+
+**Bug 6 — Error Handling**
+- \`safe_add\` → Change return type to \`Option<u64>\` and use \`checked_add\` to return \`None\` on overflow
+
+---
+
+**Bug 7 — Error Handling**
+- \`try_parse\` → Implement: return \`Some(parsed_value)\` if parse succeeds, \`None\` if it fails
+
+---
+
+Compile after each fix. Deploy when all bugs are fixed!`,
+
+  'advanced-code-exercise': `### Put it to the test
+
+This contract has **8 bugs** from your Advanced learning. Find and fix them all!
+
+---
+
+**Bug 1 — Owner Pattern**
+- \`get_owner\` currently returns \`self.owner_id\` → Fix: Should clone the AccountId
+
+---
+
+**Bug 2 — Pausable Contract**
+- \`get_paused\` returns \`self.is_paused\` → Fix: Should check if paused before any state change
+
+---
+
+**Bug 3 — Role-Based Access**
+- \`is_admin\` has wrong logic → Fix: Only owner or existing admins should be able to add admins
+
+---
+
+**Bug 4 — Events**
+- \`get_items\` returns all items → Fix: Should emit an event when adding items
+
+---
+
+**Bug 5 — Collections: Map**
+- \`get_balance\` uses \`unwrap_or(0)\` → Fix: Should use checked arithmetic for deposits/withdrawals
+
+---
+
+**Bug 6 — Collections: Vector**
+- \`add_item\` doesn't validate → Fix: Add require! to check contract is not paused
+
+---
+
+**Bug 7 — Multi-Signature**
+- \`vote\` has no access control → Fix: Only signers (admins) should be able to vote
+
+---
+
+**Bug 8 — Error Handling**
+- All methods should handle errors properly and log events where appropriate
+
+---
+
+Compile after each fix. Deploy when all bugs are fixed!`,
 };
 
 // Hints per example (by language). Shown in order; "Show solution" reveals full code.
@@ -427,6 +521,48 @@ export const exerciseHints = {
     ],
     JavaScript: [
       'list: sales[listing_id] = { token_id, seller_id, nft_contract_id, price }. buy: require deposit; delete sale; NearPromise nft_transfer_from then on_payment_sent to transfer.',
+    ],
+  },
+  'basics-code-exercise': {
+    Rust: [
+      'get_counter: Return self.counter, not a hardcoded value.',
+      'get_greeting: Use LookupMap instead of HashMap. Return default greeting string, not u64.',
+      'set_counter: Add require!(env::predecessor_account_id() == self.owner_id).',
+      'reset_counter: Add owner check with require!().',
+      'add_record: Add require!(!record.is_empty(), "...").',
+      'get_record: Use self.records.len() to check bounds, panic if out of range.',
+      'safe_add: Check for overflow using checked_add, return None if overflows.',
+      'try_parse: Use s.parse::<u64>().ok() to convert and return Option.',
+    ],
+    JavaScript: [
+      'get_counter: Return this.counter.',
+      'get_greeting: Return this.users[account] || "Default greeting".',
+      'set_counter: Add require(near.predecessorAccountId() === this.owner_id).',
+      'reset_counter: Add owner check.',
+      'add_record: Add if (record.length === 0) near.panic("...").',
+      'get_record: Check if index < this.records.length, return null or panic if invalid.',
+      'safe_add: Check if a + b exceeds Number.MAX_SAFE_INTEGER, return null on overflow.',
+      'try_parse: Use parseInt(s) and isNaN() to return number or null.',
+    ],
+  },
+  'advanced-code-exercise': {
+    Rust: [
+      'get_owner: Clone the AccountId before returning: self.owner_id.clone()',
+      'get_paused: Add require!(!self.is_paused) to methods that modify state.',
+      'is_admin: Check if predecessor is owner OR if they are already an admin.',
+      'get_items: Add Event emission when items are added: Event::ItemAdded { item }.emit()',
+      'get_balance: Use checked_add for deposits, ensure sufficient balance for withdrawals.',
+      'add_item: Add require!(!self.is_paused, "Contract is paused") at the start.',
+      'vote: Add require! to check predecessor is in admins map.',
+    ],
+    JavaScript: [
+      'get_owner: Return this.owner_id directly.',
+      'get_paused: Check this.is_paused before state changes.',
+      'is_admin: Check if near.predecessorAccountId() is owner or in this.admins.',
+      'get_items: Emit event using near.log("EVENT_JSON:...") when adding items.',
+      'get_balance: Use checked addition/subtraction for balance operations.',
+      'add_item: Add if (this.is_paused) near.panic("Contract is paused").',
+      'vote: Check if near.predecessorAccountId() is an admin before voting.',
     ],
   },
 };

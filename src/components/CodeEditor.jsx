@@ -72,6 +72,7 @@ function CodeEditor({
   showingSolution = false,
   onShowSolution,
   onBackToExercise,
+  hasSolution = true,
 }) {
   const [copied, setCopied] = useState(false);
   const [reset, setReset] = useState(false);
@@ -403,26 +404,30 @@ function CodeEditor({
                     className={`h-3.5 w-3.5 transition-transform ${hintOpen ? 'rotate-180' : ''}`}
                   />
                 </button>
-                {showingSolution ? (
-                  <button
-                    type="button"
-                    onClick={onBackToExercise}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded border border-near-primary/50 bg-near-primary/10 text-near-primary hover:bg-near-primary/20 transition-colors"
-                    title="Back to exercise"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span>Back to exercise</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={onShowSolution}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded border border-gray-300 dark:border-[#3e3e42] hover:bg-gray-100 dark:hover:bg-[#1a1b1f] text-gray-700 dark:text-gray-300 transition-colors"
-                    title="Show full solution"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span>Show solution</span>
-                  </button>
+                {hasSolution && (
+                  <>
+                    {showingSolution ? (
+                      <button
+                        type="button"
+                        onClick={onBackToExercise}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded border border-near-primary/50 bg-near-primary/10 text-near-primary hover:bg-near-primary/20 transition-colors"
+                        title="Back to exercise"
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        <span>Back to exercise</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={onShowSolution}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded border border-gray-300 dark:border-[#3e3e42] hover:bg-gray-100 dark:hover:bg-[#1a1b1f] text-gray-700 dark:text-gray-300 transition-colors"
+                        title="Show full solution"
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        <span>Show solution</span>
+                      </button>
+                    )}
+                  </>
                 )}
                 {hintOpen && exerciseHints.length > 0 && (
                   <div className="absolute left-0 bottom-full mb-1 w-72 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] rounded-lg shadow-lg z-50 p-3 text-left">
@@ -436,16 +441,18 @@ function CodeEditor({
                         </li>
                       ))}
                     </ul>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onShowSolution();
-                        setHintOpen(false);
-                      }}
-                      className="mt-3 w-full py-1.5 text-[0.7rem] rounded border border-near-primary/50 text-near-primary hover:bg-near-primary/10 transition-colors"
-                    >
-                      Show full solution
-                    </button>
+                    {hasSolution && !showingSolution && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onShowSolution();
+                          setHintOpen(false);
+                        }}
+                        className="mt-3 w-full py-1.5 text-[0.7rem] rounded border border-near-primary/50 text-near-primary hover:bg-near-primary/10 transition-colors"
+                      >
+                        Show full solution
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -478,6 +485,7 @@ CodeEditor.propTypes = {
   showingSolution: PropTypes.bool,
   onShowSolution: PropTypes.func,
   onBackToExercise: PropTypes.func,
+  hasSolution: PropTypes.bool,
 };
 
 export default CodeEditor;
