@@ -79,6 +79,7 @@ function AgentPage() {
   const [deployedContractId, setDeployedContractId] = useState(null);
   const [deploymentTxHash, setDeploymentTxHash] = useState(null);
   const [explanation, setExplanation] = useState(null);
+  const [isUnderstood, setIsUnderstood] = useState(false);
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -97,12 +98,12 @@ function AgentPage() {
     if (rustMatch) {
       setActiveLanguage('Rust');
       setCode(rustMatch[1].trim());
-      addConsoleOutput('✓ Code extracted and loaded to editor (Rust)');
+      addConsoleOutput('✓ loaded to editor (Rust)');
       extractedExplanation = text.replace(/```rust\n[\s\S]*?```/, '').trim();
     } else if (javascriptMatch) {
       setActiveLanguage('JavaScript');
       setCode(javascriptMatch[1].trim());
-      addConsoleOutput('✓ Code extracted and loaded to editor (JavaScript)');
+      addConsoleOutput('✓ loaded to editor (JavaScript)');
       extractedExplanation = text.replace(/```javascript\n[\s\S]*?```/, '').trim();
     }
 
@@ -317,222 +318,254 @@ User: ${userQuestion}`;
 
   return (
     <div className="min-h-screen pt-16 bg-white dark:bg-[#111216]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex gap-4">
-        {/* Left Column - Explanation */}
-        <div className="basis-[20%] bg-white dark:bg-[#111216] flex flex-col rounded-xl border border-gray-200 dark:border-[#3e3e42] min-w-0 self-start">
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-[#3e3e42]">
-            <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-              Explanation
-            </h2>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4">
-            {explanation ? (
-              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-3">
-                <div className="pb-2 border-b border-gray-200 dark:border-[#3e3e42]">
-                  <a
-                    href={config.links.docs}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-near-primary hover:text-[#00D689] font-medium flex items-center gap-1 w-fit"
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex gap-4">
+          {/* Left Column - Explanation */}
+          <div className="basis-[20%] bg-white dark:bg-[#111216] flex flex-col rounded-xl border border-gray-200 dark:border-[#3e3e42] min-w-0 self-start">
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-[#3e3e42]">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                Explanation
+              </h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {explanation ? (
+                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-3">
+                  <div className="pb-2 border-b border-gray-200 dark:border-[#3e3e42]">
+                    <a
+                      href={config.links.docs}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-near-primary hover:text-[#00D689] font-medium flex items-center gap-1 w-fit"
+                    >
+                      Learn More →
+                    </a>
+                  </div>
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ children }) => (
+                        <h1 className="text-sm font-bold text-gray-900 dark:text-white pt-2 pb-1 border-b border-gray-200 dark:border-[#3e3e42]">
+                          {children}
+                        </h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="text-xs font-semibold text-gray-900 dark:text-white mt-3 mb-2 flex items-center gap-2">
+                          <span className="w-1 h-1 bg-near-primary rounded-full"></span>
+                          {children}
+                        </h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="text-xs font-medium text-gray-700 dark:text-gray-300 mt-2 mb-1">
+                          {children}
+                        </h3>
+                      ),
+                      p: ({ children }) => (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {children}
+                        </p>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc list-inside space-y-1 ml-2">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal list-inside space-y-1 ml-2">{children}</ol>
+                      ),
+                      li: ({ children }) => (
+                        <li className="text-xs text-gray-600 dark:text-gray-400">{children}</li>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="font-semibold text-gray-900 dark:text-gray-200">
+                          {children}
+                        </strong>
+                      ),
+                      em: ({ children }) => (
+                        <em className="italic text-gray-500 dark:text-gray-400">{children}</em>
+                      ),
+                      code: ({ children }) => (
+                        <code className="px-1.5 py-0.5 bg-near-primary/10 text-near-primary rounded text-[0.7rem] font-mono">
+                          {children}
+                        </code>
+                      ),
+                    }}
                   >
-                    Learn More →
-                  </a>
+                    {explanation}
+                  </ReactMarkdown>
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#3e3e42]">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isUnderstood}
+                        onChange={(e) => setIsUnderstood(e.target.checked)}
+                        className="w-6 h-6 rounded border-gray-300 dark:border-[#3e3e42] text-near-primary focus:ring-near-primary"
+                      />
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        I have read and understood
+                      </span>
+                    </label>
+                  </div>
                 </div>
-                <ReactMarkdown
-                  components={{
-                    h1: ({ children }) => (
-                      <h1 className="text-sm font-bold text-gray-900 dark:text-white pt-2 pb-1 border-b border-gray-200 dark:border-[#3e3e42]">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-xs font-semibold text-gray-900 dark:text-white mt-3 mb-2 flex items-center gap-2">
-                        <span className="w-1 h-1 bg-near-primary rounded-full"></span>
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-xs font-medium text-gray-700 dark:text-gray-300 mt-2 mb-1">
-                        {children}
-                      </h3>
-                    ),
-                    p: ({ children }) => (
-                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                        {children}
-                      </p>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc list-inside space-y-1 ml-2">{children}</ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal list-inside space-y-1 ml-2">{children}</ol>
-                    ),
-                    li: ({ children }) => (
-                      <li className="text-xs text-gray-600 dark:text-gray-400">{children}</li>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="font-semibold text-gray-900 dark:text-gray-200">
-                        {children}
-                      </strong>
-                    ),
-                    em: ({ children }) => (
-                      <em className="italic text-gray-500 dark:text-gray-400">{children}</em>
-                    ),
-                    code: ({ children }) => (
-                      <code className="px-1.5 py-0.5 bg-near-primary/10 text-near-primary rounded text-[0.7rem] font-mono">
-                        {children}
-                      </code>
-                    ),
-                  }}
-                >
-                  {explanation}
-                </ReactMarkdown>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full px-4 text-center">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed">
-                  Every line of code you generate here is a lesson. Don't just copy — understand,
-                  break, rebuild. Master the patterns, own the craft.
-                </p>
-                <p className="mt-4 text-xs font-bold text-near-primary uppercase tracking-wider">
-                  Learn by Building. Own the Future.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Middle Column - Code Editor */}
-        <div className="basis-[50%] flex flex-col gap-4 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] min-w-0 self-start">
-          <CodeEditor
-            code={code}
-            setCode={setCode}
-            activeLanguage={activeLanguage}
-            setActiveLanguage={handleLanguageChange}
-            isRunning={isRunning}
-            isDeploying={isDeploying}
-            onRun={handleRun}
-            onDeploy={handleDeploy}
-            onCopy={handleCopyCode}
-            onReset={handleResetCode}
-            backendCLIConfigured={backendCLIConfigured}
-          />
-          <ConsolePanel
-            consoleOutput={consoleOutput}
-            deployedContractId={deployedContractId}
-            deploymentTxHash={deploymentTxHash}
-            wasmSize={wasmSize}
-          />
-        </div>
-
-        {/* Right Column - AI Chat Interface */}
-        <div className="basis-[30%] flex flex-col min-w-0 self-start bg-white dark:bg-[#111216] border border-gray-200 dark:border-[#3e3e42] rounded-xl">
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-[#3e3e42]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-near-primary" />
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                  AI Agent
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Online</span>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full px-4 text-center">
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed">
+                    Every line of code you generate here is a lesson. Don't just copy — understand,
+                    break, rebuild. Master the patterns, own the craft.
+                  </p>
+                  <p className="mt-4 text-xs font-bold text-near-primary uppercase tracking-wider">
+                    Learn by Building. Own the Future.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
-              >
-                {message.isDone ? (
-                  <div className="max-w-[85%] px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400">
+          {/* Middle + Right Columns Wrapper */}
+          <div className="basis-[80%] flex flex-col gap-4">
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+              <div className="flex items-start gap-3">
+                <span className="text-blue-500 text-lg ">💡</span>
+                <div className="flex-1">
+                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
+                    Please read the explanation and check the understood box, before compiling or
+                    deploying.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              {/* Middle Column - Code Editor */}
+              <div className="basis-[60%] flex flex-col gap-4 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] min-w-0 self-start">
+                <CodeEditor
+                  code={code}
+                  setCode={setCode}
+                  activeLanguage={activeLanguage}
+                  setActiveLanguage={handleLanguageChange}
+                  isRunning={isRunning}
+                  isDeploying={isDeploying}
+                  onRun={handleRun}
+                  onDeploy={handleDeploy}
+                  onCopy={handleCopyCode}
+                  onReset={handleResetCode}
+                  backendCLIConfigured={backendCLIConfigured}
+                  isUnderstood={isUnderstood}
+                />
+                <ConsolePanel
+                  consoleOutput={consoleOutput}
+                  deployedContractId={deployedContractId}
+                  deploymentTxHash={deploymentTxHash}
+                  wasmSize={wasmSize}
+                />
+              </div>
+
+              {/* Right Column - AI Chat Interface */}
+              <div className="basis-[40%] flex flex-col min-w-0 self-start bg-white dark:bg-[#111216] border border-gray-200 dark:border-[#3e3e42] rounded-xl">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-[#3e3e42]">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="text-sm font-medium">Done - Code loaded to editor</span>
+                      <Bot className="h-5 w-5 text-near-primary" />
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        AI Agent
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Online</span>
                     </div>
                   </div>
-                ) : (
-                  <div
-                    className={`max-w-[85%] px-3 py-2 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-near-primary text-white'
-                        : 'bg-white dark:bg-[#1a1b1f] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3e3e42]'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  {messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
+                    >
+                      {message.isDone ? (
+                        <div className="max-w-[85%] px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            <span className="text-sm font-medium">Done</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={`max-w-[85%] px-3 py-2 rounded-lg ${
+                            message.role === 'user'
+                              ? 'bg-near-primary text-white'
+                              : 'bg-white dark:bg-[#1a1b1f] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3e3e42]'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] px-3 py-2 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 border-t border-gray-200 dark:border-[#3e3e42]">
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      Quick prompts for Contracts:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {PROMPT_SNIPPETS.map((snippet) => (
+                        <button
+                          key={snippet.id}
+                          onClick={() => setInput(snippet.prompt)}
+                          className="px-2 py-1 text-xs bg-near-primary/10 hover:bg-near-primary/20 text-near-primary border border-near-primary/30 rounded-full transition-colors"
+                        >
+                          {snippet.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] px-3 py-2 rounded-lg">
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Thinking...</span>
+                  <div className="relative">
+                    <textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      placeholder="Ask about NEAR development..."
+                      rows={1}
+                      className="w-full px-3 py-2 pr-10 rounded-lg bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-near-primary focus:border-transparent transition-all text-sm resize-none"
+                      disabled={isLoading}
+                      style={{ minHeight: '40px', maxHeight: '120px' }}
+                    />
+                    <button
+                      onClick={handleSend}
+                      disabled={!input.trim() || isLoading}
+                      className="absolute right-2 bottom-3 p-1.5 bg-near-primary hover:bg-[#00D689] disabled:bg-gray-300 dark:disabled:bg-[#3e3e42] disabled:cursor-not-allowed text-white rounded-md transition-colors"
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-
-          <div className="p-3 border-t border-gray-200 dark:border-[#3e3e42]">
-            <div className="mb-2">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Quick prompts for Contracts:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {PROMPT_SNIPPETS.map((snippet) => (
-                  <button
-                    key={snippet.id}
-                    onClick={() => setInput(snippet.prompt)}
-                    className="px-2 py-1 text-xs bg-near-primary/10 hover:bg-near-primary/20 text-near-primary border border-near-primary/30 rounded-full transition-colors"
-                  >
-                    {snippet.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="relative">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder="Ask about NEAR development..."
-                rows={1}
-                className="w-full px-3 py-2 pr-10 rounded-lg bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-near-primary focus:border-transparent transition-all text-sm resize-none"
-                disabled={isLoading}
-                style={{ minHeight: '40px', maxHeight: '120px' }}
-              />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || isLoading}
-                className="absolute right-2 bottom-3 p-1.5 bg-near-primary hover:bg-[#00D689] disabled:bg-gray-300 dark:disabled:bg-[#3e3e42] disabled:cursor-not-allowed text-white rounded-md transition-colors"
-              >
-                <Send className="h-4 w-4" />
-              </button>
             </div>
           </div>
         </div>

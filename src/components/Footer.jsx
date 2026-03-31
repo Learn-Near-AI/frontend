@@ -19,7 +19,7 @@ function Footer({ scrollToTop }) {
                 className="w-8 h-8 object-contain"
               />
               <span className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-near-primary transition-colors">
-                NEAR by Example
+                NEAR by Building
               </span>
             </div>
           </div>
@@ -59,7 +59,7 @@ function Footer({ scrollToTop }) {
         
         <div className="pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
           <p className="text-gray-600 dark:text-gray-400 text-sm text-center md:text-left order-2 md:order-1">
-            © 2024 NEAR by Example. All Rights Reserved.
+            © 2024 NEAR by Building. All Rights Reserved.
           </p>
           <div className="flex items-center justify-center gap-4 order-1 md:order-2">
             <a href={config.links.githubOrg} target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors">

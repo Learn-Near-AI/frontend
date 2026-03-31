@@ -67,6 +67,7 @@ function CodeEditor({
   onReset,
   backendCLIConfigured,
   isIntroExample = false,
+  isUnderstood = true,
   isGuidedExample = false,
   exerciseHints = [],
   showingSolution = false,
@@ -322,10 +323,14 @@ function CodeEditor({
             <>
               <button
                 onClick={onRun}
-                disabled={isRunning || isDeploying || runDeployDisabledForSolution}
+                disabled={isRunning || isDeploying || runDeployDisabledForSolution || !isUnderstood}
                 className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs border border-gray-300 dark:border-[#3e3e42] rounded-lg text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#1a1b1f] inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
                 title={
-                  runDeployDisabledForSolution ? 'Switch back to exercise to run' : 'compile code'
+                  runDeployDisabledForSolution
+                    ? 'Switch back to exercise to run'
+                    : !isUnderstood
+                      ? 'Read and understand the explanation first'
+                      : 'compile code'
                 }
               >
                 {isRunning ? (
@@ -346,7 +351,8 @@ function CodeEditor({
                   isRunning ||
                   isDeploying ||
                   backendCLIConfigured === false ||
-                  runDeployDisabledForSolution
+                  runDeployDisabledForSolution ||
+                  !isUnderstood
                 }
                 className="px-2 py-1.5 md:px-3 text-[0.65rem] md:text-xs bg-near-primary hover:bg-[#00D689] text-near-darker font-semibold rounded-lg inline-flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
                 title={
@@ -354,7 +360,9 @@ function CodeEditor({
                     ? 'Switch back to exercise to deploy'
                     : backendCLIConfigured === false
                       ? 'Backend CLI not configured'
-                      : `Deploy via ${deploymentMethod}`
+                      : !isUnderstood
+                        ? 'Read and understand the explanation first'
+                        : `Deploy via ${deploymentMethod}`
                 }
               >
                 {isDeploying ? (
@@ -479,6 +487,7 @@ CodeEditor.propTypes = {
   onCopy: PropTypes.func.isRequired,
   onReset: PropTypes.func.isRequired,
   backendCLIConfigured: PropTypes.bool,
+  isUnderstood: PropTypes.bool,
   isIntroExample: PropTypes.bool,
   isGuidedExample: PropTypes.bool,
   exerciseHints: PropTypes.arrayOf(PropTypes.string),

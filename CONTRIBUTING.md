@@ -1,4 +1,4 @@
-# Contributing to NEAR by Example
+# Contributing to NEAR by Building
 
 Thank you for contributing! This guide covers how to add and improve examples, and the content review process.
 

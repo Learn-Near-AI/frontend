@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes how wallet and backend integration work in NEAR by Example, to help contributors understand the system.
+This document describes how wallet and backend integration work in NEAR by Building, to help contributors understand the system.
 
 ## Wallet Integration
 

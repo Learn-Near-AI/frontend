@@ -108,7 +108,7 @@ function Nav({
               className="w-8 h-8 object-contain rotate-slow"
             />
             <span className="text-lg font-bold text-gray-900 dark:text-white transition-colors">
-              NEAR by Example
+              NEAR by Build'n
             </span>
           </div>
 

@@ -1,8 +1,8 @@
-# NEAR by Example
+# NEAR by Building
 
 **Learn NEAR Protocol smart contract development through interactive, hands-on coding examples.**
 
-NEAR by Example is a comprehensive, browser-based learning platform designed to teach developers how to build smart contracts on the NEAR Protocol blockchain. Whether you're a complete beginner or an experienced developer looking to explore NEAR, this platform provides an interactive environment where you can write, compile, deploy, and test smart contracts directly in your browser—no local development environment required.
+NEAR by Building is a comprehensive, browser-based learning platform designed to teach developers how to build smart contracts on the NEAR Protocol blockchain. Whether you're a complete beginner or an experienced developer looking to explore NEAR, this platform provides an interactive environment where you can write, compile, deploy, and test smart contracts directly in your browser—no local development environment required.
 
 ---
 
