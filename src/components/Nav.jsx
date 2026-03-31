@@ -6,7 +6,13 @@ import NavWallet from './nav/NavWallet';
 import StreakModal from './nav/StreakModal';
 
 const NAV_ITEMS = [
-  { id: 'examples', label: 'Examples', type: 'button', onClickKey: 'launchExamplesBrowser' },
+  {
+    id: 'examples',
+    label: 'Examples',
+    type: 'button',
+    onClickKey: 'launchExamplesBrowser',
+    path: '/examples',
+  },
   { id: 'docs', label: 'Docs', type: 'link', hrefKey: 'docs' },
   {
     id: 'roadmap',
@@ -47,13 +53,19 @@ function NavLinks({ items, currentPath, variant, launchExamplesBrowser, navigate
             </a>
           );
         }
-        const isActive = item.path ? currentPath === item.path : false;
+        const isActive = item.path
+          ? item.path === '/examples'
+            ? currentPath.startsWith('/examples')
+            : currentPath === item.path
+          : false;
         const onClick =
-          item.onClickKey === 'launchExamplesBrowser'
-            ? launchExamplesBrowser
-            : item.path
-              ? () => navigate(item.path)
-              : () => navigate('/roadmap');
+          item.path === '/examples'
+            ? () => navigate('/examples')
+            : item.onClickKey === 'launchExamplesBrowser'
+              ? launchExamplesBrowser
+              : item.path
+                ? () => navigate(item.path)
+                : () => navigate('/roadmap');
         return (
           <button
             key={item.id}

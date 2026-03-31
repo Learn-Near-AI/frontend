@@ -48,10 +48,7 @@ export default function StreakModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-white dark:bg-[#111216] border border-gray-200 dark:border-[#3e3e42]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Flame className="h-6 w-6 text-orange-500" />
-            Your Learning Streak
-          </DialogTitle>
+          
           <DialogDescription className="text-gray-500 dark:text-gray-400">
             {getStreakMessage()}
           </DialogDescription>
