@@ -77,7 +77,9 @@ export default function NavWallet({ currentPath, mobile = false }) {
             <div className="flex items-center gap-3">
               <div className="text-left">
                 <div className="font-mono text-xs text-gray-500 dark:text-gray-400">
-                  {signedAccountId}
+                  {signedAccountId.length > 10
+                    ? `${signedAccountId.slice(0, 10)}...`
+                    : signedAccountId}
                 </div>
                 <div className="text-xs font-semibold text-near-primary">
                   {walletBalance ? `${walletBalance} Ⓝ` : 'Loading…'}

@@ -187,6 +187,15 @@ function Nav({
 
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-[#3e3e42] py-4">
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-near-primary transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
             <div className="flex flex-col gap-4">
               {currentPath !== '/' && showStreakBadge && (
                 <button

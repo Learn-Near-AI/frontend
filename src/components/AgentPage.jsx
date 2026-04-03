@@ -80,12 +80,13 @@ function AgentPage() {
   const [deploymentTxHash, setDeploymentTxHash] = useState(null);
   const [explanation, setExplanation] = useState(null);
   const [isUnderstood, setIsUnderstood] = useState(false);
+  const [activeMobileTab, setActiveMobileTab] = useState('chat');
   const textareaRef = useRef(null);
 
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
     }
   }, [input]);
 
@@ -200,7 +201,7 @@ User: ${userQuestion}`;
 
   const handleRun = async () => {
     setIsRunning(true);
-    addConsoleOutput('▶ Starting compilation...');
+    setConsoleOutput('▶ Starting compilation...');
 
     try {
       const compileApiUrl = config.backend;
@@ -247,7 +248,7 @@ User: ${userQuestion}`;
 
   const handleDeploy = async () => {
     setIsDeploying(true);
-    addConsoleOutput('▶ Starting deployment...');
+    setConsoleOutput('▶ Starting deployment...');
 
     try {
       const compileApiUrl = config.backend;
@@ -319,7 +320,47 @@ User: ${userQuestion}`;
   return (
     <div className="min-h-screen pt-16 bg-white dark:bg-[#111216]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex gap-4">
+        {/* Mobile Tab Navigation */}
+        <div className="lg:hidden mb-4">
+          <div className="flex bg-gray-100 dark:bg-[#1a1b1f] rounded-lg p-1">
+            <button
+              onClick={() => setActiveMobileTab('chat')}
+              className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+                activeMobileTab === 'chat'
+                  ? 'bg-white dark:bg-[#111216] text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <Bot className="h-4 w-4" />
+              AI Chat
+            </button>
+            <button
+              onClick={() => setActiveMobileTab('code')}
+              className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+                activeMobileTab === 'code'
+                  ? 'bg-white dark:bg-[#111216] text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <span className="text-base">{`</>`}</span>
+              Code
+            </button>
+            <button
+              onClick={() => setActiveMobileTab('explain')}
+              className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+                activeMobileTab === 'explain'
+                  ? 'bg-white dark:bg-[#111216] text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <span className="text-base">📖</span>
+              Explain
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:flex gap-4">
           {/* Left Column - Explanation */}
           <div className="basis-[20%] bg-white dark:bg-[#111216] flex flex-col rounded-xl border border-gray-200 dark:border-[#3e3e42] min-w-0 self-start">
             <div className="px-4 py-3 border-b border-gray-200 dark:border-[#3e3e42]">
@@ -421,11 +462,11 @@ User: ${userQuestion}`;
           <div className="basis-[80%] flex flex-col gap-4">
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
               <div className="flex items-start gap-3">
-                <span className="text-blue-500 text-lg ">💡</span>
+                <span className="text-blue-900 text-lg ">💡</span>
                 <div className="flex-1">
-                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
-                    Please read the explanation and check the understood box, before compiling or
-                    deploying.
+                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mt-1">
+                    New: Please read the explanation and check the understood box, before compiling
+                    or deploying.
                   </p>
                 </div>
               </div>
@@ -554,7 +595,7 @@ User: ${userQuestion}`;
                       rows={1}
                       className="w-full px-3 py-2 pr-10 rounded-lg bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-near-primary focus:border-transparent transition-all text-sm resize-none"
                       disabled={isLoading}
-                      style={{ minHeight: '40px', maxHeight: '120px' }}
+                      style={{ minHeight: '40px', maxHeight: '200px' }}
                     />
                     <button
                       onClick={handleSend}
@@ -568,6 +609,205 @@ User: ${userQuestion}`;
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="lg:hidden">
+          {/* Alert - always visible on mobile */}
+          <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+            <div className="flex items-start gap-3">
+              <span className="text-blue-500 text-lg ">💡</span>
+              <div className="flex-1">
+                <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
+                  Read explanation & check box before compiling/deploying.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat Tab */}
+          {activeMobileTab === 'chat' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex-1 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] min-h-[50vh]">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-[#3e3e42]">
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-near-primary" />
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      AI Agent
+                    </span>
+                    <div className="ml-auto flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Online</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[40vh]">
+                  {messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
+                    >
+                      {message.isDone ? (
+                        <div className="max-w-[85%] px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            <span className="text-sm font-medium">Done</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={`max-w-[85%] px-3 py-2 rounded-lg ${
+                            message.role === 'user'
+                              ? 'bg-near-primary text-white'
+                              : 'bg-white dark:bg-[#1a1b1f] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3e3e42]'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] px-3 py-2 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 border-t border-gray-200 dark:border-[#3e3e42]">
+                  <div className="mb-2 overflow-x-auto">
+                    <div className="flex gap-1.5 min-w-max">
+                      {PROMPT_SNIPPETS.map((snippet) => (
+                        <button
+                          key={snippet.id}
+                          onClick={() => setInput(snippet.prompt)}
+                          className="px-2 py-1 text-xs bg-near-primary/10 hover:bg-near-primary/20 text-near-primary border border-near-primary/30 rounded-full transition-colors whitespace-nowrap"
+                        >
+                          {snippet.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      placeholder="Ask about NEAR development..."
+                      rows={1}
+                      className="w-full px-3 py-2 pr-10 rounded-lg bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-near-primary focus:border-transparent transition-all text-sm resize-none"
+                      disabled={isLoading}
+                      style={{ minHeight: '40px', maxHeight: '200px' }}
+                    />
+                    <button
+                      onClick={handleSend}
+                      disabled={!input.trim() || isLoading}
+                      className="absolute right-2 bottom-3 p-1.5 bg-near-primary hover:bg-[#00D689] disabled:bg-gray-300 dark:disabled:bg-[#3e3e42] disabled:cursor-not-allowed text-white rounded-md transition-colors"
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Code Tab */}
+          {activeMobileTab === 'code' && (
+            <div className="flex flex-col gap-4">
+              <div className="bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42]">
+                <CodeEditor
+                  code={code}
+                  setCode={setCode}
+                  activeLanguage={activeLanguage}
+                  setActiveLanguage={handleLanguageChange}
+                  isRunning={isRunning}
+                  isDeploying={isDeploying}
+                  onRun={handleRun}
+                  onDeploy={handleDeploy}
+                  onCopy={handleCopyCode}
+                  onReset={handleResetCode}
+                  backendCLIConfigured={backendCLIConfigured}
+                  isUnderstood={isUnderstood}
+                />
+              </div>
+              <ConsolePanel
+                consoleOutput={consoleOutput}
+                deployedContractId={deployedContractId}
+                deploymentTxHash={deploymentTxHash}
+                wasmSize={wasmSize}
+              />
+            </div>
+          )}
+
+          {/* Explanation Tab */}
+          {activeMobileTab === 'explain' && (
+            <div className="bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] p-4 min-h-[50vh]">
+              <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">
+                Explanation
+              </h2>
+              {explanation ? (
+                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-3">
+                  <div className="pb-2 border-b border-gray-200 dark:border-[#3e3e42]">
+                    <a
+                      href={config.links.docs}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-near-primary hover:text-[#00D689] font-medium flex items-center gap-1 w-fit"
+                    >
+                      Learn More →
+                    </a>
+                  </div>
+                  <ReactMarkdown>{explanation}</ReactMarkdown>
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#3e3e42]">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isUnderstood}
+                        onChange={(e) => setIsUnderstood(e.target.checked)}
+                        className="w-6 h-6 rounded border-gray-300 dark:border-[#3e3e42] text-near-primary focus:ring-near-primary"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        I have read and understood
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed">
+                    Every line of code you generate here is a lesson. Don't just copy — understand,
+                    break, rebuild. Master the patterns, own the craft.
+                  </p>
+                  <p className="mt-4 text-xs font-bold text-near-primary uppercase tracking-wider">
+                    Learn by Building. Own the Future.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
-import React from 'react'
-import DotsPattern from './DotsPattern'
+import React from 'react';
+import DotsPattern from './DotsPattern';
 
 function CodeInAnyLanguage() {
   const languages = [
@@ -45,7 +45,7 @@ function CodeInAnyLanguage() {
         </div>
       ),
     },
-  ]
+  ];
 
   return (
     <section className="py-20 bg-white dark:bg-[#111216] relative">
@@ -54,22 +54,20 @@ function CodeInAnyLanguage() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left - Text */}
           <div className="order-1" data-aos="fade-up" data-aos-delay="100">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
               Code in any language
             </h2>
-            <p className="text-base text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-              Learn NEAR smart contracts in your preferred language. Examples available in JavaScript, TypeScript, and Rust.
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 leading-relaxed">
+              Learn NEAR smart contracts in your preferred language. Examples available in
+              JavaScript, TypeScript, and Rust.
             </p>
           </div>
 
           {/* Right - Languages List */}
           <div className="order-2 relative" data-aos="fade-up" data-aos-delay="200">
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               {languages.map((lang, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-4"
-                >
+                <div key={idx} className="flex items-center gap-4">
                   {lang.icon}
                   <span className="text-lg text-gray-700 dark:text-gray-300 font-medium">
                     {lang.name}
@@ -81,7 +79,7 @@ function CodeInAnyLanguage() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default CodeInAnyLanguage
+export default CodeInAnyLanguage;
