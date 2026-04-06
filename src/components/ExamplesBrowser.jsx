@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { examplesData, categoryIcons, categoryOrder, WORKING_EXAMPLES } from '../data/examples';
@@ -60,17 +60,20 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     );
   }, []);
 
-  const handleExampleSelect = (example) => {
-    if (!checkExampleUnlocked(example.id, completedExamples)) return;
-    window.history.pushState(null, '', `#${example.id}`);
-    if (WORKING_EXAMPLES.includes(example.id)) {
-      setSelectedExample(example);
-      setComingSoonExample(null);
-    } else {
-      setComingSoonExample(example);
-      setSelectedExample(null);
-    }
-  };
+  const handleExampleSelect = useCallback(
+    (example) => {
+      if (!checkExampleUnlocked(example.id, completedExamples)) return;
+      window.history.pushState(null, '', `#${example.id}`);
+      if (WORKING_EXAMPLES.includes(example.id)) {
+        setSelectedExample(example);
+        setComingSoonExample(null);
+      } else {
+        setComingSoonExample(example);
+        setSelectedExample(null);
+      }
+    },
+    [completedExamples]
+  );
 
   // Handle window resize to update sidebar visibility
   useEffect(() => {
@@ -123,7 +126,14 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
         setShouldStartTour(true);
       }
     }
-  }, [currentPath, selectedExample, comingSoonExample, allExamples, handleExampleSelect]);
+  }, [
+    currentPath,
+    location.hash,
+    selectedExample,
+    comingSoonExample,
+    allExamples,
+    handleExampleSelect,
+  ]);
 
   // Handle hash changes while on the page
   useEffect(() => {
@@ -134,7 +144,7 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
         handleExampleSelect(exampleById);
       }
     }
-  }, [location.hash, allExamples, selectedExample]);
+  }, [location.hash, allExamples, selectedExample, handleExampleSelect]);
 
   // Filter examples based on search, difficulty, and categories
   const filteredExamples = useMemo(() => {
@@ -185,14 +195,14 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     }));
   };
 
-  const handleBackToBrowse = () => {
+  const handleBackToBrowse = useCallback(() => {
     setSelectedExample(null);
     setComingSoonExample(null);
     window.history.pushState(null, '', '#');
     if (currentPath.includes('/success')) {
       navigate('/examples');
     }
-  };
+  }, [currentPath, navigate]);
 
   // Sort available categories by learning complexity order
   const availableCategories = Object.keys(examplesData).sort((a, b) => {
