@@ -91,14 +91,12 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto-select first example for tour if user should see it
+  // Handle hash navigation and auto-select first example for tour
   useEffect(() => {
-    // Only run on mount and when on examples route
     if (!currentPath.startsWith('/examples') || currentPath.includes('/success')) {
       return;
     }
 
-    // Handle URL hash navigation (e.g., /examples/#intro, /examples/#events)
     const hash = location.hash.slice(1);
     if (hash) {
       const exampleById = allExamples.find((ex) => ex.id === hash);
@@ -115,7 +113,6 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     const shouldShowTour = !hasCompletedTour && currentStreak <= TOUR_STREAK_THRESHOLD;
 
     if (shouldShowTour && !selectedExample && !comingSoonExample) {
-      // Auto-select the first working example
       const firstWorkingExampleId = WORKING_EXAMPLES[0];
       const firstExample = Object.values(examplesData)
         .flat()
@@ -126,25 +123,33 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
         setShouldStartTour(true);
       }
     }
-  }, [
-    currentPath,
-    location.hash,
-    selectedExample,
-    comingSoonExample,
-    allExamples,
-    handleExampleSelect,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPath, allExamples, handleExampleSelect]);
 
-  // Handle hash changes while on the page
+  // Handle browser back/forward navigation
   useEffect(() => {
-    const hash = location.hash.slice(1);
-    if (hash && !selectedExample) {
-      const exampleById = allExamples.find((ex) => ex.id === hash);
-      if (exampleById) {
-        handleExampleSelect(exampleById);
+    const handlePopState = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        const exampleById = allExamples.find((ex) => ex.id === hash);
+        if (exampleById) {
+          if (WORKING_EXAMPLES.includes(exampleById.id)) {
+            setSelectedExample(exampleById);
+            setComingSoonExample(null);
+          } else {
+            setComingSoonExample(exampleById);
+            setSelectedExample(null);
+          }
+        }
+      } else {
+        setSelectedExample(null);
+        setComingSoonExample(null);
       }
-    }
-  }, [location.hash, allExamples, selectedExample, handleExampleSelect]);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [allExamples]);
 
   // Filter examples based on search, difficulty, and categories
   const filteredExamples = useMemo(() => {
@@ -195,14 +200,14 @@ function ExamplesBrowser({ isDark, toggleTheme }) {
     }));
   };
 
-  const handleBackToBrowse = useCallback(() => {
+  const handleBackToBrowse = () => {
     setSelectedExample(null);
     setComingSoonExample(null);
     window.history.pushState(null, '', '#');
     if (currentPath.includes('/success')) {
       navigate('/examples');
     }
-  }, [currentPath, navigate]);
+  };
 
   // Sort available categories by learning complexity order
   const availableCategories = Object.keys(examplesData).sort((a, b) => {
