@@ -348,7 +348,6 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
       if (!deployResponse.ok) {
         const errorData = await deployResponse.json().catch(() => ({ error: 'Deployment failed' }));
 
-        // Check if CLI is not configured
         if (deployResponse.status === 503) {
           addConsoleOutput('❌ Backend NEAR CLI not configured');
           addConsoleOutput('   The backend needs NEAR_ACCOUNT_ID and NEAR_PRIVATE_KEY');
@@ -356,13 +355,21 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           throw new Error('Backend NEAR CLI not configured');
         }
 
-        throw new Error(errorData.error || 'Deployment failed');
+        const errorMessage =
+          typeof errorData.error === 'string'
+            ? errorData.error
+            : errorData.error?.message || errorData.message || `HTTP ${deployResponse.status}`;
+        throw new Error(errorMessage);
       }
 
       const deployResult = await deployResponse.json();
 
       if (!deployResult.success) {
-        throw new Error(deployResult.error || 'Deployment failed');
+        const errorMessage =
+          typeof deployResult.error === 'string'
+            ? deployResult.error
+            : deployResult.error?.message || deployResult.message || 'Deployment failed';
+        throw new Error(errorMessage);
       }
 
       addConsoleOutput('✓ Contract deployed successfully!');
@@ -476,8 +483,8 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
           <div className="flex items-start gap-2">
             <span className="text-blue-600 dark:text-blue-400 text-lg">ℹ️</span>
             <p className="text-sm text-blue-800 dark:text-blue-300 flex-1 mt-1">
-              Contracts are deployed via backend NEAR CLI. No wallet connection
-              required & unlocking next example depends on successful compile/Deploy.
+              Contracts are deployed via backend NEAR CLI. No wallet connection required & unlocking
+              next example depends on successful compile/Deploy.
             </p>
             <button
               onClick={() => setIsWarningClosed(true)}

@@ -54,11 +54,7 @@ function InfoPanel({
                   🔒
                 </span>
               )}
-              {isFnTesting && isDeploying && (
-                <span className="text-[0.6rem] px-1 py-0.5 rounded bg-amber-900/30 text-amber-400">
-                  ⏳
-                </span>
-              )}
+              
             </button>
           );
         })}

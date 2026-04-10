@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const rpcTarget = env.VITE_RPC_PROXY_TARGET || 'https://test.rpc.fastnear.com';
   const backendTarget =
-    env.VITE_BACKEND_PROXY_TARGET || env.VITE_BACKEND_URL || 'https://learnnearbyexample.fly.dev';
+    env.VITE_BACKEND_PROXY_TARGET || env.VITE_BACKEND_URL || 'http://localhost:3001';
 
   return {
     plugins: [react()],

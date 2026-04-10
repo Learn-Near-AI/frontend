@@ -20,7 +20,7 @@ export const config = {
   /** Backend API URL - unified endpoint for all backend operations */
   backend:
     import.meta.env.VITE_BACKEND_URL ||
-    (isDev ? '/api/backend' : 'https://learnnearbyexample.fly.dev'),
+    (isDev ? '/api/backend' : 'http://localhost:3001'),
 
   /** External links */
   links: {
