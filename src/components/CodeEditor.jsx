@@ -251,14 +251,7 @@ function CodeEditor({
               >
                 Rust
               </button>
-              <button
-                className={`px-3 py-1.5 ${
-                  activeLanguage === 'JavaScript'
-                    ? 'bg-near-primary text-near-darker font-semibold'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
-                }`}
-                onClick={() => setActiveLanguage('JavaScript')}
-              >
+              <button disabled className="px-3 py-1.5 text-gray-400 dark:text-gray-500 opacity-50">
                 <span className="md:hidden">JS</span>
                 <span className="hidden md:inline">JavaScript</span>
               </button>
