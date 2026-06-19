@@ -2,6 +2,51 @@
 // Indexer setup, QueryAPI, filters, aggregation are off-chain; see NEAR docs for indexer configuration.
 export const indexingCode = {
   'indexer-data': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, PanicOnDefault};
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    records: UnorderedMap<String, String>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self { records: UnorderedMap::new(b"r") }
+    }
+
+    pub fn set_record(&mut self, key: String, value: String) {
+        // TODO: Get previous value, insert new value, build EVENT_JSON, log it
+        let _: u64 = ();
+    }
+
+    pub fn get_record(&self, key: String) -> Option<String> {
+        // TODO: Return record from storage
+        let _: u64 = ();
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
+
+@NearBindgen({})
+class Contract {
+  constructor({ records } = { records: {} }) {
+    this.records = records || {};
+  }
+
+  @view({})
+  get_record({ key }) {
+    // TODO: Return record or null
+  }
+
+  @call({})
+  set_record({ key, value }) {
+    // TODO: Store value, emit EVENT_JSON with standard, version, event, data
+  }
+}`,
     Rust: `use near_sdk::near;
 use near_sdk::collections::UnorderedMap;
 use near_sdk::{env, PanicOnDefault};

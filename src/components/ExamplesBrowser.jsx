@@ -14,16 +14,8 @@ import { Sheet, SheetContent } from './ui/sheet';
 import { useStreak } from '../context/StreakContext';
 
 const TOUR_STORAGE_KEY = 'near_examples_tour_completed';
-const INITIAL_UNLOCKED = ['intro', 'greeting'];
 
-function checkExampleUnlocked(exampleId, completedExamples) {
-  if (INITIAL_UNLOCKED.includes(exampleId)) return true;
-  if (!WORKING_EXAMPLES.includes(exampleId)) return false;
-  const exampleIndex = WORKING_EXAMPLES.indexOf(exampleId);
-  if (exampleIndex <= 0) return false;
-  const previousExampleId = WORKING_EXAMPLES[exampleIndex - 1];
-  return completedExamples.includes(previousExampleId);
-}
+function checkExampleUnlocked() { return true; }
 
 function ExamplesBrowser({ isDark, toggleTheme }) {
   const navigate = useNavigate();

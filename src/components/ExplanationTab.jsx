@@ -8,6 +8,12 @@ import {
   getDetailedExplanation,
 } from '../data/basicsExplanations';
 import { getAdvancedDetailedExplanation, isAdvancedExample } from '../data/advancedExplanations';
+import { getCollectionsDetailedExplanation, isCollectionsExample } from '../data/collectionsDataExplanations';
+import { getNftsDetailedExplanation, isNftsExample } from '../data/nftsExplanations';
+import { getCrossContractDetailedExplanation, isCrossContractExample } from '../data/crossContractExplanations';
+import { getChainSignaturesDetailedExplanation, isChainSignaturesExample } from '../data/chainSignaturesExplanations';
+import { getIndexingDetailedExplanation, isIndexingExample } from '../data/indexingExplanations';
+import { getAdvancedPatternsDetailedExplanation, isAdvancedPatternsExample } from '../data/advancedPatternsExplanations';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 const LEARNING_PATH_INTRO_MD = `**Recommended path (do this first)**
@@ -61,7 +67,7 @@ const markdownComponents = {
         {children}
       </code>
     ) : (
-      <code className="bg-gray-200 dark:bg-[#1a1b1f] px-1.5 py-0.5 rounded text-sm">
+      <code className="bg-gray-200 dark:bg-[#1a1b1f] px-1.5 py-0.5 rounded text-sm break-all">
         {children}
       </code>
     );
@@ -128,6 +134,24 @@ function ExplanationTab({ example }) {
     }
     if (isAdvancedExample(example.id)) {
       return getAdvancedDetailedExplanation(example.id);
+    }
+    if (isCollectionsExample(example.id)) {
+      return getCollectionsDetailedExplanation(example.id);
+    }
+    if (isNftsExample(example.id)) {
+      return getNftsDetailedExplanation(example.id);
+    }
+    if (isCrossContractExample(example.id)) {
+      return getCrossContractDetailedExplanation(example.id);
+    }
+    if (isChainSignaturesExample(example.id)) {
+      return getChainSignaturesDetailedExplanation(example.id);
+    }
+    if (isIndexingExample(example.id)) {
+      return getIndexingDetailedExplanation(example.id);
+    }
+    if (isAdvancedPatternsExample(example.id)) {
+      return getAdvancedPatternsDetailedExplanation(example.id);
     }
     return null;
   }, [example.id]);

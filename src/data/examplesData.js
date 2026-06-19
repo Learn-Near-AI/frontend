@@ -71,6 +71,12 @@ export const examplesData = {
     },
     // Advanced - Complex Operations
     { id: 'batch-operations', name: 'Batch Operations', difficulty: 'Advanced', language: 'Rust' },
+    {
+      id: 'collections-code-exercise',
+      name: 'Code Exercise',
+      difficulty: 'Intermediate',
+      language: 'Rust',
+    },
   ],
   NFTs: [
     // Intermediate - NFT Operations (NEP-171 transfer + standard methods)

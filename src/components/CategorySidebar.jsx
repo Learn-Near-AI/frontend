@@ -1,18 +1,9 @@
 import React, { useMemo } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import ExampleCard from './ExampleCard';
-import { categoryOrder, WORKING_EXAMPLES } from '../data/examples';
+import { categoryOrder } from '../data/examples';
 
-const INITIAL_UNLOCKED = ['intro', 'greeting'];
-
-function isExampleUnlocked(exampleId, completedExamples) {
-  if (INITIAL_UNLOCKED.includes(exampleId)) return true;
-  if (!WORKING_EXAMPLES.includes(exampleId)) return false;
-  const exampleIndex = WORKING_EXAMPLES.indexOf(exampleId);
-  if (exampleIndex <= 0) return false;
-  const previousExampleId = WORKING_EXAMPLES[exampleIndex - 1];
-  return completedExamples.includes(previousExampleId);
-}
+function isExampleUnlocked() { return true; }
 
 function CategorySidebar({
   groupedExamples,

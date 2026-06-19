@@ -6,6 +6,7 @@ import { crossContractCode } from './crossContract.js';
 import { nftsCode } from './nfts.js';
 import { chainSignaturesCode } from './chainSignatures.js';
 import { indexingCode } from './indexing.js';
+import { advancedPatternsCode } from './advancedPatterns.js';
 import { COMING_SOON_TEMPLATE } from '../constants.jsx';
 
 // List of example IDs that have working implementations (full learning UI, incl. Intro path)
@@ -30,6 +31,38 @@ export const WORKING_EXAMPLES = [
   'multi-signature',
   'upgrade-pattern',
   'advanced-code-exercise',
+  // Collections & Data (5)
+  'todo-list',
+  'user-profiles',
+  'voting-system',
+  'simple-marketplace',
+  'batch-operations',
+  'collections-code-exercise',
+  // NFTs (7)
+  'nft-standard',
+  'nft-metadata',
+  'nft-minting',
+  'nft-approval',
+  'nft-enumeration',
+  'nft-royalties',
+  'nft-marketplace',
+  // Cross-Contract (5)
+  'simple-calls',
+  'callbacks',
+  'cross-call-ft',
+  'cross-call-nft',
+  'batch-calls',
+  // Chain Signatures (6)
+  'chain-signatures-basics',
+  'signature-verification',
+  'signature-requests',
+  'multi-chain-signing',
+  'cross-chain-auth',
+  'signature-callbacks',
+  // Indexing (1)
+  'indexer-data',
+  // Advanced Patterns (1)
+  'testing',
 ];
 
 // Examples that require all basics to be completed
@@ -56,6 +89,15 @@ export const ADVANCED_EXAMPLES = [
   'upgrade-pattern',
 ];
 
+// Collections & Data examples
+export const COLLECTIONS_EXAMPLES = [
+  'todo-list',
+  'user-profiles',
+  'voting-system',
+  'simple-marketplace',
+  'batch-operations',
+];
+
 // Combine all code examples
 const allCode = {
   ...basicsCode,
@@ -65,6 +107,7 @@ const allCode = {
   ...nftsCode,
   ...chainSignaturesCode,
   ...indexingCode,
+  ...advancedPatternsCode,
 };
 
 // Export exampleCode with coming soon template for missing examples

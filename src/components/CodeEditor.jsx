@@ -230,7 +230,7 @@ function CodeEditor({
   }, [code]);
 
   return (
-    <div className="lg:basis-3/5 min-w-0 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
+    <div className="w-full bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
       {/* Top toolbar */}
       <div className="border-b border-gray-200 dark:border-[#3e3e42] px-3 md:px-4 py-2.5 md:py-3 flex flex-wrap items-center gap-2">
         {/* Language tabs: Intro (path only) | Rust | JavaScript */}
@@ -251,7 +251,14 @@ function CodeEditor({
               >
                 Rust
               </button>
-              <button disabled className="px-3 py-1.5 text-gray-400 dark:text-gray-500 opacity-50">
+              <button
+                className={`px-3 py-1.5 font-semibold ${
+                  activeLanguage === 'JavaScript'
+                    ? 'bg-near-primary text-near-darker'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1a1b1f]'
+                }`}
+                onClick={() => setActiveLanguage('JavaScript')}
+              >
                 <span className="md:hidden">JS</span>
                 <span className="hidden md:inline">JavaScript</span>
               </button>

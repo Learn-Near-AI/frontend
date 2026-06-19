@@ -19,7 +19,7 @@ function InfoPanel({
   const isFnTestingEnabled = !!deployedContractId;
 
   return (
-    <div className="lg:basis-2/5 bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
+    <div className="w-full overflow-x-hidden bg-white dark:bg-[#111216] rounded-xl border border-gray-200 dark:border-[#3e3e42] flex flex-col overflow-hidden">
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-[#3e3e42] px-3 pt-3 flex text-xs md:text-sm">
         {tabs.map((label) => {

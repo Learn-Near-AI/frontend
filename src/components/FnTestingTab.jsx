@@ -187,7 +187,7 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
         <div className="flex items-center gap-2 text-xs">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
           <span className="text-gray-400">Contract:</span>
-          <span className="text-near-primary font-mono font-semibold">{contractId}</span>
+          <span className="text-near-primary font-mono font-semibold break-all">{contractId}</span>
         </div>
         {!signedAccountId && (
           <div className="flex items-center gap-2 text-xs text-amber-400 mt-2">
@@ -215,8 +215,8 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-gray-300">{method.name}</span>
-                    <span className="text-[0.65rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    <span className="text-xs font-mono text-gray-300 break-all">{method.name}</span>
+                    <span className="text-[0.65rem] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0">
                       Read-only
                     </span>
                   </div>
@@ -279,8 +279,8 @@ function FnTestingTab({ code, example, activeLanguage, deployedContractId, isDep
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-gray-300">{method.name}</span>
-                    <span className="text-[0.65rem] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    <span className="text-xs font-mono text-gray-300 break-all">{method.name}</span>
+                    <span className="text-[0.65rem] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 shrink-0">
                       Change State
                     </span>
                   </div>

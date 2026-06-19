@@ -265,7 +265,7 @@ pub fn execute(&mut self, proposal_id: u64, action: String) {
 The simple execute() above just logs. Here's how to actually transfer NEAR using a Promise:
 
 \`\`\`rust
-use near_sdk::Promise;
+use near_sdk::{NearToken, Promise};
 
 pub fn execute(&mut self, proposal_id: u64, action: String) {
     require!(self.can_execute(proposal_id, &action), "Not enough approvals");
@@ -280,7 +280,7 @@ pub fn execute(&mut self, proposal_id: u64, action: String) {
     let parts: Vec<&str> = action.split(':').collect();
     require!(parts.len() == 3 && parts[0] == "transfer", "Invalid action");
     
-    let amount: u128 = parts[1].parse().expect("Invalid amount");
+    let amount = NearToken::from_yoctonear(parts[1].parse().expect("Invalid amount"));
     let recipient: AccountId = parts[2].parse().expect("Invalid recipient");
     
     // Execute the transfer via Promise

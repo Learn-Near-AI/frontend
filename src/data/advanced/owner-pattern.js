@@ -41,7 +41,7 @@ fn assert_owner(&self) {
 }
 
 // Use it to protect sensitive operations:
-pub fn withdraw(&mut self, amount: u128) {
+pub fn withdraw(&mut self, amount: NearToken) {
     self.assert_owner();  // Guard check!
     // ... withdrawal logic ...
 }

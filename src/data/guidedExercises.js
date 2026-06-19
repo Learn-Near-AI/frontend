@@ -27,6 +27,7 @@ export const BASIC_GUIDED_EXAMPLES = [
   'voting-system',
   'simple-marketplace',
   'batch-operations',
+  'collections-code-exercise',
   // NFTs
   'nft-standard',
   'nft-metadata',
@@ -35,6 +36,23 @@ export const BASIC_GUIDED_EXAMPLES = [
   'nft-enumeration',
   'nft-royalties',
   'nft-marketplace',
+  // Cross-Contract
+  'simple-calls',
+  'callbacks',
+  'cross-call-ft',
+  'cross-call-nft',
+  'batch-calls',
+  // Chain Signatures
+  'chain-signatures-basics',
+  'signature-verification',
+  'signature-requests',
+  'multi-chain-signing',
+  'cross-chain-auth',
+  'signature-callbacks',
+  // Indexing
+  'indexer-data',
+  // Advanced Patterns
+  'testing',
 ];
 
 export const isGuidedExample = (exampleId) => BASIC_GUIDED_EXAMPLES.includes(exampleId);
@@ -160,6 +178,21 @@ export const putItToTheTest = {
 - **\`add_many(items)\`**: require \`items.len() <= MAX_BATCH\` (e.g. 100); push each item to storage.
 - **\`get_all\`** / **\`len\`**: return all items and length. Run; add_many with > MAX_BATCH must fail.`,
 
+  'collections-code-exercise': `### Put it to the test
+
+This contract combines all collection patterns. Fix the **8 bugs**:
+
+- **Bug 1 — Todo**: \`add_todo\` doesn't validate that title is non-empty.
+- **Bug 2 — Todo**: \`complete_todo\` doesn't check that the caller owns the todo.
+- **Bug 3 — Profiles**: \`set_profile\` accepts \`account\` param instead of using predecessor.
+- **Bug 4 — Profiles**: \`set_profile\` doesn't record \`created_at\` using \`block_timestamp\`.
+- **Bug 5 — Voting**: \`vote\` doesn't check if the caller has already voted.
+- **Bug 6 — Voting**: \`vote\` doesn't increment \`votes_yes\` or \`votes_no\`.
+- **Bug 7 — Marketplace**: \`buy\` doesn't check that \`attached_deposit >= price\`.
+- **Bug 8 — Batch**: \`add_many\` doesn't validate \`items.len() <= MAX_BATCH\`.
+
+Compile after each fix. Deploy when all bugs are fixed!`,
+
   // NFTs
   'nft-standard': `### Put it to the test
 
@@ -195,6 +228,33 @@ export const putItToTheTest = {
 
 - **\`list\`**: store a sale (token_id, seller, nft_contract_id, price) with a unique listing_id.
 - **\`buy\`**: require sale exists and attached deposit >= price; remove sale; call NFT \`nft_transfer_from\` and on success send payment to seller (callback pattern). Run; buy must fail if underpaid.`,
+
+  // Cross-Contract
+  'simple-calls': `### Put it to the test
+
+- **\`call_other_contract\`**: Create a \`Promise::new(contract_id)\` and call \`.function_call(method_name, empty_args, 0 deposit, 5 TGas)\`. Return the promise.
+- Run; call_other_contract must not panic on a valid target.`,
+
+  'callbacks': `### Put it to the test
+
+- **\`call_then_callback\`**: Call \`get_value\` on external contract, then chain \`.then()\` to call \`on_result\` on self.
+- **\`on_result\`**: Read \`env::promise_result(0)\`, return the u64 value on success, 0 on failure.
+- Run; the callback must execute and return a value.`,
+
+  'cross-call-ft': `### Put it to the test
+
+- **\`ft_transfer_call\`**: Format args as JSON with \`receiver_id\`, \`amount\` (string), \`memo\` (null). Call \`ft_transfer\` on the token contract with 1 yoctoNEAR deposit and 10 TGas.
+- Run; the FT transfer must complete successfully.`,
+
+  'cross-call-nft': `### Put it to the test
+
+- **\`nft_transfer_call\`**: Format args as JSON with \`receiver_id\`, \`token_id\`, \`memo\` (null), \`msg\` (""). Call \`nft_transfer_call\` on the NFT contract with 1 yoctoNEAR deposit and 10 TGas.
+- Run; the NFT transfer must succeed (ensure approval was set first).`,
+
+  'batch-calls': `### Put it to the test
+
+- **\`batch_call\`**: Call \`get_value\` on contract_a, then chain \`.then()\` to call \`get_value\` on contract_b. Use \`Gas::from_tgas(10)\` per call.
+- Run; contract_a must execute before contract_b.`,
 
   'basics-code-exercise': `### Put it to the test
 
@@ -466,6 +526,28 @@ export const exerciseHints = {
       'add_many: if (items.length > MAX_BATCH) panic; items.forEach(i => this.items.push(i)). get_all: return this.items.',
     ],
   },
+  'collections-code-exercise': {
+    Rust: [
+      'Bug 1: add_todo: require!(title.len() > 0, "...").',
+      'Bug 2: complete_todo: Get owner from todo_owners, require!(owner == env::predecessor_account_id()).',
+      'Bug 3: set_profile: Use env::predecessor_account_id() instead of the account parameter; remove account param from signature.',
+      'Bug 4: set_profile: Add created_at: env::block_timestamp().',
+      'Bug 5: vote: require!(!self.voters.contains(&voter), "Already voted").',
+      'Bug 6: vote: if choice { self.votes_yes += 1 } else { self.votes_no += 1 }.',
+      'Bug 7: buy: require!(env::attached_deposit() >= price, "Insufficient payment").',
+      'Bug 8: add_many: require!(items.len() <= MAX_BATCH as usize, "Batch too large").',
+    ],
+    JavaScript: [
+      'Bug 1: add_todo: Check title.length === 0.',
+      'Bug 2: complete_todo: Check todo_owners[id] === near.predecessorAccountId().',
+      'Bug 3: set_profile: Use near.predecessorAccountId() instead of the account param.',
+      'Bug 4: set_profile: Add created_at: near.blockTimestamp().',
+      'Bug 5: vote: Check this.voters.includes(near.predecessorAccountId()).',
+      'Bug 6: vote: Increment this.votes_yes or this.votes_no based on choice.',
+      'Bug 7: buy: Check near.attachedDeposit() >= price.',
+      'Bug 8: add_many: Check items.length > MAX_BATCH.',
+    ],
+  },
   // NFTs
   'nft-standard': {
     Rust: [
@@ -523,6 +605,125 @@ export const exerciseHints = {
       'list: sales[listing_id] = { token_id, seller_id, nft_contract_id, price }. buy: require deposit; delete sale; NearPromise nft_transfer_from then on_payment_sent to transfer.',
     ],
   },
+  // Cross-Contract
+  'simple-calls': {
+    Rust: [
+      'Use Promise::new(contract_id).function_call(method_name, args, deposit, gas).',
+      'Args: b"{}".to_vec(), Deposit: NearToken::from_yoctonear(0), Gas: Gas::from_tgas(5).',
+      'The method return type is Promise — just return the .function_call() result.',
+    ],
+    JavaScript: [
+      'Use NearPromise.new(contract_id).functionCall(method_name, bytes(JSON.stringify({})), 0n, gas).',
+      'Gas: BigInt(Math.floor(Number(near.prepaidGas()) / 2)).',
+      'Don\'t forget .asReturn() at the end.',
+    ],
+  },
+  'callbacks': {
+    Rust: [
+      'External call: Promise::new(contract_id).function_call("get_value", b"{}".to_vec(), 0 yocto, 10 TGas).',
+      'Chain callback: .then(Promise::new(env::current_account_id()).function_call("on_result", b"{}".to_vec(), 0 yocto, 10 TGas)).',
+      'Read result: env::promise_result(0); use match to handle Successful(data) vs Failed.',
+      'Deserialize: u64::try_from_slice(&data).unwrap_or(0). Import BorshDeserialize.',
+    ],
+    JavaScript: [
+      'Chain: NearPromise.new(contract_id).functionCall("get_value", args, 0n, gas).then(NearPromise.new(near.currentAccountId()).functionCall("on_result", args, 0n, gas)).asReturn().',
+      'Read result: try { near.promiseResultRaw(0); ... } catch (_) { return 0; }.',
+      'Parse u64: new DataView(result.buffer, result.byteOffset, 8).getBigUint64(0, true).',
+    ],
+  },
+  'cross-call-ft': {
+    Rust: [
+      'Args format: format!(r#"{{"receiver_id":"{}","amount":"{}","memo":null}}"#, receiver_id, amount).',
+      'Call ft_transfer with NearToken::from_yoctonear(1) deposit (required by NEP-141).',
+      'Gas: Gas::from_tgas(10).',
+    ],
+    JavaScript: [
+      'Args: bytes(JSON.stringify({ receiver_id, amount, memo: null })).',
+      'Deposit: 1n (1 yoctoNEAR). Gas: Math.floor(prepaidGas / 2).',
+      'Use .functionCall("ft_transfer", args, 1n, gas).asReturn().',
+    ],
+  },
+  'cross-call-nft': {
+    Rust: [
+      'Args format: format!(r#"{{"receiver_id":"{}","token_id":"{}","memo":null,"msg":""}}"#, receiver_id, token_id).',
+      'Call nft_transfer_call with NearToken::from_yoctonear(1) deposit (required by NEP-171).',
+      'Gas: Gas::from_tgas(10). Ensure the owner has approved your contract first.',
+    ],
+    JavaScript: [
+      'Args: bytes(JSON.stringify({ receiver_id, token_id, memo: null, msg: "" })).',
+      'Deposit: 1n. Gas: Math.floor(prepaidGas / 2).',
+      'Use .functionCall("nft_transfer_call", args, 1n, gas).asReturn().',
+    ],
+  },
+  'batch-calls': {
+    Rust: [
+      'First: Promise::new(contract_a).function_call("get_value", b"{}".to_vec(), 0 yocto, gas_per_call).',
+      'Chain: .then(Promise::new(contract_b).function_call("get_value", b"{}".to_vec(), 0 yocto, gas_per_call)).',
+      'Set gas_per_call = Gas::from_tgas(10) before the chain.',
+    ],
+    JavaScript: [
+      'Gas: BigInt(Math.floor(Number(near.prepaidGas()) / 3)) — 3 parts (this exec + call A + call B).',
+      'Chain: NearPromise.new(contract_a).functionCall("get_value", args, 0n, gas).then(NearPromise.new(contract_b).functionCall("get_value", args, 0n, gas)).asReturn().',
+    ],
+  },
+  // Chain Signatures
+  'chain-signatures-basics': `### Put it to the test
+
+- Implement **\`request_signature\`**: Create a \`SignRequest { payload, path, key_version }\` and call \`mpc::ext(MPC_CONTRACT).with_static_gas(GAS).with_attached_deposit(DEPOSIT).sign(request)\`.
+- Mark the method as **\`#[payable]\`** and return the \`Promise\`.
+- Run; the MPC contract must receive and process the signature request!`,
+
+  'signature-verification': `### Put it to the test
+
+- Implement **\`validate_payload\`**: Return \`payload.len() == 32\`.
+- Implement **\`hash_for_signing\`**: Return \`env::keccak256_array(&message)\`.
+- Run; validate_payload must reject non-32-byte inputs; hash_for_signing must return 32 bytes!`,
+
+  'signature-requests': `### Put it to the test
+
+- Implement **\`create_request\`**: Store a \`RequestRecord\` with status "pending" in \`requests\`.
+- Implement **\`get_request\`**: Return the request from \`requests\` or \`None\`.
+- Implement **\`sign_request\`**: Look up the request, create a \`SignRequest\`, call MPC's \`sign\`.
+- Run; get_request must return the created request; sign_request must forward the correct payload!`,
+
+  'multi-chain-signing': `### Put it to the test
+
+- Implement **\`set_chain_path\`**: Insert the path into \`chain_paths\`.
+- Implement **\`get_chain_path\`**: Return the path or \`None\`.
+- Implement **\`sign_for_chain\`**: Look up the path for the chain (default "ethereum-1"), create \`SignRequest\`, call MPC.
+- Run; sign_for_chain must use the correct path for each chain!`,
+
+  'cross-chain-auth': `### Put it to the test
+
+- Implement **\`authorize_cross_chain\`**: Insert into \`authorized\` set and log.
+- Implement **\`revoke_cross_chain\`**: Remove from \`authorized\` set.
+- Implement **\`is_authorized\`**: Check if the identity is in the set.
+- Implement **\`require_authorized\`**: Panic if not authorized.
+- Run; only authorized identities pass require_authorized; revoked identities are rejected!`,
+
+  'signature-callbacks': `### Put it to the test
+
+- Implement **\`request_sign_and_store\`**: Call MPC then chain \`.then()\` to \`on_signature_ready\`.
+- Implement **\`on_signature_ready\`**: Read \`env::promise_result(0)\`, store signature on success.
+- Implement **\`get_signature\`**: Return the stored signature or \`None\`.
+- Run; the signature must be stored after the MPC call completes successfully!`,
+
+  // Indexing
+  'indexer-data': `### Put it to the test
+
+- Implement **\`set_record\`**: Insert the record into \`records\`, then emit \`EVENT_JSON\` with standard "example", version "1.0.0", event "record_updated", and data including key, value, and whether it was replaced.
+- Implement **\`get_record\`**: Return the record or \`None\`.
+- Run; indexers must be able to parse the event and track state changes!`,
+
+  // Advanced Patterns
+  'testing': `### Put it to the test
+
+- Implement **\`increment\`**: Assert caller is owner, then add 1 to counter.
+- Implement **\`decrement\`**: Assert caller is owner, check for underflow, then subtract 1.
+- Implement **\`get_counter\`**: Return the current counter value.
+- Write tests for: initialization (counter == 0), increment (counter == 1), decrement (counter == 0), underflow protection (panic), access control (non-owner panic).
+- Run \`cargo test\`; all tests must pass!`,
+
   'basics-code-exercise': {
     Rust: [
       'get_counter: Return self.counter, not a hardcoded value.',
@@ -563,6 +764,117 @@ export const exerciseHints = {
       'get_balance: Use checked addition/subtraction for balance operations.',
       'add_item: Add if (this.is_paused) near.panic("Contract is paused").',
       'vote: Check if near.predecessorAccountId() is an admin before voting.',
+    ],
+  },
+  // Chain Signatures
+  'chain-signatures-basics': {
+    Rust: [
+      'Define SignRequest struct with payload, path, key_version.',
+      'Define MPC trait with #[ext_contract(mpc)] and sign method.',
+      'request_signature: Create SignRequest, call mpc::ext(MPC_CONTRACT).with_static_gas(GAS).with_attached_deposit(DEPOSIT).sign(request).',
+      'Import ext_contract: use near_sdk::ext_contract.',
+      'Mark method as #[payable] and return Promise.',
+    ],
+    JavaScript: [
+      'Create request object with payload, path, key_version.',
+      'Call NearPromise.new(MPC_CONTRACT).functionCall("sign", bytes(JSON.stringify(request)), MPC_DEPOSIT, MPC_GAS).asReturn().',
+      'Use @call({ payable: true }) decorator.',
+    ],
+  },
+  'signature-verification': {
+    Rust: [
+      'validate_payload: payload.len() == 32.',
+      'hash_for_signing: env::keccak256_array(&message).',
+      'Both are &self view methods — no state changes, no gas cost.',
+    ],
+    JavaScript: [
+      'validate_payload: Array.isArray(payload) && payload.length === 32.',
+      'hash_for_signing: Array.from(near.keccak256(msg)).',
+    ],
+  },
+  'signature-requests': {
+    Rust: [
+      'create_request: self.requests.insert(&request_id, &RequestRecord { payload, path, status: "pending".to_string() }).',
+      'get_request: self.requests.get(&request_id).',
+      'sign_request: Look up record, create SignRequest, call mpc::ext(...).sign(req).',
+      'Use #[near(serializers = [json, borsh])] for RequestRecord.',
+    ],
+    JavaScript: [
+      'create_request: Validate payload is 32 bytes, store with status "pending".',
+      'get_request: return this.requests[request_id] ?? null.',
+      'sign_request: Look up record, create NearPromise to MPC.functionCall("sign", ...).',
+    ],
+  },
+  'multi-chain-signing': {
+    Rust: [
+      'new(): Initialize UnorderedMap with default paths (ethereum-1, bitcoin-1, solana-1).',
+      'set_chain_path: self.chain_paths.insert(&chain_id, &path).',
+      'get_chain_path: self.chain_paths.get(&chain_id).',
+      'sign_for_chain: self.chain_paths.get(&chain_id).unwrap_or_else(|| "ethereum-1".to_string()).',
+    ],
+    JavaScript: [
+      'Constructor: this.chain_paths = { ethereum: "ethereum-1", bitcoin: "bitcoin-1", solana: "solana-1" }.',
+      'set_chain_path: this.chain_paths[chain_id] = path.',
+      'get_chain_path: return this.chain_paths[chain_id] ?? null.',
+      'sign_for_chain: Look up path (default "ethereum-1"), call MPC.',
+    ],
+  },
+  'cross-chain-auth': {
+    Rust: [
+      'authorize: self.authorized.insert(&external_id); env::log_str(...).',
+      'revoke: self.authorized.remove(&external_id).',
+      'is_authorized: self.authorized.contains(&external_id).',
+      'require_authorized: near_sdk::require!(self.authorized.contains(&external_id), "Not authorized...").',
+    ],
+    JavaScript: [
+      'authorize: Push to this.authorized array if not already included; near.log(...).',
+      'revoke: this.authorized = this.authorized.filter((x) => x !== external_id).',
+      'is_authorized: return this.authorized.includes(external_id).',
+      'require_authorized: near.panic(...) if not authorized.',
+    ],
+  },
+  'signature-callbacks': {
+    Rust: [
+      'request_sign_and_store: Create SignRequest, call MPC, chain .then(Promise::new(account).function_call("on_signature_ready", ...)).',
+      'on_signature_ready: match env::promise_result(0) { Successful(sig) => signatures.insert, _ => log failure }.',
+      'get_signature: signatures.get(&request_id).',
+      'Use LookupMap<String, Vec<u8>> with prefix b"s".',
+    ],
+    JavaScript: [
+      'request_sign_and_store: NearPromise.new(MPC).functionCall("sign", ...).then(NearPromise.new(account).functionCall("on_signature_ready", ...)).asReturn().',
+      'on_signature_ready: near.promiseResult(0); check length > 0; store in this.signatures[request_id].',
+      'get_signature: return this.signatures[request_id] ?? null.',
+    ],
+  },
+  // Indexing
+  'indexer-data': {
+    Rust: [
+      'set_record: Get prev value with self.records.get(&key), insert new value, build JSON with format!(), log with env::log_str(&format!("EVENT_JSON:{}", json)).',
+      'get_record: self.records.get(&key).',
+      'Escape quotes in user input: .replace(\'"\', "\\\\\\"").',
+      'JSON format: {"standard":"example","version":"1.0.0","event":"record_updated","data":{"key":"...","value":"...","replaced":true/false}}.',
+    ],
+    JavaScript: [
+      'set_record: Check if key exists (replaced), store, build event object, near.log("EVENT_JSON:" + JSON.stringify(event)).',
+      'get_record: return this.records[key] ?? null.',
+      'Use JSON.stringify for safe escaping.',
+    ],
+  },
+  // Advanced Patterns
+  'testing': {
+    Rust: [
+      'increment: require!(env::predecessor_account_id() == self.owner_id, "..."); self.counter += 1.',
+      'decrement: require!(owner); require!(self.counter > 0, "Underflow..."); self.counter -= 1.',
+      'Tests: Use VMContextBuilder and testing_env!.',
+      'Test init: assert_eq!(contract.get_counter(), 0).',
+      'Test increment: increment(), assert_eq!(contract.get_counter(), 1).',
+      'Test non-owner: Use #[should_panic(expected = "...")] with different predecessor.',
+      'Test underflow: #[should_panic(expected = "Underflow...")] on decrement from 0.',
+    ],
+    JavaScript: [
+      'increment: if (predecessor !== this.owner_id) near.panic(...); this.counter++.',
+      'decrement: check owner; if (this.counter === 0) near.panic(...); this.counter--.',
+      'Tests: Use NEAR JS SDK test framework with near.test.each or similar.',
     ],
   },
 };

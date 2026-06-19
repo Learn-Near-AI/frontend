@@ -791,11 +791,12 @@ impl Contract {
         self.royalties.get(&token_id)
     }
 }`,
-    JavaScript: `import { NearBindgen, view, call } from "near-sdk-js";
+    JavaScript: `import { NearBindgen, view, call, near } from "near-sdk-js";
 
 @NearBindgen({})
 class Contract {
-  constructor({ royalties } = { royalties: {} }) {
+  constructor({ owner_id, royalties } = { owner_id: null, royalties: {} }) {
+    this.owner_id = owner_id ?? near.currentAccountId();
     this.royalties = royalties || {};
   }
 
@@ -806,6 +807,7 @@ class Contract {
 
   @call({})
   set_royalty({ token_id, percent_basis_points }) {
+    if (near.predecessorAccountId() !== this.owner_id) throw new Error("Only owner can set royalty");
     if (percent_basis_points > 10000) throw new Error("Royalty max 100%");
     this.royalties[token_id] = percent_basis_points;
   }

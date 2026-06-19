@@ -95,14 +95,7 @@ export function StreakProvider({ children }) {
     localStorage.removeItem(BADGE_CLOSED_KEY);
   };
 
-  const isExampleUnlocked = (exampleId) => {
-    if (INITIAL_UNLOCKED.includes(exampleId)) return true;
-    if (!WORKING_EXAMPLES.includes(exampleId)) return false;
-    const exampleIndex = WORKING_EXAMPLES.indexOf(exampleId);
-    if (exampleIndex <= 0) return false;
-    const previousExampleId = WORKING_EXAMPLES[exampleIndex - 1];
-    return completedExamples.includes(previousExampleId);
-  };
+  const isExampleUnlocked = () => true;
 
   const getUnlockedCount = () => {
     return (

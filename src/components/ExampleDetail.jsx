@@ -497,8 +497,8 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className={isIntroExample ? 'w-full' : 'lg:basis-3/5'}>
+      <div className="flex flex-row flex-wrap justify-center gap-6">
+        <div className={isIntroExample ? 'w-full' : 'flex-1 min-w-[400px] lg:min-w-[520px] max-w-[650px]'}>
           <CodeEditor
             code={code}
             setCode={setCode}
@@ -524,7 +524,7 @@ function ExampleDetail({ example, onBack, shouldStartTour = false, onTourStart }
         </div>
 
         {!isIntroExample && (
-          <div className="lg:basis-2/5">
+          <div className="w-[350px] max-w-[350px] flex-shrink-0">
             <InfoPanel
               example={example}
               activeInfoTab={activeInfoTab}

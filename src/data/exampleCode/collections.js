@@ -255,7 +255,7 @@ impl Contract {
 
     pub fn get_profile(&self, account: AccountId) -> Option<(String, String, u64)> {
         // Return the profile's (name, bio, created_at) if present.
-        ()
+        let _: u64 = ();
     }
 }`,
     JavaScriptExercise: `import { NearBindgen, view, call, near } from "near-sdk-js";
@@ -268,7 +268,7 @@ class Contract {
 
   @view({})
   get_profile({ account }) {
-    return this.profiles[account] || null;
+    // TODO: Return profile for account or null
   }
 
   @call({})
@@ -517,7 +517,7 @@ impl Contract {
     #[payable]
     pub fn buy(&mut self, listing_id: String) -> near_sdk::Promise {
         // Get the listing; require attached deposit >= price; remove listing; transfer price to seller and call nft_transfer_from.
-        ()
+        let _: u64 = ();
     }
 
     pub fn get_listing(&self, listing_id: String) -> Option<(AccountId, AccountId, NearToken, String)> {
@@ -806,6 +806,328 @@ class Contract {
 }
 
 `,
+  },
+  'collections-code-exercise': {
+    RustExercise: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::{UnorderedMap, UnorderedSet, Vector};
+use near_sdk::{env, AccountId, require, NearToken};
+use near_sdk::PanicOnDefault;
+
+const MAX_BATCH: u32 = 100;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    todos: UnorderedMap<u64, String>,
+    todo_owners: UnorderedMap<u64, AccountId>,
+    next_id: u64,
+    profiles: UnorderedMap<AccountId, String>,
+    votes_yes: u64,
+    votes_no: u64,
+    voters: UnorderedSet<AccountId>,
+    items: Vector<String>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            todos: UnorderedMap::new(b"t"),
+            todo_owners: UnorderedMap::new(b"o"),
+            next_id: 1,
+            profiles: UnorderedMap::new(b"p"),
+            votes_yes: 0,
+            votes_no: 0,
+            voters: UnorderedSet::new(b"v"),
+            items: Vector::new(b"i"),
+        }
+    }
+
+    pub fn add_todo(&mut self, title: String) {
+        // TODO: Require non-empty title; insert into todos and todo_owners
+        let _: u64 = ();
+    }
+
+    pub fn complete_todo(&mut self, id: u64) {
+        // TODO: Get owner from todo_owners; require caller is owner
+        let _: u64 = ();
+    }
+
+    pub fn set_profile(&mut self, name: String, account: AccountId) {
+        // TODO: Use predecessor_account_id instead of account param; record block_timestamp
+        let _: u64 = ();
+    }
+
+    pub fn get_profile(&self, account: AccountId) -> Option<String> {
+        self.profiles.get(&account)
+    }
+
+    pub fn vote(&mut self, choice: bool) {
+        // TODO: Check caller hasn't voted; increment votes_yes or votes_no
+        let _: u64 = ();
+    }
+
+    pub fn get_results(&self) -> (u64, u64) {
+        (self.votes_yes, self.votes_no)
+    }
+
+    #[payable]
+    pub fn buy(&mut self, item_id: String, price: NearToken) {
+        // TODO: Verify attached_deposit >= price
+        let _: u64 = ();
+    }
+
+    pub fn add_many(&mut self, items: Vec<String>) {
+        // TODO: Validate items.len() <= MAX_BATCH; push each item
+        let _: u64 = ();
+    }
+
+    pub fn get_all_items(&self) -> Vec<String> {
+        self.items.iter().collect()
+    }
+}`,
+    JavaScriptExercise: `import { NearBindgen, view, call, near, NearPromise } from "near-sdk-js";
+
+const MAX_BATCH = 100;
+
+@NearBindgen({})
+class Contract {
+  constructor({ todos, todo_owners, next_id, profiles, votes_yes, votes_no, voters, items } = {}) {
+    this.todos = todos || {};
+    this.todo_owners = todo_owners || {};
+    this.next_id = next_id || 1;
+    this.profiles = profiles || {};
+    this.votes_yes = votes_yes || 0;
+    this.votes_no = votes_no || 0;
+    this.voters = voters || [];
+    this.items = items || [];
+  }
+
+  @call({})
+  add_todo({ title }) {
+    // TODO: require non-empty title; this.todos[this.next_id] = title; this.todo_owners[this.next_id] = near.predecessorAccountId(); this.next_id++
+  }
+
+  @call({})
+  complete_todo({ id }) {
+    // TODO: require this.todo_owners[id] === near.predecessorAccountId(); delete this.todos[id]; delete this.todo_owners[id]
+  }
+
+  @call({})
+  set_profile({ name, account }) {
+    // TODO: Use predecessorAccountId instead of account param; record blockTimestamp
+  }
+
+  @view({})
+  get_profile({ account }) {
+    return this.profiles[account] || null;
+  }
+
+  @call({})
+  vote({ choice }) {
+    // TODO: Check caller hasn't voted; increment votes_yes or votes_no
+  }
+
+  @view({})
+  get_results() {
+    return [this.votes_yes, this.votes_no];
+  }
+
+  @call({ payable: true })
+  buy({ item_id, price }) {
+    // TODO: Require attachedDeposit >= price
+  }
+
+  @call({})
+  add_many({ items }) {
+    // TODO: Validate items.length <= MAX_BATCH; push each
+  }
+
+  @view({})
+  get_all_items() {
+    return this.items;
+  }
+}`,
+    Rust: `use near_sdk::near;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::{UnorderedMap, UnorderedSet, Vector};
+use near_sdk::{env, AccountId, require, NearToken};
+use near_sdk::PanicOnDefault;
+
+const MAX_BATCH: u32 = 100;
+
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
+pub struct Contract {
+    todos: UnorderedMap<u64, String>,
+    todo_owners: UnorderedMap<u64, AccountId>,
+    next_id: u64,
+    profiles: UnorderedMap<AccountId, String>,
+    votes_yes: u64,
+    votes_no: u64,
+    voters: UnorderedSet<AccountId>,
+    items: Vector<String>,
+}
+
+#[near]
+impl Contract {
+    #[init]
+    pub fn new() -> Self {
+        Self {
+            todos: UnorderedMap::new(b"t"),
+            todo_owners: UnorderedMap::new(b"o"),
+            next_id: 1,
+            profiles: UnorderedMap::new(b"p"),
+            votes_yes: 0,
+            votes_no: 0,
+            voters: UnorderedSet::new(b"v"),
+            items: Vector::new(b"i"),
+        }
+    }
+
+    pub fn add_todo(&mut self, title: String) {
+        require!(title.len() > 0, "Title cannot be empty");
+        let id = self.next_id;
+        self.todos.insert(&id, &title);
+        self.todo_owners.insert(&id, &env::predecessor_account_id());
+        self.next_id += 1;
+    }
+
+    pub fn complete_todo(&mut self, id: u64) {
+        let owner = self.todo_owners.get(&id).expect("Todo not found");
+        require!(owner == env::predecessor_account_id(), "Only owner can complete");
+        self.todos.remove(&id);
+        self.todo_owners.remove(&id);
+    }
+
+    pub fn set_profile(&mut self, name: String) {
+        let account = env::predecessor_account_id();
+        self.profiles.insert(&account, &name);
+        env::log_str(&format!("Profile set for {} at {}", account, env::block_timestamp()));
+    }
+
+    pub fn get_profile(&self, account: AccountId) -> Option<String> {
+        self.profiles.get(&account)
+    }
+
+    pub fn vote(&mut self, choice: bool) {
+        let voter = env::predecessor_account_id();
+        require!(!self.voters.contains(&voter), "Already voted");
+        self.voters.insert(&voter);
+        if choice {
+            self.votes_yes += 1;
+        } else {
+            self.votes_no += 1;
+        }
+    }
+
+    pub fn get_results(&self) -> (u64, u64) {
+        (self.votes_yes, self.votes_no)
+    }
+
+    #[payable]
+    pub fn buy(&mut self, item_id: String, price: NearToken) {
+        require!(env::attached_deposit() >= price, "Insufficient payment");
+        env::log_str(&format!("Purchased {}", item_id));
+    }
+
+    pub fn add_many(&mut self, items: Vec<String>) {
+        require!(items.len() <= MAX_BATCH as usize, "Batch too large");
+        for item in items {
+            self.items.push(&item);
+        }
+    }
+
+    pub fn get_all_items(&self) -> Vec<String> {
+        self.items.iter().collect()
+    }
+}`,
+    JavaScript: `import { NearBindgen, view, call, near, NearPromise } from "near-sdk-js";
+
+const MAX_BATCH = 100;
+
+@NearBindgen({})
+class Contract {
+  constructor({ todos, todo_owners, next_id, profiles, votes_yes, votes_no, voters, items } = {}) {
+    this.todos = todos || {};
+    this.todo_owners = todo_owners || {};
+    this.next_id = next_id || 1;
+    this.profiles = profiles || {};
+    this.votes_yes = votes_yes || 0;
+    this.votes_no = votes_no || 0;
+    this.voters = voters || [];
+    this.items = items || [];
+  }
+
+  @call({})
+  add_todo({ title }) {
+    if (title.length === 0) near.panic("Title cannot be empty");
+    const id = this.next_id;
+    this.todos[id] = title;
+    this.todo_owners[id] = near.predecessorAccountId();
+    this.next_id++;
+  }
+
+  @call({})
+  complete_todo({ id }) {
+    const owner = this.todo_owners[id];
+    if (!owner) near.panic("Todo not found");
+    if (owner !== near.predecessorAccountId()) near.panic("Only owner can complete");
+    delete this.todos[id];
+    delete this.todo_owners[id];
+  }
+
+  @call({})
+  set_profile({ name }) {
+    const account = near.predecessorAccountId();
+    this.profiles[account] = name;
+    near.log("Profile set for " + account + " at " + near.blockTimestamp());
+  }
+
+  @view({})
+  get_profile({ account }) {
+    return this.profiles[account] || null;
+  }
+
+  @call({})
+  vote({ choice }) {
+    const voter = near.predecessorAccountId();
+    if (this.voters.includes(voter)) near.panic("Already voted");
+    this.voters.push(voter);
+    if (choice) {
+      this.votes_yes += 1;
+    } else {
+      this.votes_no += 1;
+    }
+  }
+
+  @view({})
+  get_results() {
+    return [this.votes_yes, this.votes_no];
+  }
+
+  @call({ payable: true })
+  buy({ item_id, price }) {
+    const deposit = near.attachedDeposit();
+    if (deposit < price) near.panic("Insufficient payment");
+    near.log("Purchased " + item_id);
+  }
+
+  @call({})
+  add_many({ items }) {
+    if (items.length > MAX_BATCH) near.panic("Batch too large");
+    for (const item of items) {
+      this.items.push(item);
+    }
+  }
+
+  @view({})
+  get_all_items() {
+    return this.items;
+  }
+}`,
   },
 }
 

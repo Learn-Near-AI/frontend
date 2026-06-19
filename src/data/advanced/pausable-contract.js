@@ -86,7 +86,7 @@ pub fn new() -> Self {
     content: `Now guard sensitive operations:
 
 \`\`\`rust
-pub fn transfer(&mut self, to: AccountId, amount: u128) {
+pub fn transfer(&mut self, to: AccountId, amount: NearToken) {
     require!(!self.paused, "Contract is paused for safety");
     // ... transfer logic ...
 }

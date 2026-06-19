@@ -90,6 +90,15 @@ If something's confusing or you find a bug, that's on us. We're still learning t
   'upgrade-pattern':
     ">  **CRITICAL WARNING:** NEVER delete fields when upgrading, or you'll lose data forever!\n\nThe **Evolution**! In games your character evolves. Your contract can too — update code while keeping data!\n\n- **Simple pattern:** Just `version: u32` + `migrate()` function\n- **How it works:** Deploy new WASM to same account, state is preserved\n- **migrate():** Increments version (and transforms data if needed!)\n\nNo proxy pattern, no Promise::new().deploy_contract(). Just version += 1! The actual code is much simpler than you might expect.",
 
+  'todo-list':
+    '**Todo list** — Per-user task management on-chain.\n\n- **`add_todo`** validates non-empty title and assigns caller as owner.\n- **`complete_todo`/`update_todo`/`delete_todo`** require caller == todo owner.\n- Uses **UnorderedMap** for fast lookups and **Vector** for ordered listing.',
+
+  'user-profiles':
+    '**User profiles** — Self-managed identity on-chain.\n\n- **`set_profile`** stores name, bio, and timestamp keyed by caller\'s account.\n- **`get_profile`** returns profile data or None.\n- Uses **UnorderedMap<AccountId, Profile>** for instant key-based lookups.',
+
+  'voting-system':
+    '**Voting system** — One-person-one-vote on-chain.\n\n- **`vote`** uses **UnorderedSet** to prevent double-voting.\n- **`get_results`** returns vote tallies O(1).\n- Uses simple counters for instant results without iteration.',
+
   'simple-marketplace':
     '**Simple marketplace** — Buy and sell NFTs.\n\n- **`list_item`** creates listings; **`buy`** pays the seller and transfers the NFT via **`nft_transfer_from`**.\n- **`on_payment_sent`** callback checks **`promise_result`** before transferring payment—essential for safe cross-contract flows.',
 

@@ -705,30 +705,27 @@ User: ${userQuestion}`;
                     </div>
                   </div>
                   <div className="relative">
-                    <textarea
-                      ref={textareaRef}
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend();
-                        }
-                      }}
-                      placeholder="Ask about NEAR development..."
-                      rows={1}
-                      className="w-full px-3 py-2 pr-10 rounded-lg bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-near-primary focus:border-transparent transition-all text-sm resize-none"
-                      disabled={isLoading}
-                      style={{ minHeight: '40px', maxHeight: '200px' }}
-                    />
-                    <button
-                      onClick={handleSend}
-                      disabled={!input.trim() || isLoading}
-                      className="absolute right-2 bottom-3 p-1.5 bg-near-primary hover:bg-[#00D689] disabled:bg-gray-300 dark:disabled:bg-[#3e3e42] disabled:cursor-not-allowed text-white rounded-md transition-colors"
-                    >
-                      <Send className="h-4 w-4" />
-                    </button>
-                  </div>
+  <textarea
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    }}
+    placeholder="Ask about NEAR development..."
+    className="w-full px-3 py-2 pr-10 rounded-lg bg-gray-100 dark:bg-[#1a1b1f] border border-gray-200 dark:border-[#3e3e42] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-near-primary focus:border-transparent transition-all text-sm"
+    disabled={isLoading}
+  />
+  <button
+    onClick={handleSend}
+    disabled={!input.trim() || isLoading}
+    className="absolute right-2 bottom-3 p-1.5 bg-near-primary hover:bg-[#00D689] disabled:bg-gray-300 dark:disabled:bg-[#3e3e42] disabled:cursor-not-allowed text-white rounded-md transition-colors"
+  >
+    <Send className="h-4 w-4" />
+  </button>
+</div>
                 </div>
               </div>
             </div>
